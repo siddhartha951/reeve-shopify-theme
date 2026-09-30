@@ -1,0 +1,708 @@
+{% comment %}
+  Reeve FAQ Pills — pill-filterable FAQ section for Horizon theme
+  Section handle: reeve-faq-pills
+
+  Categories are never configured separately — the pill row is derived
+  automatically from whichever "category" values are used across the FAQ
+  blocks below (in first-seen order), so there's nothing to keep in sync.
+{% endcomment %}
+
+{%- liquid
+  assign s = section.settings
+  assign faqs = section.blocks | where: 'type', 'faq'
+  assign category_labels = faqs | map: 'settings' | map: 'category' | compact | uniq
+  assign section_id = section.id
+  assign accordion_name = 'rfaqp-group-' | append: section_id
+-%}
+
+<section
+  class="reeve-faq-pills"
+  data-section-id="{{ section_id }}"
+  data-animations-enabled="{{ s.enable_animations }}"
+  style="
+    --rfaqp-bg: {{ s.background_color }};
+    --rfaqp-heading: {{ s.heading_color }};
+    --rfaqp-text: {{ s.text_color }};
+    --rfaqp-eyebrow: {{ s.eyebrow_color }};
+    --rfaqp-accent: {{ s.accent_color }};
+    --rfaqp-pill-bg: {{ s.pill_bg_color }};
+    --rfaqp-pill-border: {{ s.pill_border_color }};
+    --rfaqp-pill-text: {{ s.pill_text_color }};
+    --rfaqp-pill-active-bg: {{ s.active_pill_bg_color }};
+    --rfaqp-pill-active-text: {{ s.active_pill_text_color }};
+    --rfaqp-divider: {{ s.divider_color }};
+    --rfaqp-max-width: {{ s.max_width }}px;
+    --rfaqp-padding-top-desktop: {{ s.padding_top_desktop }}px;
+    --rfaqp-padding-bottom-desktop: {{ s.padding_bottom_desktop }}px;
+    --rfaqp-padding-top-mobile: {{ s.padding_top_mobile }}px;
+    --rfaqp-padding-bottom-mobile: {{ s.padding_bottom_mobile }}px;
+  "
+>
+  <div class="reeve-faq-pills__inner">
+    {%- if s.eyebrow != blank or s.heading != blank or s.paragraph != blank -%}
+      <header class="reeve-faq-pills__header" data-rfaqp-header>
+        {%- if s.eyebrow != blank -%}
+          <p class="reeve-faq-pills__eyebrow" data-rfaqp-reveal>{{ s.eyebrow }}</p>
+        {%- endif -%}
+        {%- if s.heading != blank -%}
+          <h2 class="reeve-faq-pills__heading" data-rfaqp-reveal>{{ s.heading }}</h2>
+        {%- endif -%}
+        {%- if s.paragraph != blank -%}
+          <p class="reeve-faq-pills__paragraph" data-rfaqp-reveal>{{ s.paragraph }}</p>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if category_labels.size > 0 -%}
+      <div class="reeve-faq-pills__filters" data-rfaqp-filters role="group" aria-label="{{ s.filter_aria_label | default: 'Filter questions by category' }}">
+        <button
+          type="button"
+          class="reeve-faq-pills__pill is-active"
+          data-rfaqp-pill
+          data-faq-filter="all"
+          aria-pressed="true"
+        >
+          {{ s.all_label | default: 'All questions' }}
+        </button>
+        {%- for label in category_labels -%}
+          {%- unless label == blank -%}
+            <button
+              type="button"
+              class="reeve-faq-pills__pill"
+              data-rfaqp-pill
+              data-faq-filter="{{ label | handleize }}"
+              aria-pressed="false"
+            >
+              {{ label }}
+            </button>
+          {%- endunless -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if faqs.size > 0 -%}
+      <div class="reeve-faq-pills__list" data-rfaqp-list>
+        {%- for block in faqs -%}
+          {%- liquid
+            assign bs = block.settings
+            assign cat_key = bs.category | handleize
+          -%}
+          <details
+            class="reeve-faq-pills__item"
+            data-rfaqp-item
+            data-faq-category="{{ cat_key }}"
+            {% if bs.open_by_default %}open{% endif %}
+            {% if s.exclusive_accordion %}name="{{ accordion_name }}"{% endif %}
+            {{ block.shopify_attributes }}
+          >
+            <summary class="reeve-faq-pills__question">
+              <span class="reeve-faq-pills__question-head">
+                {%- if bs.category != blank -%}
+                  <span class="reeve-faq-pills__category">{{ bs.category }}</span>
+                {%- endif -%}
+                <span class="reeve-faq-pills__question-text">{{ bs.question }}</span>
+              </span>
+              <span class="reeve-faq-pills__toggle" aria-hidden="true">
+                <span class="reeve-faq-pills__toggle-line reeve-faq-pills__toggle-line--h"></span>
+                <span class="reeve-faq-pills__toggle-line reeve-faq-pills__toggle-line--v"></span>
+              </span>
+            </summary>
+            <div class="reeve-faq-pills__answer">{{ bs.answer }}</div>
+          </details>
+        {%- endfor -%}
+      </div>
+
+      <p class="reeve-faq-pills__empty" data-rfaqp-empty hidden>{{ s.empty_state_text | default: 'No questions in this category yet.' }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+  (function () {
+    var ROOT_SELECTOR = '.reeve-faq-pills[data-section-id="{{ section_id }}"]';
+    window.__reeveFaqPills = window.__reeveFaqPills || {};
+
+    function cleanup(sectionId) {
+      var entry = window.__reeveFaqPills[sectionId];
+      if (!entry) return;
+      if (entry.triggers) {
+        entry.triggers.forEach(function (t) {
+          try { t.kill(); } catch (e) {}
+        });
+      }
+      if (entry.listeners) {
+        entry.listeners.forEach(function (l) {
+          try { l.el.removeEventListener(l.type, l.fn); } catch (e) {}
+        });
+      }
+      delete window.__reeveFaqPills[sectionId];
+    }
+
+    function init() {
+      var root = document.querySelector(ROOT_SELECTOR);
+      if (!root) return;
+      var sectionId = root.getAttribute('data-section-id');
+
+      cleanup(sectionId);
+
+      var animationsEnabled = root.getAttribute('data-animations-enabled') === 'true';
+      var pills = Array.prototype.slice.call(root.querySelectorAll('[data-rfaqp-pill]'));
+      var items = Array.prototype.slice.call(root.querySelectorAll('[data-rfaqp-item]'));
+      var emptyState = root.querySelector('[data-rfaqp-empty]');
+      var listeners = [];
+      var triggers = [];
+      window.__reeveFaqPills[sectionId] = { triggers: triggers, listeners: listeners };
+
+      function applyFilter(filterValue, animate, gsap) {
+        var visible = [];
+        items.forEach(function (item) {
+          var match = filterValue === 'all' || item.getAttribute('data-faq-category') === filterValue;
+          item.hidden = !match;
+          if (match) visible.push(item);
+        });
+        if (emptyState) emptyState.hidden = visible.length > 0 || items.length === 0;
+        if (animate && gsap && visible.length) {
+          gsap.fromTo(visible, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.04, ease: 'power2.out' });
+        }
+      }
+
+      Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(function (mods) {
+        var gsap = mods[0].gsap;
+        var ScrollTrigger = mods[0].ScrollTrigger;
+        var prefersReducedMotion = mods[0].prefersReducedMotion;
+        var getScrollContainer = mods[1].getScrollContainer;
+        var scroller = getScrollContainer();
+        var reduced = prefersReducedMotion();
+
+        pills.forEach(function (pill) {
+          var fn = function () {
+            pills.forEach(function (p) {
+              p.classList.remove('is-active');
+              p.setAttribute('aria-pressed', 'false');
+            });
+            pill.classList.add('is-active');
+            pill.setAttribute('aria-pressed', 'true');
+            applyFilter(pill.getAttribute('data-faq-filter'), !reduced && animationsEnabled, gsap);
+          };
+          pill.addEventListener('click', fn);
+          listeners.push({ el: pill, type: 'click', fn: fn });
+        });
+
+        var headerItems = Array.prototype.slice.call(root.querySelectorAll('[data-rfaqp-reveal]'));
+        var revealTargets = headerItems.concat(pills, items);
+
+        if (reduced || !animationsEnabled) {
+          gsap.set(revealTargets, { opacity: 1, y: 0 });
+          return;
+        }
+
+        gsap.set(headerItems, { opacity: 0, y: 20 });
+        gsap.set(pills, { opacity: 0, y: 10 });
+        gsap.set(items, { opacity: 0, y: 16 });
+
+        var tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
+        headerItems.forEach(function (el, i) { tl.to(el, { opacity: 1, y: 0, duration: 0.6 }, i * 0.1); });
+        if (pills.length) tl.to(pills, { opacity: 1, y: 0, duration: 0.45, stagger: 0.04 }, '-=0.25');
+        if (items.length) tl.to(items, { opacity: 1, y: 0, duration: 0.45, stagger: 0.05 }, '-=0.2');
+
+        var trigger = ScrollTrigger.create({
+          scroller: scroller,
+          trigger: root,
+          start: 'top 85%',
+          once: true,
+          onEnter: function () { tl.play(); },
+        });
+        triggers.push(trigger);
+      });
+    }
+
+    init();
+
+    document.addEventListener('shopify:section:load', function (event) {
+      if (event.detail && event.detail.sectionId === '{{ section_id }}') {
+        init();
+      }
+    });
+
+    document.addEventListener('shopify:section:unload', function (event) {
+      if (event.detail && event.detail.sectionId === '{{ section_id }}') {
+        cleanup('{{ section_id }}');
+      }
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .reeve-faq-pills {
+    background: var(--rfaqp-bg, #f7f1e7);
+    color: var(--rfaqp-text, #10192b);
+    padding-block: var(--rfaqp-padding-top-mobile, 48px) var(--rfaqp-padding-bottom-mobile, 48px);
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-faq-pills {
+      padding-block: var(--rfaqp-padding-top-desktop, 96px) var(--rfaqp-padding-bottom-desktop, 96px);
+    }
+  }
+
+  .reeve-faq-pills__inner {
+    max-width: var(--rfaqp-max-width, 900px);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 2rem);
+  }
+
+  /* ---------- Header ---------- */
+  .reeve-faq-pills__header {
+    text-align: center;
+    margin: 0 auto clamp(1.75rem, 5vw, 2.75rem);
+  }
+
+  .reeve-faq-pills__eyebrow {
+    margin: 0 0 0.9rem;
+    font-family: var(--font-body--family);
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--rfaqp-eyebrow, var(--rfaqp-accent, #4a7a8c));
+  }
+
+  .reeve-faq-pills__heading {
+    margin: 0 0 0.85rem;
+    font-family: var(--font-heading--family);
+    font-style: var(--font-heading--style);
+    font-weight: var(--font-heading--weight, 700);
+    color: var(--rfaqp-heading, #10192b);
+    font-size: clamp(1.8rem, 5vw, 2.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .reeve-faq-pills__paragraph {
+    margin: 0 auto;
+    max-width: 34rem;
+    font-size: clamp(0.92rem, 1.6vw, 1.02rem);
+    line-height: 1.6;
+    opacity: 0.7;
+  }
+
+  /* ---------- Pill filter row ---------- */
+  .reeve-faq-pills__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: clamp(1.75rem, 5vw, 2.75rem);
+  }
+
+  .reeve-faq-pills__pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55rem 1.15rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--rfaqp-pill-border, #ded2ba);
+    background: var(--rfaqp-pill-bg, transparent);
+    color: var(--rfaqp-pill-text, var(--rfaqp-text, #10192b));
+    font-weight: 600;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+
+  .reeve-faq-pills__pill:hover {
+    border-color: var(--rfaqp-accent, #4a7a8c);
+  }
+
+  .reeve-faq-pills__pill.is-active {
+    border-color: var(--rfaqp-pill-active-bg, #10192b);
+    background: var(--rfaqp-pill-active-bg, #10192b);
+    color: var(--rfaqp-pill-active-text, #ffffff);
+  }
+
+  .reeve-faq-pills__pill:active {
+    transform: scale(0.97);
+  }
+
+  /* ---------- FAQ list ---------- */
+  .reeve-faq-pills__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .reeve-faq-pills__item {
+    border-bottom: 1px solid var(--rfaqp-divider, #e2d7c3);
+  }
+
+  .reeve-faq-pills__item[hidden] {
+    display: none;
+  }
+
+  .reeve-faq-pills__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.15rem 0;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .reeve-faq-pills__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .reeve-faq-pills__question-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .reeve-faq-pills__category {
+    font-family: var(--font-body--family);
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rfaqp-eyebrow, var(--rfaqp-accent, #4a7a8c));
+  }
+
+  .reeve-faq-pills__question-text {
+    font-family: var(--font-heading--family);
+    font-weight: 700;
+    font-size: clamp(0.98rem, 1.6vw, 1.1rem);
+    line-height: 1.35;
+    color: var(--rfaqp-heading, #10192b);
+  }
+
+  .reeve-faq-pills__toggle {
+    position: relative;
+    flex-shrink: 0;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .reeve-faq-pills__toggle-line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background: var(--rfaqp-heading, #10192b);
+    border-radius: 1px;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease, transform 0.25s ease;
+  }
+
+  .reeve-faq-pills__toggle-line--h {
+    width: 100%;
+    height: 2px;
+  }
+
+  .reeve-faq-pills__toggle-line--v {
+    width: 2px;
+    height: 100%;
+  }
+
+  .reeve-faq-pills__item[open] .reeve-faq-pills__toggle-line--v {
+    transform: translate(-50%, -50%) rotate(90deg);
+    opacity: 0;
+  }
+
+  .reeve-faq-pills__answer {
+    margin: -0.25rem 0 1.35rem;
+    max-width: 42rem;
+    font-size: 0.94rem;
+    line-height: 1.65;
+    color: var(--rfaqp-text, #10192b);
+    opacity: 0.75;
+  }
+
+  .reeve-faq-pills__answer > :first-child {
+    margin-top: 0;
+  }
+
+  .reeve-faq-pills__answer > :last-child {
+    margin-bottom: 0;
+  }
+
+  .reeve-faq-pills__empty {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    font-size: 0.92rem;
+    opacity: 0.6;
+  }
+
+  .reeve-faq-pills__empty[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reeve-faq-pills * {
+      transition: none !important;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve FAQ pills",
+  "tag": "section",
+  "class": "section-reeve-faq-pills-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Header content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Questions, by who's asking"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Everything you'd ask before your first sip"
+    },
+    {
+      "type": "textarea",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "Filter by what applies to you. Every answer stays the same either way: full transparency, nothing hidden."
+    },
+    {
+      "type": "header",
+      "content": "Pill filters"
+    },
+    {
+      "type": "paragraph",
+      "content": "Pills are generated automatically from the \"Category\" field on each question below — add a category to a question and its pill appears here, no separate setup needed."
+    },
+    {
+      "type": "text",
+      "id": "all_label",
+      "label": "\"Show all\" pill label",
+      "default": "All questions"
+    },
+    {
+      "type": "header",
+      "content": "Accordion behavior"
+    },
+    {
+      "type": "checkbox",
+      "id": "exclusive_accordion",
+      "label": "Only one question open at a time",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "empty_state_text",
+      "label": "Empty state text",
+      "default": "No questions in this category yet."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f7f1e7"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "Eyebrow / category label",
+      "default": "#4a7a8c"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent (pill hover border)",
+      "default": "#4a7a8c"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Divider line",
+      "default": "#e2d7c3"
+    },
+    {
+      "type": "header",
+      "content": "Pills"
+    },
+    {
+      "type": "color",
+      "id": "pill_bg_color",
+      "label": "Inactive pill background",
+      "placeholder": "Transparent"
+    },
+    {
+      "type": "color",
+      "id": "pill_border_color",
+      "label": "Inactive pill border",
+      "default": "#ded2ba"
+    },
+    {
+      "type": "color",
+      "id": "pill_text_color",
+      "label": "Inactive pill text",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "active_pill_bg_color",
+      "label": "Active pill background",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "active_pill_text_color",
+      "label": "Active pill text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Layout & spacing"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Content max width",
+      "min": 600,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "default": 900
+    },
+    {
+      "type": "header",
+      "content": "Padding — desktop"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "label": "Padding top",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "header",
+      "content": "Padding — mobile"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_animations",
+      "label": "Enable scroll animations",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq",
+      "name": "Question",
+      "settings": [
+        {
+          "type": "text",
+          "id": "category",
+          "label": "Category",
+          "info": "Groups this question under a pill with this exact label. Leave blank to only show it under \"All questions\".",
+          "default": "General"
+        },
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "Frequently asked question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Add your answer here.</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_by_default",
+          "label": "Open by default",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve FAQ pills",
+      "blocks": [
+        { "type": "faq", "settings": { "category": "General", "question": "What is an electrolyte powder and do I actually need one?", "open_by_default": true, "answer": "<p>An electrolyte powder replaces the sodium, potassium, and other minerals you lose through sweat, and helps your body absorb water more effectively than plain water alone.</p>" } },
+        { "type": "faq", "settings": { "category": "General", "question": "How is Reevë different from a typical electrolyte drink mix?", "answer": "<p>Reevë uses clinically studied electrolyte ratios with zero added sugar and clean-label ingredients — no artificial dyes, no fillers.</p>" } },
+        { "type": "faq", "settings": { "category": "Training & recovery", "question": "When should I drink Reevë around a workout?", "answer": "<p>Before to pre-load, during for longer sessions, or after to speed up recovery — whichever fits your routine.</p>" } },
+        { "type": "faq", "settings": { "category": "Training & recovery", "question": "Will it help with muscle cramps?", "answer": "<p>Electrolyte imbalance is a common cause of exercise-related cramping, so replenishing sodium and potassium can help.</p>" } },
+        { "type": "faq", "settings": { "category": "Travel & on-the-go", "question": "Can I bring stick packs on a flight?", "answer": "<p>Yes — the powder form isn't a liquid, so it's carry-on friendly. Just mix it once you're through security.</p>" } },
+        { "type": "faq", "settings": { "category": "Travel & on-the-go", "question": "Does it help with jet lag or altitude?", "answer": "<p>Staying properly hydrated is one of the simplest ways to reduce travel fatigue from cabin air and altitude changes.</p>" } },
+        { "type": "faq", "settings": { "category": "Keto, fasting & GLP-1", "question": "Is Reevë keto-friendly?", "answer": "<p>Yes — zero added sugar and minimal carbs per serving make it a fit for keto and low-carb routines.</p>" } },
+        { "type": "faq", "settings": { "category": "Keto, fasting & GLP-1", "question": "Will it break my fast?", "answer": "<p>Reevë has negligible calories per serving, so most intermittent fasting protocols consider it fast-friendly — check with your own plan's rules if you're unsure.</p>" } },
+        { "type": "faq", "settings": { "category": "Keto, fasting & GLP-1", "question": "Does it help with GLP-1 medication side effects?", "answer": "<p>Reduced appetite and intake on GLP-1 medications can make it harder to get enough electrolytes from food — many people use Reevë to help fill that gap.</p>" } },
+        { "type": "faq", "settings": { "category": "Beauty & wellness", "question": "Can hydration actually affect my skin?", "answer": "<p>Chronic under-hydration can make skin look duller and less elastic — consistent hydration supports a healthier appearance over time.</p>" } },
+        { "type": "faq", "settings": { "category": "Family & safety", "question": "Is Reevë safe for kids?", "answer": "<p>Check with your pediatrician for kids under 12, as serving sizes are formulated for adult electrolyte needs.</p>" } },
+        { "type": "faq", "settings": { "category": "Family & safety", "question": "Is it safe during pregnancy or breastfeeding?", "answer": "<p>Please consult your doctor before adding any new supplement during pregnancy or breastfeeding.</p>" } },
+        { "type": "faq", "settings": { "category": "Subscription & shipping", "question": "Can I cancel my subscription anytime?", "answer": "<p>Yes — there's no commitment. You can pause, skip, or cancel your subscription anytime from your account.</p>" } },
+        { "type": "faq", "settings": { "category": "Subscription & shipping", "question": "How long does shipping take?", "answer": "<p>Most orders ship within 1-2 business days and arrive within 3-5 business days depending on your location.</p>" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,339 @@
+/* Reeve custom product section styles */
+
+.reeve-custom-product-section {
+  padding: 14px 32px;
+  background-color: var(--reeve-section-bg, #f5f2ea);
+}
+
+.reeve-custom-product-section .page-width {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* Top strip */
+.reeve-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.reeve-header__center {
+  text-align: center;
+}
+
+.reeve-header__heading {
+  margin: 0;
+}
+
+/* Product grid — auto-fit sizes and wraps columns to however many cards are
+   actually rendered (not always 4), and justify-content centers that row as
+   a group instead of stretching/pinning it to the left. */
+.reeve-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
+  justify-content: center;
+  gap: 24px;
+}
+
+.reeve-product-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: var(--reeve-card-bg, #ffffff);
+}
+
+.reeve-product-card__inner {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hover background — sits behind the image/title/content, which get their
+   own stacking context below so they stay visible when this fades in. */
+.reeve-card-hover-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.reeve-card-hover-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Flavor badge */
+.reeve-card-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Product image */
+.reeve-card-image-wrap {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding: 48px 24px 0;
+}
+
+.reeve-card-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* Optional fixed image shapes (admin-configurable) */
+.reeve-card-image-wrap--square,
+.reeve-card-image-wrap--portrait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.reeve-card-image-wrap--square {
+  aspect-ratio: 1 / 1;
+}
+
+.reeve-card-image-wrap--portrait {
+  aspect-ratio: 3 / 4;
+}
+
+.reeve-card-image-wrap--square .reeve-card-image,
+.reeve-card-image-wrap--portrait .reeve-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Card content — only ever holds the always-visible title/quantity/
+   subtitle; the resting card's height stops here. */
+.reeve-card-content {
+  position: relative;
+  z-index: 1;
+  padding: 16px 20px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.reeve-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reeve-card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.reeve-card-title {
+  font-size: 18px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.reeve-card-quantity {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.reeve-card-subtitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* Keypoints pills */
+.reeve-card-keypoints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reeve-keypoint-pill {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: rgba(255,255,255,0.85);
+}
+
+/* Ticker */
+.reeve-card-ticker {
+  position: relative;
+  overflow: hidden;
+  font-size: 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.reeve-card-ticker__inner {
+  display: inline-block;
+  animation: reeveTicker 16s linear infinite;
+}
+
+@keyframes reeveTicker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Extra content: keypoints/ticker + the add-to-cart footer. On hover-
+   capable devices this whole block starts collapsed/hidden — the resting
+   card is only as tall as .reeve-card-content above (badge/image/title/
+   quantity/subtitle). assets/section-reeve-custom-product.js brings it in
+   on hover using one of two admin-selectable styles: "grow" (animates
+   this block's height 0 -> auto, so the card itself gets taller) or
+   "overlay" (this block floats, absolutely positioned, below the card
+   without changing its height). Touch devices always show it — there's
+   no hover gesture, so neither style applies. */
+.reeve-card-extra {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.reeve-card-extra__inner {
+  padding: 0 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reeve-card-footer {
+  margin-top: auto;
+}
+
+.reeve-add-to-cart-btn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 0 0 18px 18px;
+  border: none;
+  background-color: #0044ff;
+  color: #ffffff;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  [data-reeve-reveal] {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  /* Grow style: card height includes this block once expanded */
+  .reeve-product-card[data-hover-style='grow'] .reeve-card-extra {
+    height: 0;
+    overflow: hidden;
+  }
+
+  /* Overlay style: card height never changes; this block floats below it */
+  .reeve-product-card[data-hover-style='overlay'] {
+    overflow: visible;
+  }
+
+  .reeve-product-card[data-hover-style='overlay'] .reeve-card-extra {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    background-color: var(--reeve-card-bg, #ffffff);
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+  }
+}
+
+/* Responsive */
+@media screen and (max-width: 989px) {
+  .reeve-header {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .reeve-header__center {
+    text-align: left;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  /* Grid instead of a swipeable carousel: one card per row. */
+  .reeve-product-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    gap: 16px;
+  }
+
+  /* No hover gesture on touch — show the custom background image fully,
+     matching desktop's hovered state. Safe now that .reeve-card-extra has
+     its own z-index (see base rule above), so the keypoints/ticker/
+     add-to-cart content stacks above this image instead of being hidden
+     under it. */
+  .reeve-card-hover-bg {
+    opacity: 1 !important;
+    border-radius: 20px;
+  }
+
+  .reeve-add-to-cart-btn {
+    border-radius: 0 0 18px 18px;
+  }
+
+  /* No hover gesture on touch — keypoints/ticker/add-to-cart stay visible
+     without needing a hover interaction. */
+  [data-reeve-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .reeve-product-card[data-hover-style='grow'] .reeve-card-extra {
+    height: auto !important;
+  }
+
+  .reeve-product-card[data-hover-style='overlay'] .reeve-card-extra {
+    /* relative, not static — position:static would make z-index inert and
+       let the hover-bg image cover this content again (see .reeve-card-extra
+       base rule above, which relies on z-index to stack above it). */
+    position: relative !important;
+    visibility: visible !important;
+    box-shadow: none;
+  }
+
+  /* Belt-and-suspenders: make sure nothing clips the now-visible extra
+     content (keypoints/ticker/add-to-cart) once it's forced to full height. */
+  .reeve-product-card,
+  .reeve-product-card__inner,
+  .reeve-card-extra {
+    overflow: visible !important;
+    height: auto !important;
+  }
+}

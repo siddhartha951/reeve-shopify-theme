@@ -1,0 +1,734 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "blint-product",
+      "blocks": {
+        "tier_1": {
+          "type": "quantity_tier",
+          "settings": {
+            "min_qty": 1,
+            "discount_percent": 0
+          }
+        },
+        "tier_2": {
+          "type": "quantity_tier",
+          "settings": {
+            "min_qty": 3,
+            "discount_percent": 10
+          }
+        },
+        "tier_3": {
+          "type": "quantity_tier",
+          "settings": {
+            "min_qty": 6,
+            "discount_percent": 15
+          }
+        }
+      },
+      "block_order": [
+        "tier_1",
+        "tier_2",
+        "tier_3"
+      ],
+      "settings": {
+        "title_font_size": 24,
+        "description": "<p>One stick, all six electrolytes —<strong>sodium, chloride, potassium, magnesium, calcium and phosphorus</strong>. No sugar, five calories, no crash. Thirty sticks to a pack.</p>",
+        "description_font_size": 14,
+        "bullets": "",
+        "show_rating": true,
+        "rating_value": "{{ product.metafields.reviews.rating | metafield_text }}",
+        "rating_count": "{{ product.metafields.reviews.rating_count.value }} reviews",
+        "chips": "All 6 electrolytes, Zero Sugar, 5 Calories",
+        "guarantees": "Free shipping over $60, 30-day guarantee, Ships in 1 day",
+        "flavors_heading": "Choose your flavours — mix as many as you like",
+        "sticks_per_pack": 30,
+        "pack_word": "pack",
+        "packs_word": "packs",
+        "unit_word": "stick",
+        "units_word": "sticks",
+        "upgrade_text": "",
+        "best_value_text": "",
+        "default_to_subscription": true,
+        "subscribe_label": "Subscribe & save",
+        "onetime_label": "One-time purchase",
+        "frequency_label": "Delivery frequency",
+        "default_frequency_name": "Deliver every month",
+        "sub_note_right": "Cancel anytime",
+        "offer_label": "",
+        "savings_label": "Your savings:",
+        "atc_label": "Try it now",
+        "cta_color": "#eaff3a",
+        "cta_text_color": "#000000",
+        "urgency_heading": "Next batch ships in:",
+        "countdown_enable": true,
+        "countdown_cutoff_hour": 0,
+        "urgency_value": "1 day",
+        "urgency_text": "Orders placed before the cutoff go out with this batch.",
+        "urgency_background": "linear-gradient(135deg, rgba(230, 232, 253, 1), rgba(240, 241, 254, 1) 100%)",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "timeline": {
+      "type": "blint-timeline",
+      "blocks": {
+        "step_1": {
+          "type": "step",
+          "settings": {
+            "title": "Fluid gets absorbed",
+            "text": "Sodium and chloride carry water into cells rather than through you."
+          }
+        },
+        "step_2": {
+          "type": "step",
+          "settings": {
+            "title": "Thirst settles",
+            "text": "Balanced sodium and potassium is what stops the \"still thirsty after a litre\" feeling."
+          }
+        },
+        "step_3": {
+          "type": "step",
+          "settings": {
+            "title": "Normal muscle function",
+            "text": "Magnesium and calcium both contribute to normal muscle function."
+          }
+        },
+        "step_4": {
+          "type": "step",
+          "disabled": true,
+          "settings": {
+            "title": "Mood & Stress Support",
+            "text": "L-Theanine with Vitamins B6 and B12 helps maintain balanced mood and healthy stress levels."
+          }
+        },
+        "note_1": {
+          "type": "note",
+          "disabled": true,
+          "settings": {
+            "label": "Timing",
+            "text": "Use BLINT whenever it best fits your routine. Many customers prefer it before work, studying, training, meetings, or other demanding activities."
+          }
+        },
+        "note_2": {
+          "type": "note",
+          "disabled": true,
+          "settings": {
+            "label": "Results",
+            "text": "Most users notice the benefits of BLINT shortly after use and greater consistency as it becomes part of their routine."
+          }
+        },
+        "note_3": {
+          "type": "note",
+          "disabled": true,
+          "settings": {
+            "label": "Loading",
+            "text": "No loading phase required. Simply use BLINT as directed and make it part of your daily routine."
+          }
+        }
+      },
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3",
+        "step_4",
+        "note_1",
+        "note_2",
+        "note_3"
+      ],
+      "custom_css": [
+        ".blint-timeline__image {border-radius: 20px;}"
+      ],
+      "name": "Blint timeline",
+      "settings": {
+        "heading": "What happens when you drink reevë?",
+        "heading_font_size": 28,
+        "body": "<p>Sodium and chloride pull water across the gut wall instead of letting it pass straight through, so the bottle you just drank ends up where it's useful.</p>",
+        "image": "shopify://shop_images/ChatGPT_Image_Aug_7_2026_02_35_35_PM.png",
+        "bg_color": "#eaff3a",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "cost_compare": {
+      "type": "blint-cost-compare",
+      "blocks": {
+        "row_1": {
+          "type": "row",
+          "settings": {
+            "label": "Cost per serving",
+            "our_value": "$1.00",
+            "comp1_value": "$2.79",
+            "comp2_value": "$3.20"
+          }
+        },
+        "row_2": {
+          "type": "row",
+          "settings": {
+            "label": "Electrolytes included",
+            "our_value": "All 6",
+            "comp1_value": "2",
+            "comp2_value": "3"
+          }
+        },
+        "row_3": {
+          "type": "row",
+          "settings": {
+            "label": "Calories",
+            "our_value": "5",
+            "comp1_value": "120",
+            "comp2_value": "60"
+          }
+        },
+        "row_4": {
+          "type": "row",
+          "settings": {
+            "label": "Sugar",
+            "our_value": "0g",
+            "comp1_value": "21g",
+            "comp2_value": "15g"
+          }
+        },
+        "row_5": {
+          "type": "row",
+          "settings": {
+            "label": "Sodium",
+            "our_value": "500mg",
+            "comp1_value": "110mg",
+            "comp2_value": "60mg"
+          }
+        },
+        "row_6": {
+          "type": "row",
+          "settings": {
+            "label": "Calcium & phosphorus",
+            "our_value": "yes",
+            "comp1_value": "no",
+            "comp2_value": "no"
+          }
+        },
+        "row_7": {
+          "type": "row",
+          "settings": {
+            "label": "No sugar",
+            "our_value": "yes",
+            "comp1_value": "no",
+            "comp2_value": "no"
+          }
+        },
+        "row_8": {
+          "type": "row",
+          "settings": {
+            "label": "Ultra portable",
+            "our_value": "yes",
+            "comp1_value": "no",
+            "comp2_value": "no"
+          }
+        }
+      },
+      "block_order": [
+        "row_1",
+        "row_2",
+        "row_3",
+        "row_4",
+        "row_5",
+        "row_6",
+        "row_7",
+        "row_8"
+      ],
+      "name": "Blint cost compare",
+      "settings": {
+        "heading": "Same hydration. Fraction of the cost.",
+        "heading_font_size": 36,
+        "our_name": "reevë",
+        "our_subtitle": "One stick",
+        "highlight_color": "#eaff3a",
+        "comp1_name": "Sports drink",
+        "comp1_subtitle": "500ml bottle",
+        "comp2_name": "Coconut water",
+        "comp2_subtitle": "330ml carton",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "showcase": {
+      "type": "blint-showcase",
+      "blocks": {
+        "feat_left_1": {
+          "type": "feature",
+          "settings": {
+            "column": "left",
+            "eyebrow": "",
+            "title": "Truly nicotine-free",
+            "description": "A clean way to sharpen focus - no nicotine, tobacco, or smoke."
+          }
+        },
+        "feat_left_2": {
+          "type": "feature",
+          "settings": {
+            "column": "left",
+            "eyebrow": "",
+            "title": "Simple & discreet",
+            "description": "An easy oral pouch that slips into work, travel, and everyday life."
+          }
+        },
+        "feat_right_1": {
+          "type": "feature",
+          "settings": {
+            "column": "right",
+            "eyebrow": "",
+            "title": "Steady, balanced energy",
+            "description": "Built for reliable, repeatable results."
+          }
+        },
+        "feat_right_2": {
+          "type": "feature",
+          "settings": {
+            "column": "right",
+            "eyebrow": "",
+            "title": "Smooth, lasting focus",
+            "description": "Keeps your mind clear — without the jitters or the crash."
+          }
+        }
+      },
+      "block_order": [
+        "feat_left_1",
+        "feat_left_2",
+        "feat_right_1",
+        "feat_right_2"
+      ],
+      "disabled": true,
+      "name": "Blint showcase",
+      "settings": {
+        "heading": "Pouches, reimagined",
+        "heading_font_size": 28,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "ingredients": {
+      "type": "blint-ingredients",
+      "blocks": {
+        "feat_1": {
+          "type": "feature",
+          "settings": {
+            "icon": "drop",
+            "label": "All six electrolytes"
+          }
+        },
+        "feat_2": {
+          "type": "feature",
+          "settings": {
+            "icon": "lightning",
+            "label": "Zero sugar"
+          }
+        },
+        "feat_3": {
+          "type": "feature",
+          "settings": {
+            "icon": "flask",
+            "label": "Stevia sweetened"
+          }
+        },
+        "feat_4": {
+          "type": "feature",
+          "settings": {
+            "icon": "shield",
+            "label": "No fillers"
+          }
+        },
+        "ing_6": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/Gemini_Generated_Image_2hg8342hg8342hg8.png",
+            "name": "Sodium 500mg",
+            "tags": "Absorption , Fluid balance",
+            "description": "The electrolyte you lose most of through sweat. Sodium is what pulls water across the gut wall, which is why low-sodium drinks leave you thirsty."
+          }
+        },
+        "ing_1": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/Gemini_Generated_Image_wwhbvdwwhbvdwwhb.png",
+            "name": "Chloride 760mg",
+            "tags": "Absorption, Digestion",
+            "description": "Sodium's partner. The two move together, which is why chloride is the biggest number on the label even though nobody talks about it."
+          }
+        },
+        "ing_2": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/Gemini_Generated_Image_mxix8omxix8omxix.png",
+            "name": "Potassium 200mg",
+            "tags": "Balance, Muscle function",
+            "description": "Sits on the other side of the cell membrane from sodium. Contributes to normal muscle function and the maintenance of normal blood pressure."
+          }
+        },
+        "ing_3": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/Gemini_Generated_Image_8rh6ox8rh6ox8rh6.png",
+            "name": "Magnesium 60mg",
+            "tags": "Muscle function, Fatigue",
+            "description": "Contributes to normal muscle function, normal protein synthesis, and the reduction of tiredness and fatigue. Most diets run short of it."
+          }
+        },
+        "ingredient_BR4jJ8": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/Gemini_Generated_Image_7hc1ma7hc1ma7hc1.png",
+            "name": "Calcium 50mg",
+            "tags": "Contraction, Nerves",
+            "description": "Needed for normal muscle contraction and neurotransmission. Usually the electrolyte left out of hydration mixes entirely."
+          }
+        },
+        "ing_4": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/ChatGPT_Image_Aug_7_2026_02_58_33_PM.png",
+            "name": "Phosphorus 40mg",
+            "tags": "Energy, Cells",
+            "description": "Contributes to normal energy-yielding metabolism and normal cell membrane function. The sixth electrolyte, and the most overlooked."
+          }
+        },
+        "ingredient_r9BwHJ": {
+          "type": "ingredient",
+          "disabled": true,
+          "settings": {
+            "name": "Vitamin b6",
+            "tags": "alertness, energy",
+            "description": "Supports energy metabolism by helping the body break down protein and stored carbohydrates into usable fuel, making it a natural partner to caffeine for sustained performance"
+          }
+        }
+      },
+      "block_order": [
+        "feat_1",
+        "feat_2",
+        "feat_3",
+        "feat_4",
+        "ing_6",
+        "ing_1",
+        "ing_2",
+        "ing_3",
+        "ingredient_BR4jJ8",
+        "ing_4",
+        "ingredient_r9BwHJ"
+      ],
+      "name": "Blint ingredients",
+      "settings": {
+        "heading": "All six, on the label",
+        "heading_font_size": 32,
+        "body": "<p>Six electrolytes, citric acid, natural flavouring and stevia. That's the entire list — no dextrose, no maltodextrin, no anti-caking filler.</p>",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "compare": {
+      "type": "blint-compare",
+      "blocks": {
+        "row_1": {
+          "type": "row",
+          "settings": {
+            "label": "Non-addictive",
+            "ours": true,
+            "comp_1": false,
+            "comp_2": false
+          }
+        },
+        "row_2": {
+          "type": "row",
+          "settings": {
+            "label": "Better recovery",
+            "ours": true,
+            "comp_1": false,
+            "comp_2": false
+          }
+        },
+        "row_3": {
+          "type": "row",
+          "settings": {
+            "label": "More deep sleep",
+            "ours": true,
+            "comp_1": false,
+            "comp_2": false
+          }
+        },
+        "row_4": {
+          "type": "row",
+          "settings": {
+            "label": "Neuroprotective",
+            "ours": true,
+            "comp_1": true,
+            "comp_2": false
+          }
+        },
+        "row_5": {
+          "type": "row",
+          "settings": {
+            "label": "Natural ingredients",
+            "ours": true,
+            "comp_1": false,
+            "comp_2": false
+          }
+        },
+        "row_6": {
+          "type": "row",
+          "settings": {
+            "label": "No liquids",
+            "ours": true,
+            "comp_1": true,
+            "comp_2": false
+          }
+        }
+      },
+      "block_order": [
+        "row_1",
+        "row_2",
+        "row_3",
+        "row_4",
+        "row_5",
+        "row_6"
+      ],
+      "disabled": true,
+      "name": "Blint compare",
+      "settings": {
+        "heading": "How Blint compares",
+        "heading_font_size": 30,
+        "our_name": "Blint",
+        "competitor_1": "Melatonin gummies",
+        "competitor_2": "",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "reviews": {
+      "type": "blint-reviews",
+      "blocks": {
+        "review_1": {
+          "type": "review",
+          "settings": {
+            "stars": 5,
+            "text": "Didn’t expect watermelon to taste this clean. Light, refreshing, and not overly sweet. Been reaching for it after every workout.",
+            "name": "Ethan Miller",
+            "product_label": "",
+            "flavor": "Watermelon",
+            "flavor_color": "#da613b"
+          }
+        },
+        "review_2": {
+          "type": "review",
+          "settings": {
+            "stars": 5,
+            "text": "Lemonade is easily my favorite. That little tang makes it super refreshing, especially when it’s ice cold.",
+            "name": "Olivia Carter",
+            "product_label": "",
+            "flavor": "Lemonade",
+            "flavor_color": "#b8b449"
+          }
+        },
+        "review_3": {
+          "type": "review",
+          "settings": {
+            "stars": 5,
+            "text": "Mango actually tastes like mango instead of artificial candy. Smooth, easy to drink, and has become part of my morning routine.",
+            "name": "Noah Anderson",
+            "product_label": "",
+            "flavor": "Mango",
+            "flavor_color": "#e8aa2f"
+          }
+        },
+        "review_4": {
+          "type": "review",
+          "settings": {
+            "stars": 5,
+            "text": "Acai Berry Blast has that slightly tart berry taste I was looking for. Really good after a long day or a sweaty workout.",
+            "name": "Benjamin Walker",
+            "product_label": "",
+            "flavor": "Acai Berry Blast",
+            "flavor_color": "#d35cff"
+          }
+        }
+      },
+      "block_order": [
+        "review_1",
+        "review_2",
+        "review_3",
+        "review_4"
+      ],
+      "name": "Blint reviews",
+      "settings": {
+        "heading": "What our customers say",
+        "heading_font_size": 32,
+        "rating_value": "4.60",
+        "rating_count": "999+ Reviews",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "video_reviews": {
+      "type": "blint-video-reviews",
+      "blocks": {
+        "bullet_1": {
+          "type": "bullet",
+          "settings": {
+            "text": "Built for every challenge"
+          }
+        },
+        "bullet_2": {
+          "type": "bullet",
+          "settings": {
+            "text": "Stay focused and energized"
+          }
+        },
+        "bullet_3": {
+          "type": "bullet",
+          "settings": {
+            "text": "Made for movement and adventure"
+          }
+        },
+        "video_1": {
+          "type": "video",
+          "settings": {}
+        },
+        "video_3": {
+          "type": "video",
+          "settings": {}
+        },
+        "video_2": {
+          "type": "video",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "bullet_1",
+        "bullet_2",
+        "bullet_3",
+        "video_1",
+        "video_3",
+        "video_2"
+      ],
+      "disabled": true,
+      "name": "Blint video reviews",
+      "settings": {
+        "heading": "In the real world",
+        "heading_font_size": 32,
+        "button_label": "",
+        "button_link": "",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "faq": {
+      "type": "blint-faq",
+      "blocks": {
+        "faq_1": {
+          "type": "faq",
+          "settings": {
+            "question": "Which six electrolytes?",
+            "answer": "<p>Sodium, chloride, potassium, magnesium, calcium and phosphorus, with the milligram amount for each printed on the pack.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_2": {
+          "type": "faq",
+          "settings": {
+            "question": "Can I mix flavours?",
+            "answer": "<p>Yes. Add as many packs of as many flavours as you like in one order — the discount is worked out on your total pack count, not per flavour.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_3": {
+          "type": "faq",
+          "settings": {
+            "question": "How do I use it?",
+            "answer": "<p>One stick into 500ml of cold water, shaken for ten seconds.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_4": {
+          "type": "faq",
+          "settings": {
+            "question": "Can I cancel a subscription?",
+            "answer": "<p>Yes, from your account, any time, without talking to anyone. You can also skip a delivery or push the date back.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_5": {
+          "type": "faq",
+          "disabled": true,
+          "settings": {
+            "question": "Could I become dependent on these?",
+            "answer": "<p>No. Our ingredients are non-habit-forming and made to work with your body's natural sleep process, not replace it.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_6": {
+          "type": "faq",
+          "disabled": true,
+          "settings": {
+            "question": "Does BLINT contain nicotine or tobacco?",
+            "answer": "<p>No, BLINT pouches are 100% nicotine and tobacco-free. Instead, BLINT pouches feature a science-backed blend of 6 natural nootropics that work synergistically to supercharge focus + energy.</p>",
+            "open_by_default": false
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6"
+      ],
+      "name": "Blint FAQ",
+      "settings": {
+        "heading": "Got questions?",
+        "heading_font_size": 30,
+        "subheading": "Straight answers, backed by real ingredients.",
+        "subheading_font_size": 18,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "judgeme": {
+      "type": "blint-judgeme",
+      "name": "Blint reviews (Judge.me)",
+      "settings": {
+        "heading": "Reviews",
+        "heading_font_size": 24,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    }
+  },
+  "order": [
+    "main",
+    "timeline",
+    "cost_compare",
+    "showcase",
+    "ingredients",
+    "compare",
+    "reviews",
+    "video_reviews",
+    "faq",
+    "judgeme"
+  ]
+}

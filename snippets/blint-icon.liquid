@@ -1,0 +1,32 @@
+{% doc %}
+  Renders one of the Blint custom feature icons as an inline SVG.
+
+  @param {string} icon - Icon name: sprout, lightning, flask, sparkle, leaf, shield, star, drop.
+{% enddoc %}
+
+{%- liquid
+  assign stroke = 1.8
+-%}
+
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  {%- case icon -%}
+    {%- when 'sprout' -%}
+      <path d="M12 20v-7m0 0C12 9 9.5 6.5 5 6.5c0 4 2.5 6.5 7 6.5Zm0 0c0-3.5 2.2-6 6.5-6 0 3.5-2.2 6-6.5 6Z" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round"/>
+    {%- when 'lightning' -%}
+      <path d="M13 2 4 13h6l-1 9 9-11h-6l1-9Z" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round"/>
+    {%- when 'flask' -%}
+      <path d="M9 3h6M10 3v6l-5 8.5A2 2 0 0 0 6.7 21h10.6a2 2 0 0 0 1.7-3.5L14 9V3M7.5 15h9" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round"/>
+    {%- when 'sparkle' -%}
+      <path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round"/>
+    {%- when 'leaf' -%}
+      <path d="M4 20c0-9 6-14 16-14 0 10-5 16-14 16-1 0-2-1-2-2Zm2 0c2-6 5-9 10-11" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round"/>
+    {%- when 'shield' -%}
+      <path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round"/>
+    {%- when 'star' -%}
+      <path d="m12 3 2.5 5.5L20 9.3l-4 4 1 6-5-2.8L7 19.3l1-6-4-4 5.5-.8L12 3Z" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round"/>
+    {%- when 'drop' -%}
+      <path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11Z" stroke="currentColor" stroke-width="{{ stroke }}" stroke-linecap="round" stroke-linejoin="round"/>
+    {%- else -%}
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="{{ stroke }}"/>
+  {%- endcase -%}
+</svg>

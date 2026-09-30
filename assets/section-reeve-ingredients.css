@@ -1,0 +1,410 @@
+.ig-section {
+  position: relative;
+  background-color: var(--ig-bg);
+  background-image: var(--ig-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  color: var(--ig-text);
+  padding: var(--ig-padding-top, 48px) 32px var(--ig-padding-bottom, 48px);
+  overflow: hidden;
+}
+
+.ig-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* Top row: text column | media+ingredients row */
+.ig-top-row {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  column-gap: 48px;
+  align-items: start;
+  margin-bottom: 48px;
+}
+
+.ig-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ig-text);
+  margin: 0 0 14px;
+}
+
+.ig-heading {
+  font-size: clamp(28px, 4.5vw, 40px);
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--ig-text);
+  margin: 0 0 16px;
+}
+
+.ig-heading p { margin: 0; }
+
+.ig-heading em {
+  font-style: normal;
+  color: var(--ig-accent);
+}
+
+.ig-paragraph {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ig-muted);
+}
+
+.ig-paragraph p { margin: 0 0 12px; }
+.ig-paragraph p:last-child { margin-bottom: 0; }
+
+.ig-divider {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  height: 2px;
+  margin: 24px 0;
+  background: linear-gradient(to right, var(--ig-text) 0 50%, var(--ig-accent) 50% 100%);
+}
+
+/* Specs row */
+.ig-specs {
+  display: flex;
+}
+
+.ig-spec {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 12px;
+  border-left: 1px solid var(--ig-border);
+}
+
+.ig-spec:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.ig-spec__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--ig-accent);
+  color: var(--ig-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.ig-spec__icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ig-spec__icon img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.ig-spec__label {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ig-text);
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Media + ingredients row */
+.ig-media-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.ig-connectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  color: var(--ig-accent);
+  z-index: 2;
+}
+
+.ig-connectors path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.ig-connectors circle {
+  fill: var(--ig-accent);
+  opacity: 0;
+}
+
+.ig-media {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.ig-media picture {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+}
+
+.ig-media__image {
+  width: 100%;
+  height: auto;
+  display: block;
+  will-change: transform;
+}
+
+.ig-ingredients {
+  flex: 0 0 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+.ig-ingredient {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ig-ingredient__photo-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ig-ingredient__photo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 1px solid var(--ig-border);
+  background: var(--ig-bg);
+}
+
+.ig-ingredient__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ig-accent);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ig-ingredient__body { min-width: 0; }
+
+.ig-ingredient__name {
+  font-size: 13px;
+  /* font-weight: 600; */
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ig-accent);
+  margin: 0 0 4px;
+}
+
+.ig-ingredient__desc {
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 240px;
+  color: var(--ig-muted);
+  margin: 0;
+}
+
+/* Trust strip */
+.ig-trust {
+  display: flex;
+  border: 1px solid var(--ig-border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.ig-trust__item {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 18px;
+  border-left: 1px solid var(--ig-border);
+}
+
+.ig-trust__item:first-child { border-left: none; }
+
+.ig-trust__icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--ig-accent);
+  color: var(--ig-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ig-trust__icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ig-trust__icon img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.ig-trust__label {
+  font-size: 13px;
+  /* font-weight: 600;  */
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ig-accent);
+  margin: 0 0 4px;
+}
+
+.ig-trust__desc {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ig-muted);
+  margin: 0;
+}
+
+@media (max-width: 989px) {
+  .ig-top-row {
+    display: block;
+  }
+
+  .ig-specs { flex-wrap: nowrap; }
+
+  .ig-spec {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 8px;
+    margin-bottom: 0;
+  }
+
+  .ig-spec__icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+  }
+
+  .ig-spec__icon svg,
+  .ig-spec__icon img {
+    width: 17px;
+    height: 17px;
+  }
+
+  .ig-spec__label {
+    font-size: 9px;
+    letter-spacing: 0.02em;
+  }
+
+  .ig-media-row {
+    margin-top: 28px;
+    gap: 20px;
+  }
+
+  .ig-media {
+    flex: 0 0 54%;
+    max-width: 54%;
+  }
+
+  .ig-ingredients { gap: 14px; }
+
+  .ig-ingredient { gap: 8px; }
+
+  .ig-ingredient__photo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ig-ingredient__badge {
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+  }
+
+  .ig-ingredient__name {
+    font-size: 10px;
+    max-width: 92px;
+  }
+
+  .ig-ingredient__desc {
+    font-size: 10px;
+    line-height: 1.3;
+    max-width: 130px;
+  }
+
+  .ig-trust {
+    flex-direction: column;
+    border-radius: 16px;
+    margin-top: 32px;
+  }
+
+  .ig-trust__item {
+    border-left: none;
+    border-top: 1px solid var(--ig-border);
+  }
+
+  .ig-trust__item:first-child { border-top: none; }
+}
+
+/* Extra-small phones: shrink the spec row a little further so all 4 items
+   keep fitting on one line without crowding. */
+@media (max-width: 400px) {
+  .ig-spec {
+    padding: 0 5px;
+  }
+
+  .ig-spec__icon {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 6px;
+  }
+
+  .ig-spec__icon svg,
+  .ig-spec__icon img {
+    width: 15px;
+    height: 15px;
+  }
+
+  .ig-spec__label {
+    font-size: 8px;
+    letter-spacing: 0.01em;
+  }
+}

@@ -1,0 +1,8 @@
+{{ 'overflow-list.css' | asset_url | preload_tag: as: 'style' }}
+{{ 'base.css' | asset_url | stylesheet_tag: preload: true }}
+{%- comment -%}
+  Judge.me type scale. Global rather than section-scoped because the review
+  widget is also placed as a Judge.me app block, which can appear on templates
+  where the blint-judgeme section isn't present.
+{%- endcomment -%}
+{{ 'judgeme-typography.css' | asset_url | stylesheet_tag }}

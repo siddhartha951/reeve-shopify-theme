@@ -1,0 +1,410 @@
+{%- liquid
+  assign bullets = section.blocks | where: 'type', 'bullet'
+  assign videos = section.blocks | where: 'type', 'video'
+-%}
+
+<div
+  class="blint-vr spacing-style color-{{ section.settings.color_scheme }}"
+  style="{% render 'spacing-style', settings: section.settings %} --heading-size: {{ section.settings.heading_font_size }}px;"
+  data-blint-vr
+  {% if request.visual_preview_mode %}
+    data-shopify-visual-preview
+  {% endif %}
+>
+  <div class="blint-vr__inner">
+    <div class="blint-vr__intro">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="blint-vr__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+
+      {%- if bullets.size > 0 -%}
+        <ul class="blint-vr__bullets" role="list">
+          {%- for block in bullets -%}
+            <li class="blint-vr__bullet" {{ block.shopify_attributes }}>
+              <span class="blint-vr__bullet-mark" aria-hidden="true">&#10037;</span>
+              <span>{{ block.settings.text }}</span>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank -%}
+        <a
+          class="blint-vr__button"
+          {% if section.settings.button_link != blank %}href="{{ section.settings.button_link }}"{% else %}role="link" aria-disabled="true"{% endif %}
+        >
+          <span>{{ section.settings.button_label }}</span>
+          <span class="blint-vr__button-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+              <path d="M4 12h15M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </a>
+      {%- endif -%}
+    </div>
+
+    {%- if videos.size > 0 -%}
+      <div class="blint-vr__carousel">
+        <div class="blint-vr__track" data-blint-vr-track>
+          {%- for block in videos -%}
+            <div class="blint-vr__item" {{ block.shopify_attributes }}>
+              <div class="blint-vr__media">
+                {%- if block.settings.video != blank -%}
+                  {{
+                    block.settings.video
+                    | video_tag: image_size: '400x', autoplay: true, loop: true, muted: true, controls: false, preload: 'metadata'
+                  }}
+                  <button class="blint-vr__mute" type="button" data-blint-vr-mute aria-label="Toggle sound" aria-pressed="false">
+                    <svg class="blint-vr__mute-off" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                    <svg class="blint-vr__mute-on" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" hidden><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8 8 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                  </button>
+                {%- elsif block.settings.poster != blank -%}
+                  {{
+                    block.settings.poster
+                    | image_url: width: 600
+                    | image_tag: loading: 'lazy', widths: '300, 450, 600', class: 'blint-vr__poster'
+                  }}
+                {%- else -%}
+                  {{ 'lifestyle-1' | placeholder_svg_tag: 'blint-vr__poster' }}
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if videos.size > 1 -%}
+          <div class="blint-vr__nav">
+            <button class="blint-vr__arrow" type="button" data-blint-vr-prev aria-label="Previous">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="blint-vr__arrow" type="button" data-blint-vr-next aria-label="Next">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .blint-vr__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    align-items: center;
+    max-width: var(--page-width, 1500px);
+    margin-inline: auto;
+    padding-inline: clamp(1.5rem, 5vw, 5rem);
+  }
+
+  @media screen and (min-width: 1000px) {
+    .blint-vr__inner {
+      grid-template-columns: minmax(280px, 0.8fr) minmax(0, 2fr);
+      gap: 3rem;
+    }
+  }
+
+  .blint-vr__heading {
+    margin: 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: min(var(--heading-size, 56px), 14vw);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+
+  .blint-vr__bullets {
+    margin: 2.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .blint-vr__bullet {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .blint-vr__bullet-mark {
+    color: var(--color-foreground, #111);
+    font-size: 1.1rem;
+  }
+
+  .blint-vr__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 2.5rem;
+    padding: 0.55rem 0.55rem 0.55rem 1.75rem;
+    border-radius: 16px;
+    background: #111;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+  }
+
+  .blint-vr__button:hover {
+    transform: translateY(-2px);
+  }
+
+  .blint-vr__button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: #fff;
+    color: #111;
+  }
+
+  /* Carousel */
+  .blint-vr__carousel {
+    position: relative;
+    min-width: 0;
+  }
+
+  .blint-vr__track {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+
+  .blint-vr__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .blint-vr__item {
+    scroll-snap-align: start;
+    flex: 0 0 clamp(220px, 60vw, 300px);
+  }
+
+  .blint-vr__media {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .blint-vr__media video,
+  .blint-vr__poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .blint-vr__mute {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+
+  .blint-vr__nav {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .blint-vr__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-foreground, #111);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .blint-vr__arrow:hover {
+    background: color-mix(in srgb, var(--color-foreground, #111) 10%, transparent);
+  }
+{% endstylesheet %}
+
+<script>
+  (function () {
+    const root = document.currentScript.closest('[data-blint-vr]');
+    if (!root) return;
+
+    // Mute toggles
+    root.querySelectorAll('[data-blint-vr-mute]').forEach(function (btn) {
+      const media = btn.closest('.blint-vr__media');
+      const video = media && media.querySelector('video');
+      if (!video) return;
+      const offIcon = btn.querySelector('.blint-vr__mute-off');
+      const onIcon = btn.querySelector('.blint-vr__mute-on');
+      btn.addEventListener('click', function () {
+        video.muted = !video.muted;
+        const unmuted = !video.muted;
+        btn.setAttribute('aria-pressed', String(unmuted));
+        if (offIcon) offIcon.hidden = unmuted;
+        if (onIcon) onIcon.hidden = !unmuted;
+        if (unmuted) video.play().catch(function () {});
+      });
+    });
+
+    // Carousel arrows
+    const track = root.querySelector('[data-blint-vr-track]');
+    const prev = root.querySelector('[data-blint-vr-prev]');
+    const next = root.querySelector('[data-blint-vr-next]');
+    if (track && prev && next) {
+      const step = function () {
+        const item = track.querySelector('.blint-vr__item');
+        return item ? item.getBoundingClientRect().width + 24 : 300;
+      };
+      prev.addEventListener('click', function () {
+        track.scrollBy({ left: -step(), behavior: 'smooth' });
+      });
+      next.addEventListener('click', function () {
+        track.scrollBy({ left: step(), behavior: 'smooth' });
+      });
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Blint video reviews",
+  "tag": "section",
+  "class": "blint-vr-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Out in the world"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "Heading font size",
+      "min": 20,
+      "max": 120,
+      "step": 1,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 56
+    }
+  ],
+  "blocks": [
+    {
+      "type": "bullet",
+      "name": "Bullet point",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Pop 1-2 focus pouches"
+        }
+      ]
+    },
+    {
+      "type": "video",
+      "name": "Video",
+      "settings": [
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Video"
+        },
+        {
+          "type": "image_picker",
+          "id": "poster",
+          "label": "Poster image",
+          "info": "Shown if no video is selected."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blint video reviews",
+      "blocks": [
+        { "type": "bullet", "settings": { "text": "Pop 1-2 focus pouches" } },
+        { "type": "bullet", "settings": { "text": "Feel intense focus in 5-10 min" } },
+        { "type": "bullet", "settings": { "text": "Effects last 1-2 hours" } },
+        { "type": "video" },
+        { "type": "video" },
+        { "type": "video" }
+      ]
+    }
+  ]
+}
+{% endschema %}

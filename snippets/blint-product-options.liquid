@@ -1,0 +1,156 @@
+{%- comment -%}
+  Renders every product option as pills, or as pricing cards for the option
+  detected as the "count"/box-quantity one. Split out of
+  sections/blint-product-custom-ab.liquid to keep that file's Liquid
+  complexity under Shopify's per-file limit.
+
+  Accepts:
+  - product: the product being displayed
+  - block: the 'boxes' block (settings: count_option_name, show_quantity_badges,
+    count_as_cards, count_units_per_box, count_unit_label, count_badge_popular,
+    count_badge_best, upgrade_text, best_value_text)
+{%- endcomment -%}
+
+{%- liquid
+  comment
+    Work out which option is the box-quantity one BEFORE rendering, so the
+    decision is made once and every branch agrees on it.
+
+    This used to be pure keyword guessing against the option name, which failed
+    silently for perfectly ordinary names like "Boxes" or "Servings": no
+    data-count-option attribute, so no pricing cards, no discount badges and no
+    upgrade hint, with nothing to indicate why. Three passes now, most explicit
+    first.
+  endcomment
+  assign count_option_pos = 0
+  assign explicit_name = block.settings.count_option_name | strip | downcase
+
+  # 1. Exact option name from the block settings — always wins.
+  if explicit_name != blank
+    for option in product.options_with_values
+      assign oname = option.name | strip | downcase
+      if oname == explicit_name
+        assign count_option_pos = forloop.index
+        break
+      endif
+    endfor
+  endif
+
+  # 2. Keyword auto-detect, for the common names.
+  if count_option_pos == 0
+    for option in product.options_with_values
+      assign oname = option.name | downcase
+      if oname contains 'count' or oname contains 'can' or oname contains 'pack' or oname contains 'size' or oname contains 'quantity' or oname contains 'qty' or oname contains 'box' or oname contains 'bundle' or oname contains 'pouch' or oname contains 'stick' or oname contains 'serving' or oname contains 'supply' or oname contains 'tier' or oname contains 'kit'
+        assign count_option_pos = forloop.index
+        break
+      endif
+    endfor
+  endif
+
+  # 3. Single-option product: whatever it is called, it is the only thing the
+  #    quantity treatment could apply to. Restricted to one option so this can
+  #    never mis-target a product with a real flavour/size split.
+  if count_option_pos == 0 and product.options_with_values.size == 1
+    assign count_option_pos = 1
+  endif
+-%}
+
+{%- comment -%}
+  Theme-editor-only warning. Detection failing used to be invisible — the cards,
+  badges and upgrade hint just never appeared, with no clue as to why. Shown to
+  the merchant, never to shoppers.
+{%- endcomment -%}
+{%- if count_option_pos == 0 and request.design_mode -%}
+  <p style="margin: 0 0 1rem; padding: 0.7rem 0.9rem; border-radius: 10px; background: #fff4e5; border: 1px solid #f0c68a; color: #7a4b00; font-size: 0.8rem; line-height: 1.45;">
+    <strong>Boxes block:</strong> no quantity option detected, so the pricing
+    cards, discount badges and upgrade hint are turned off. Set “Quantity option
+    name” in this block to the exact name of your quantity option
+    {%- if product.options_with_values.size > 0 %} (this product has:
+      {%- for o in product.options_with_values %} “{{ o.name }}”{% unless forloop.last %},{% endunless %}{% endfor %})
+    {%- endif -%}.
+  </p>
+{%- endif -%}
+
+{%- for option in product.options_with_values -%}
+  {%- assign is_count = false -%}
+  {%- if forloop.index == count_option_pos -%}
+    {%- assign is_count = true -%}
+  {%- endif -%}
+  {%- assign use_cards = false -%}
+  {%- if is_count and block.settings.count_as_cards -%}
+    {%- assign use_cards = true -%}
+  {%- endif -%}
+  <fieldset class="blint-product__option" data-option-index="{{ forloop.index }}" {% if is_count %}data-count-option data-badges-enabled="{{ block.settings.show_quantity_badges }}" data-units-per-box="{{ block.settings.count_units_per_box }}" data-unit-label="{{ block.settings.count_unit_label | escape }}"{% endif %}>
+    <legend class="blint-product__option-name">{{ option.name }}</legend>
+    <div class="blint-product__pills{% if is_count %} blint-product__pills--count{% endif %}{% if use_cards %} blint-product__pills--cards{% endif %}">
+      {%- assign values_size = option.values.size -%}
+      {%- for value in option.values -%}
+        {%- liquid
+          assign opt_idx0 = forloop.parentloop.index0
+          assign value_image = nil
+          unless is_count
+            for v in product.variants
+              if v.options[opt_idx0] == value and v.featured_media != blank
+                assign value_image = v.featured_media
+                break
+              endif
+            endfor
+          endunless
+          assign card_badge = ''
+          if use_cards
+            if values_size > 2 and forloop.index0 == 1
+              assign card_badge = block.settings.count_badge_popular
+            elsif forloop.last
+              assign card_badge = block.settings.count_badge_best
+            endif
+          endif
+        -%}
+        {%- if use_cards -%}
+          <label class="blint-product__box-card">
+            <input
+              type="radio"
+              name="blint-option-{{ forloop.parentloop.index }}"
+              value="{{ value | escape }}"
+              data-option-input
+              {% if option.selected_value == value %}checked{% endif %}
+            >
+            {%- if card_badge != blank -%}
+              <span class="blint-product__box-card-badge">{{ card_badge }}</span>
+            {%- endif -%}
+            <span class="blint-product__box-card-title">{{ value }}</span>
+            <span class="blint-product__box-card-prices">
+              <span class="blint-product__box-card-compare" data-box-compare hidden></span>
+              <span class="blint-product__box-card-price" data-box-price></span>
+            </span>
+            <span class="blint-product__box-card-discount" data-box-discount hidden></span>
+            <span class="blint-product__box-card-unit" data-box-unit hidden></span>
+          </label>
+        {%- else -%}
+          <label class="blint-product__pill{% if is_count %} blint-product__pill--count{% endif %}{% if value_image %} blint-product__pill--image{% endif %}">
+            <input
+              type="radio"
+              name="blint-option-{{ forloop.parentloop.index }}"
+              value="{{ value | escape }}"
+              data-option-input
+              {% if option.selected_value == value %}checked{% endif %}
+            >
+            {%- if value_image -%}
+              <span class="blint-product__pill-thumb">{{ value_image | image_url: width: 80 | image_tag: loading: 'lazy', widths: '40, 80', alt: '' }}</span>
+            {%- endif -%}
+            <span class="blint-product__pill-label">{{ value }}</span>
+            {%- if is_count -%}<span class="blint-product__pill-badge" data-badge-for="{{ value | escape }}" hidden></span>{%- endif -%}
+          </label>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+    {%- if is_count -%}
+      <p
+        class="blint-product__upgrade-hint"
+        data-upgrade-hint
+        data-template="{{ block.settings.upgrade_text | escape }}"
+        data-best-text="{{ block.settings.best_value_text | escape }}"
+        hidden
+      ></p>
+    {%- endif -%}
+  </fieldset>
+{%- endfor -%}

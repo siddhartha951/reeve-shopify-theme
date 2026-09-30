@@ -1,0 +1,190 @@
+.rb-section {
+  position: relative;
+  background-color: var(--rb-bg);
+  background-image: var(--rb-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  color: var(--rb-text);
+  padding: var(--rb-padding-top, 48px) 32px var(--rb-padding-bottom, 48px);
+  overflow: hidden;
+}
+
+.rb-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.rb-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 64px;
+  align-items: center;
+}
+
+.rb-col--text { grid-column: 2; }
+
+.rb-block--bottom {
+  margin-top: 24px;
+}
+
+/* Media: product image, equal column with the text side */
+.rb-media {
+  grid-column: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rb-media__image {
+  width: 100%;
+  height: auto;
+  display: block;
+  will-change: transform;
+}
+
+/* Decorative floating water droplets around the product image */
+.rb-droplets {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.rb-droplet {
+  position: absolute;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 2px 3px rgba(17, 24, 20, 0.1));
+}
+
+.rb-droplet--1  { top: 6%;  left: 2%;  width: 20px; height: 20px; }
+.rb-droplet--2  { top: 16%; left: 90%; width: 16px; height: 16px; }
+.rb-droplet--3  { top: 40%; left: -2%; width: 26px; height: 26px; }
+.rb-droplet--4  { top: 58%; left: 94%; width: 18px; height: 18px; }
+.rb-droplet--5  { top: 78%; left: 6%;  width: 15px; height: 15px; }
+.rb-droplet--6  { top: 88%; left: 84%; width: 22px; height: 22px; }
+.rb-droplet--7  { top: 2%;  left: 46%; width: 14px; height: 14px; }
+.rb-droplet--8  { top: 28%; left: 22%; width: 12px; height: 12px; }
+.rb-droplet--9  { top: 30%; left: 72%; width: 17px; height: 17px; }
+.rb-droplet--10 { top: 66%; left: 40%; width: 13px; height: 13px; }
+.rb-droplet--11 { top: 96%; left: 30%; width: 19px; height: 19px; }
+.rb-droplet--12 { top: 50%; left: 98%; width: 15px; height: 15px; }
+
+/* Text content column */
+.rb-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--rb-accent);
+  margin: 0 0 14px;
+}
+
+.rb-heading {
+  /* font-size: clamp(30px, 3.6vw, 42px); */
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--rb-text);
+  margin: 0 0 20px;
+}
+
+.rb-heading em {
+  font-style: normal;
+  color: var(--rb-accent);
+}
+
+.rb-divider {
+  display: block;
+  width: 56px;
+  height: 3px;
+  background: var(--rb-accent);
+  margin-bottom: 24px;
+  border-radius: 2px;
+}
+
+.rb-paragraph {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--rb-muted);
+}
+
+.rb-paragraph p { margin: 0 0 16px; }
+.rb-paragraph p:last-child { margin-bottom: 0; }
+
+/* Keypoints */
+.rb-keypoints {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+
+.rb-keypoint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--rb-keypoint-bg);
+  border-radius: 16px;
+  padding: 14px 18px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.rb-keypoint__icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rb-keypoint-accent);
+}
+
+.rb-keypoint__icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rb-keypoint__icon img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.rb-keypoint__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rb-text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+@media (max-width: 989px) {
+  .rb-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .rb-col--text { display: contents; }
+
+  .rb-block--top { order: 1; }
+  .rb-media { order: 2; }
+  .rb-block--bottom { order: 3; margin-top: 0; }
+
+  .rb-keypoints { gap: 10px; }
+
+  .rb-keypoint {
+    padding: 12px;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

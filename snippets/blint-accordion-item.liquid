@@ -1,0 +1,12 @@
+{%- comment -%}
+  Accepts: heading (string), content (string/HTML), open (boolean, optional).
+{%- endcomment -%}
+{%- if content != blank -%}
+  <details class="blint-product__accordion-item"{% if open %} open{% endif %}>
+    <summary class="blint-product__accordion-summary">
+      <span>{{ heading }}</span>
+      <span class="blint-product__accordion-icon" aria-hidden="true"></span>
+    </summary>
+    <div class="blint-product__accordion-content">{{ content }}</div>
+  </details>
+{%- endif -%}

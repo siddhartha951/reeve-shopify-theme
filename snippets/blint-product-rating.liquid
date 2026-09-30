@@ -1,0 +1,106 @@
+{%- comment -%}
+  Product rating row, synced with Judge.me.
+
+  Judge.me mirrors its aggregate into Shopify's standard `reviews.rating` /
+  `reviews.rating_count` product metafields, so the real score renders
+  server-side with no layout shift and no dependency on the app's script.
+  The hidden Judge.me preview badge below is left in the DOM as a live source:
+  the section script reads `data-average-rating` / `data-number-of-reviews`
+  off it once the app hydrates and pushes the numbers into the styled row,
+  which covers stores where the metafield sync is off or stale.
+
+  Accepts:
+  - rating_product {Object}  product to read reviews for (required)
+  - block          {Object}  the "rating" block, for its settings + attributes
+
+  Block settings used: sync_with_judgeme, rating_count_template,
+  rating_value, rating_count.
+{%- endcomment -%}
+
+{%- liquid
+  assign s = block.settings
+  assign count_template = s.rating_count_template | default: '[count] reviews'
+
+  assign jm_rating = 0
+  assign jm_count = 0
+  assign rating_scale = 5
+
+  if s.sync_with_judgeme
+    assign jm_rating_mf = rating_product.metafields.reviews.rating.value
+    if jm_rating_mf != blank and jm_rating_mf.rating != blank
+      assign jm_rating = jm_rating_mf.rating | times: 1.0
+      if jm_rating_mf.scale_max != blank and jm_rating_mf.scale_max > 0
+        assign rating_scale = jm_rating_mf.scale_max | times: 1.0
+      endif
+    endif
+    assign jm_count_mf = rating_product.metafields.reviews.rating_count.value
+    if jm_count_mf != blank
+      assign jm_count = jm_count_mf | times: 1
+    endif
+  endif
+
+  if jm_rating > 0
+    assign rating_number = jm_rating
+    assign rating_text = jm_rating | round: 1
+  else
+    assign rating_number = s.rating_value | times: 1.0
+    assign rating_text = s.rating_value
+  endif
+
+  if jm_count > 0
+    assign count_text = count_template | replace: '[count]', jm_count
+  else
+    assign count_text = s.rating_count
+  endif
+
+  assign star_fill = rating_number | times: 100.0 | divided_by: rating_scale | round: 2
+  if star_fill > 100
+    assign star_fill = 100
+  endif
+  if star_fill < 0
+    assign star_fill = 0
+  endif
+
+  assign has_copy = false
+  if rating_text != blank or count_text != blank
+    assign has_copy = true
+  endif
+-%}
+
+{%- if has_copy or s.sync_with_judgeme -%}
+  <div class="blint-product__rating-wrap" {{ block.shopify_attributes }}>
+    <button
+      type="button"
+      class="blint-product__rating"
+      data-blint-rating
+      data-count-template="{{ count_template | escape }}"
+      {% unless has_copy %}hidden{% endunless %}
+    >
+      <span class="blint-product__stars" data-rating-stars style="--blint-star-fill: {{ star_fill }}%;">
+        <span class="blint-product__stars-track" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <span class="blint-product__stars-fill" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+      </span>
+      <span class="visually-hidden" data-rating-sr>Rated {{ rating_text | default: 0 }} out of 5</span>
+      <span class="blint-product__rating-value" data-rating-value{% if rating_text == blank %} hidden{% endif %}>{{ rating_text }}</span>
+      <span class="blint-product__rating-count" data-rating-count{% if count_text == blank %} hidden{% endif %}>{{ count_text }}</span>
+    </button>
+
+    {%- if s.sync_with_judgeme -%}
+      {%- comment -%}
+        Visually hidden rather than display:none, so Judge.me's lazy hydration
+        still fires. Never shown to shoppers — it exists only to be read.
+      {%- endcomment -%}
+      <div class="blint-product__jdgm-source visually-hidden" data-jdgm-source aria-hidden="true">
+        <div
+          class="jdgm-widget jdgm-preview-badge"
+          data-id="{{ rating_product.id }}"
+          data-product-id="{{ rating_product.id }}"
+          data-product-title="{{ rating_product.title | escape }}"
+          data-template="product"
+        >
+          {{ rating_product.metafields.judgeme.badge }}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}

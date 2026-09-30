@@ -1,0 +1,974 @@
+{% comment %}
+  Reeve "Hydrate" hero section for Horizon theme
+  Section handle: reeve-hero-hydrate
+{% endcomment %}
+
+{%- liquid
+  assign desktop_image = section.settings.desktop_image
+  assign mobile_image = section.settings.mobile_image
+  assign has_mobile_image = false
+  if mobile_image != blank
+    assign has_mobile_image = true
+  endif
+
+  assign heading_2_html = section.settings.heading_line_2 | newline_to_br
+
+  assign desktop_ratio = desktop_image.aspect_ratio | default: 1.78
+  assign mobile_ratio = mobile_image.aspect_ratio | default: desktop_ratio
+
+  assign content_position = section.settings.content_position | default: 'bottom-left'
+
+  case content_position
+    when 'top-left'
+      assign content_v_align = 'flex-start'
+      assign content_h_align = 'flex-start'
+      assign content_text_align = 'left'
+    when 'top-center'
+      assign content_v_align = 'flex-start'
+      assign content_h_align = 'center'
+      assign content_text_align = 'center'
+    when 'top-right'
+      assign content_v_align = 'flex-start'
+      assign content_h_align = 'flex-end'
+      assign content_text_align = 'right'
+    when 'middle-left'
+      assign content_v_align = 'center'
+      assign content_h_align = 'flex-start'
+      assign content_text_align = 'left'
+    when 'middle-center'
+      assign content_v_align = 'center'
+      assign content_h_align = 'center'
+      assign content_text_align = 'center'
+    when 'middle-right'
+      assign content_v_align = 'center'
+      assign content_h_align = 'flex-end'
+      assign content_text_align = 'right'
+    when 'bottom-center'
+      assign content_v_align = 'flex-end'
+      assign content_h_align = 'center'
+      assign content_text_align = 'center'
+    when 'bottom-right'
+      assign content_v_align = 'flex-end'
+      assign content_h_align = 'flex-end'
+      assign content_text_align = 'right'
+    else
+      assign content_v_align = 'flex-end'
+      assign content_h_align = 'flex-start'
+      assign content_text_align = 'left'
+  endcase
+
+  comment
+    Mobile content placement, independent of desktop. Derived by splitting the
+    "vertical-horizontal" position string instead of repeating the nine-way
+    switch above — same result in a third of the Liquid.
+
+    An 'inherit' value means "follow the desktop setting", which is the
+    default, so existing sections render exactly as they did before.
+  endcomment
+  assign pos_m = section.settings.content_position_mobile | default: 'inherit'
+  if pos_m == 'inherit'
+    assign pos_m = content_position
+  endif
+  assign pos_m_parts = pos_m | split: '-'
+  assign pos_m_v = pos_m_parts[0]
+  assign pos_m_h = pos_m_parts[1] | default: 'left'
+
+  assign content_v_align_mobile = 'flex-end'
+  if pos_m_v == 'top'
+    assign content_v_align_mobile = 'flex-start'
+  elsif pos_m_v == 'middle'
+    assign content_v_align_mobile = 'center'
+  endif
+
+  assign content_h_align_mobile = 'flex-start'
+  if pos_m_h == 'center'
+    assign content_h_align_mobile = 'center'
+  elsif pos_m_h == 'right'
+    assign content_h_align_mobile = 'flex-end'
+  endif
+
+  assign content_text_align_mobile = pos_m_h
+-%}
+
+<section
+  class="rh-hero"
+  data-height-mode-mobile="{{ section.settings.height_mode_mobile }}"
+  data-height-mode-desktop="{{ section.settings.height_mode_desktop }}"
+  style="
+    --rh-aspect-desktop: {{ desktop_ratio }};
+    --rh-aspect-mobile: {{ mobile_ratio }};
+    --rh-heading-size-mobile: {{ section.settings.heading_font_size_mobile }}px;
+    --rh-heading-size-desktop: {{ section.settings.heading_font_size_desktop }}px;
+    --rh-overlay-color: {{ section.settings.overlay_color }};
+    --rh-overlay-opacity: {{ section.settings.overlay_opacity | times: 1.0 | divided_by: 100 }};
+    --rh-eyebrow-bg: {{ section.settings.eyebrow_bg_color }};
+    --rh-eyebrow-text: {{ section.settings.eyebrow_text_color }};
+    --rh-heading-1-color: {{ section.settings.heading_line_1_color }};
+    --rh-heading-2-color: {{ section.settings.heading_line_2_color }};
+    --rh-paragraph-color: {{ section.settings.paragraph_color }};
+    --rh-btn1-bg: {{ section.settings.button_1_bg_color }};
+    --rh-btn1-text: {{ section.settings.button_1_text_color }};
+    --rh-btn2-bg: {{ section.settings.button_2_bg_color }};
+    --rh-btn2-text: {{ section.settings.button_2_text_color }};
+    --rh-btn2-border: {{ section.settings.button_2_border_color }};
+    --rh-content-max-width: {{ section.settings.content_max_width }}px;
+    --rh-padding-top-mobile: {{ section.settings.padding_top_mobile }}px;
+    --rh-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;
+    --rh-padding-top-desktop: {{ section.settings.padding_top_desktop }}px;
+    --rh-padding-bottom-desktop: {{ section.settings.padding_bottom_desktop }}px;
+    --rh-content-v-align: {{ content_v_align }};
+    --rh-content-h-align: {{ content_h_align }};
+    --rh-content-text-align: {{ content_text_align }};
+    --rh-content-v-align-mobile: {{ content_v_align_mobile }};
+    --rh-content-h-align-mobile: {{ content_h_align_mobile }};
+    --rh-content-text-align-mobile: {{ content_text_align_mobile }};
+    --rh-content-pt-mobile: {{ section.settings.content_padding_top_mobile | default: 24 }}px;
+    --rh-content-pb-mobile: {{ section.settings.content_padding_bottom_mobile | default: 24 }}px;
+    --rh-content-px-mobile: {{ section.settings.content_padding_inline_mobile | default: 24 }}px;
+  "
+  {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
+>
+  <div class="rh-hero__frame" data-rh-frame>
+  <div class="rh-hero__media" data-rh-media>
+    {%- if has_mobile_image -%}
+      <picture class="rh-hero__picture">
+        <source
+          media="(max-width: 749px)"
+          srcset="
+            {{ mobile_image | image_url: width: 480 }} 480w,
+            {{ mobile_image | image_url: width: 750 }} 750w,
+            {{ mobile_image | image_url: width: 1080 }} 1080w
+          "
+          sizes="100vw"
+        >
+        {%- if desktop_image != blank -%}
+          {{
+            desktop_image
+            | image_url: width: 2400
+            | image_tag:
+              widths: '750, 1080, 1500, 1920, 2400',
+              sizes: '100vw',
+              alt: section.settings.desktop_image.alt | default: section.settings.heading_line_1,
+              class: 'rh-hero__media-img',
+              loading: 'eager',
+              fetchpriority: 'high'
+          }}
+        {%- else -%}
+          {{ 'lifestyle-1' | placeholder_svg_tag: 'rh-hero__media-img rh-hero__media-img--placeholder' }}
+        {%- endif -%}
+      </picture>
+    {%- else -%}
+      {%- if desktop_image != blank -%}
+        {{
+          desktop_image
+          | image_url: width: 2400
+          | image_tag:
+            widths: '480, 750, 1080, 1500, 1920, 2400',
+            sizes: '100vw',
+            alt: section.settings.desktop_image.alt | default: section.settings.heading_line_1,
+            class: 'rh-hero__media-img',
+            loading: 'eager',
+            fetchpriority: 'high'
+        }}
+      {%- else -%}
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'rh-hero__media-img rh-hero__media-img--placeholder' }}
+      {%- endif -%}
+    {%- endif -%}
+    <div class="rh-hero__overlay"></div>
+  </div>
+
+  <div class="rh-hero__inner">
+    <div class="rh-hero__content" data-rh-content>
+      {%- if section.settings.eyebrow_text != blank -%}
+        <p class="rh-hero__eyebrow" data-rh-item>{{ section.settings.eyebrow_text }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.heading_line_1 != blank or section.settings.heading_line_2 != blank -%}
+        <h1 class="rh-hero__heading" data-rh-item>
+          {%- if section.settings.heading_line_1 != blank -%}
+            <span class="rh-hero__heading-line rh-hero__heading-line--1">{{ section.settings.heading_line_1 }}</span>
+          {%- endif -%}
+          {%- if section.settings.heading_line_2 != blank -%}
+            <span class="rh-hero__heading-line rh-hero__heading-line--2">{{ heading_2_html }}</span>
+          {%- endif -%}
+        </h1>
+      {%- endif -%}
+
+      {%- if section.settings.paragraph != blank -%}
+        <div class="rh-hero__paragraph" data-rh-item>{{ section.settings.paragraph }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.button_1_text != blank or section.settings.button_2_text != blank -%}
+        <div class="rh-hero__buttons" data-rh-item>
+          {%- if section.settings.button_1_text != blank -%}
+            <a
+              {% if section.settings.button_1_link != blank %}
+                href="{{ section.settings.button_1_link }}"
+              {% else %}
+                role="link" aria-disabled="true"
+              {% endif %}
+              class="rh-hero__button rh-hero__button--primary"
+            >
+              {{ section.settings.button_1_text }}
+            </a>
+          {%- endif -%}
+          {%- if section.settings.button_2_text != blank -%}
+            <a
+              {% if section.settings.button_2_link != blank %}
+                href="{{ section.settings.button_2_link }}"
+              {% else %}
+                role="link" aria-disabled="true"
+              {% endif %}
+              class="rh-hero__button rh-hero__button--secondary"
+            >
+              {{ section.settings.button_2_text }}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- assign kpi_blocks = section.blocks | where: 'type', 'kpi' -%}
+      {%- if kpi_blocks.size > 0 -%}
+        <div class="rh-hero__kpis" data-rh-item>
+          {%- for block in kpi_blocks -%}
+            <div
+              class="rh-hero__kpi"
+              style="--rh-kpi-color: {{ block.settings.text_color }};"
+              {{ block.shopify_attributes }}
+            >
+              {%- if block.settings.style == 'rating' -%}
+                <span class="rh-hero__kpi-stars" style="--rh-star-color: {{ section.settings.kpi_star_color }};" aria-hidden="true">
+                  {%- for i in (1..5) -%}★{%- endfor -%}
+                </span>
+              {%- endif -%}
+              {%- if block.settings.text != blank -%}
+                <span class="rh-hero__kpi-text">{{ block.settings.text }}</span>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('.rh-hero');
+    if (!root) return;
+
+    Promise.all([import('@theme/motion')]).then(([{ gsap, prefersReducedMotion }]) => {
+      const items = Array.from(root.querySelectorAll('[data-rh-item]'));
+      if (!items.length) return;
+      const reduced = prefersReducedMotion();
+
+      if (reduced) {
+        gsap.set(items, { opacity: 1, y: 0 });
+        return;
+      }
+
+      gsap.set(items, { opacity: 0, y: 24 });
+      gsap.to(items, {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        ease: 'power3.out',
+        stagger: 0.1,
+        delay: 0.15,
+      });
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  /* `.rh-hero` itself only ever handles top/bottom padding, in normal
+     document flow — that guarantees the padding settings always add real,
+     visible space around the frame below, in every height mode, instead of
+     competing with (and being swallowed by) the height-mode min-height. */
+  .rh-hero {
+    display: block;
+    padding-block: var(--rh-padding-top-mobile, 0) var(--rh-padding-bottom-mobile, 0);
+  }
+
+  @media screen and (min-width: 750px) {
+    .rh-hero {
+      padding-block: var(--rh-padding-top-desktop, 0) var(--rh-padding-bottom-desktop, 0);
+    }
+  }
+
+  /* `.rh-hero__frame` owns sizing: it's the positioned ancestor for the
+     full-bleed media and the content overlay, and is exactly what the
+     height-mode settings below resize — never the padded `.rh-hero`. */
+  .rh-hero__frame {
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+
+  /* Mobile height mode: independent of desktop. "Medium"/"Large" pin the
+     frame to a preset viewport-height band and crop the image
+     (object-fit: cover) to fill it; "Adapt" follows the image's own aspect
+     ratio instead, so nothing is cropped and the frame grows taller
+     automatically if the overlaid text needs more room than the image alone
+     would take up. */
+  /* The header-clearance floor is folded into every rule below via max()
+     rather than living in its own separate min-height rule — a standalone
+     rule targeting the same property would need to out-specificity these
+     attribute selectors, and previously did (via an ID inside :has()),
+     which silently collapsed Medium/Large down to just the header's height.
+     max() makes the two floors coexist inside one declaration instead of
+     competing to overwrite each other. */
+  .rh-hero[data-height-mode-mobile='medium'] .rh-hero__frame {
+    min-height: max(60svh, var(--header-group-height, 0px));
+  }
+
+  .rh-hero[data-height-mode-mobile='large'] .rh-hero__frame {
+    min-height: max(100svh, var(--header-group-height, 0px));
+  }
+
+  .rh-hero[data-height-mode-mobile='adapt'] .rh-hero__frame {
+    /* Cap how wide/short the ratio can get on narrow screens: a landscape
+       image (ratio > 0.85) would otherwise collapse mobile to a sliver,
+       leaving no room for the overlaid text before it hits the model/photo
+       subject. Portrait images (ratio already < 0.85) are unaffected and use
+       their true ratio. */
+    aspect-ratio: min(0.85, var(--rh-aspect-mobile, 0.75));
+    min-height: var(--header-group-height, 0px);
+  }
+
+  /* Desktop height mode: reset whatever mobile set, then reapply
+     independently so the two breakpoints never inherit each other's mode. */
+  @media screen and (min-width: 750px) {
+    .rh-hero__frame {
+      min-height: 0;
+      aspect-ratio: auto;
+    }
+
+    .rh-hero[data-height-mode-desktop='medium'] .rh-hero__frame {
+      min-height: max(60svh, var(--header-group-height, 0px));
+    }
+
+    .rh-hero[data-height-mode-desktop='large'] .rh-hero__frame {
+      min-height: max(100svh, var(--header-group-height, 0px));
+    }
+
+    .rh-hero[data-height-mode-desktop='adapt'] .rh-hero__frame {
+      aspect-ratio: var(--rh-aspect-desktop, 16 / 9);
+      min-height: var(--header-group-height, 0px);
+    }
+  }
+
+  .rh-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .rh-hero__picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .rh-hero__media-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .rh-hero__media-img--placeholder svg {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-background);
+  }
+
+  .rh-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--rh-overlay-color, #000000);
+    opacity: var(--rh-overlay-opacity, 0);
+  }
+
+  /* Always an absolute overlay on `.rh-hero__frame`, in every height mode —
+     the frame's own sizing (above) is what determines the visible height,
+     so the content never needs to switch between in-flow and overlaid. */
+  .rh-hero__inner {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: var(--rh-content-v-align, flex-end);
+    justify-content: var(--rh-content-h-align, flex-start);
+    padding: clamp(1.5rem, 6vw, 3rem);
+  }
+
+  @media screen and (min-width: 750px) {
+    .rh-hero__inner {
+      padding: clamp(2rem, 6vw, 4rem);
+    }
+  }
+
+  .rh-hero__content {
+    display: flex;
+    flex-direction: column;
+    align-items: var(--rh-content-h-align, flex-start);
+    text-align: var(--rh-content-text-align, left);
+    gap: clamp(0.9rem, 2vw, 1.35rem);
+    max-width: var(--rh-content-max-width, 640px);
+    width: 100%;
+  }
+
+  .rh-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0.55em 1.1em;
+    border-radius: 999px;
+    background: var(--rh-eyebrow-bg, #101726);
+    color: var(--rh-eyebrow-text, #ffffff);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .rh-hero__heading {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-heading--family);
+    font-style: var(--font-heading--style);
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    /* A vw-only preferred value would get overridden by its own floor on
+       narrow screens, making the size setting appear to do nothing on
+       mobile. Scaling relative to the configured size itself keeps it fluid
+       AND makes the slider actually move the rendered size. */
+    font-size: clamp(calc(var(--rh-heading-size-mobile, 44px) * 0.72), 9vw, var(--rh-heading-size-mobile, 44px));
+  }
+
+  @media screen and (min-width: 750px) {
+    .rh-hero__heading {
+      font-size: clamp(calc(var(--rh-heading-size-desktop, 72px) * 0.6), 6vw, var(--rh-heading-size-desktop, 72px));
+    }
+  }
+
+  .rh-hero__heading-line--1 {
+    color: var(--rh-heading-1-color, #ffffff);
+  }
+
+  .rh-hero__heading-line--2 {
+    color: var(--rh-heading-2-color, #f4e409);
+  }
+
+  .rh-hero__paragraph {
+    margin: 0;
+    max-width: 32rem;
+    color: var(--rh-paragraph-color, #ffffff);
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+    line-height: 1.55;
+  }
+
+  .rh-hero__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: var(--rh-content-h-align, flex-start);
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .rh-hero__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0.95em 1.6em;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    border: 1.5px solid transparent;
+  }
+
+  .rh-hero__button--primary {
+    background: var(--rh-btn1-bg, #f4e409);
+    color: var(--rh-btn1-text, #10141f);
+  }
+
+  .rh-hero__button--secondary {
+    background: var(--rh-btn2-bg, transparent);
+    color: var(--rh-btn2-text, #ffffff);
+    border-color: var(--rh-btn2-border, #ffffff);
+  }
+
+  .rh-hero__kpis {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .rh-hero__kpi {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--rh-kpi-color, #ffffff);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .rh-hero__kpi-stars {
+    color: var(--rh-star-color, #f4e409);
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+  }
+
+  @media screen and (max-width: 749px) {
+    /* Mobile content placement. The section-spacing settings pad `.rh-hero`
+       (outside the frame) and so can only add whitespace above/below the whole
+       hero — they cannot move this stack, which is absolutely positioned over
+       the image. These vars are what actually shift it, and they are separate
+       from the desktop ones so the two breakpoints never fight.
+
+       Longhands, not the `padding` shorthand, so each edge overrides only its
+       own half of the base rule's clamp(). */
+    .rh-hero__inner {
+      align-items: var(--rh-content-v-align-mobile, flex-end);
+      justify-content: var(--rh-content-h-align-mobile, flex-start);
+      padding-block: var(--rh-content-pt-mobile, 24px) var(--rh-content-pb-mobile, 24px);
+      padding-inline: var(--rh-content-px-mobile, 24px);
+    }
+
+    .rh-hero__content {
+      max-width: 100%;
+      align-items: var(--rh-content-h-align-mobile, flex-start);
+      text-align: var(--rh-content-text-align-mobile, left);
+    }
+
+    .rh-hero__buttons {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .rh-hero__button {
+      width: 100%;
+    }
+
+    .rh-hero__kpis {
+      gap: 0.9rem 1.25rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve Hydrate Hero",
+  "tag": "section",
+  "class": "section-reeve-hero-hydrate-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Background image"
+    },
+    {
+      "type": "image_picker",
+      "id": "desktop_image",
+      "label": "Desktop image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile image",
+      "info": "Optional. Falls back to the desktop image on mobile if left blank."
+    },
+    {
+      "type": "select",
+      "id": "height_mode_desktop",
+      "label": "Section height — desktop",
+      "options": [
+        { "value": "adapt", "label": "Adapt to image" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "adapt",
+      "info": "Adapt uses the image's own proportions (no cropping). Medium/Large pin the section to a preset viewport height and crop the image to fill it."
+    },
+    {
+      "type": "select",
+      "id": "height_mode_mobile",
+      "label": "Section height — mobile",
+      "options": [
+        { "value": "adapt", "label": "Adapt to image" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "adapt",
+      "info": "Set independently from the desktop height above."
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Eyebrow pill"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow_text",
+      "label": "Eyebrow text",
+      "default": "Free Shipping + Zero Sugar · Always"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_bg_color",
+      "label": "Background color",
+      "default": "#101726"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading_line_1",
+      "label": "Heading — normal line",
+      "default": "THE ELECTROLYTE"
+    },
+    {
+      "type": "color",
+      "id": "heading_line_1_color",
+      "label": "Normal line color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "textarea",
+      "id": "heading_line_2",
+      "label": "Heading — colored line(s)",
+      "info": "Use a new line to control how it wraps.",
+      "default": "THAT ACTUALLY\nHYDRATES."
+    },
+    {
+      "type": "color",
+      "id": "heading_line_2_color",
+      "label": "Colored line color",
+      "default": "#f4e409"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_desktop",
+      "label": "Heading font size — desktop",
+      "min": 32,
+      "max": 110,
+      "step": 2,
+      "unit": "px",
+      "default": 72
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_mobile",
+      "label": "Heading font size — mobile",
+      "min": 24,
+      "max": 70,
+      "step": 2,
+      "unit": "px",
+      "default": 44
+    },
+    {
+      "type": "header",
+      "content": "Paragraph"
+    },
+    {
+      "type": "richtext",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "<p>Zero sugar, real electrolytes, bold fruit flavors — just mix and drink.</p>"
+    },
+    {
+      "type": "color",
+      "id": "paragraph_color",
+      "label": "Paragraph color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Primary button"
+    },
+    {
+      "type": "text",
+      "id": "button_1_text",
+      "label": "Text",
+      "default": "Try Reevë — Shop Now →"
+    },
+    {
+      "type": "url",
+      "id": "button_1_link",
+      "label": "Link"
+    },
+    {
+      "type": "color",
+      "id": "button_1_bg_color",
+      "label": "Background color",
+      "default": "#f4e409"
+    },
+    {
+      "type": "color",
+      "id": "button_1_text_color",
+      "label": "Text color",
+      "default": "#10141f"
+    },
+    {
+      "type": "header",
+      "content": "Secondary button"
+    },
+    {
+      "type": "text",
+      "id": "button_2_text",
+      "label": "Text",
+      "default": "How It Works"
+    },
+    {
+      "type": "url",
+      "id": "button_2_link",
+      "label": "Link"
+    },
+    {
+      "type": "color",
+      "id": "button_2_bg_color",
+      "label": "Background color",
+      "default": "#00000000"
+    },
+    {
+      "type": "color",
+      "id": "button_2_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_2_border_color",
+      "label": "Border color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "KPI row"
+    },
+    {
+      "type": "color",
+      "id": "kpi_star_color",
+      "label": "Star rating color",
+      "default": "#f4e409"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "content_position",
+      "label": "Content position",
+      "info": "Where the eyebrow/heading/paragraph/buttons stack sits over the image.",
+      "options": [
+        { "value": "top-left", "label": "Top left" },
+        { "value": "top-center", "label": "Top center" },
+        { "value": "top-right", "label": "Top right" },
+        { "value": "middle-left", "label": "Middle left" },
+        { "value": "middle-center", "label": "Middle center" },
+        { "value": "middle-right", "label": "Middle right" },
+        { "value": "bottom-left", "label": "Bottom left" },
+        { "value": "bottom-center", "label": "Bottom center" },
+        { "value": "bottom-right", "label": "Bottom right" }
+      ],
+      "default": "bottom-left"
+    },
+    {
+      "type": "header",
+      "content": "Content position — mobile"
+    },
+    {
+      "type": "paragraph",
+      "content": "These move the text and buttons within the image. \"Section spacing\" further down is different — it adds empty space above and below the whole hero, and cannot shift this stack."
+    },
+    {
+      "type": "select",
+      "id": "content_position_mobile",
+      "label": "Content position",
+      "options": [
+        { "value": "inherit", "label": "Same as desktop" },
+        { "value": "top-left", "label": "Top left" },
+        { "value": "top-center", "label": "Top center" },
+        { "value": "top-right", "label": "Top right" },
+        { "value": "middle-left", "label": "Middle left" },
+        { "value": "middle-center", "label": "Middle center" },
+        { "value": "middle-right", "label": "Middle right" },
+        { "value": "bottom-left", "label": "Bottom left" },
+        { "value": "bottom-center", "label": "Bottom center" },
+        { "value": "bottom-right", "label": "Bottom right" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "range",
+      "id": "content_padding_top_mobile",
+      "label": "Content inset top",
+      "info": "Gap between the top of the image and the content. Raise it to push the stack down.",
+      "min": 0,
+      "max": 240,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "content_padding_bottom_mobile",
+      "label": "Content inset bottom",
+      "info": "Gap between the content and the bottom of the image. Raise it to lift the stack clear of the product shot.",
+      "min": 0,
+      "max": 240,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "content_padding_inline_mobile",
+      "label": "Content inset sides",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "label": "Content max width",
+      "min": 400,
+      "max": 900,
+      "step": 10,
+      "unit": "px",
+      "default": 640
+    },
+    {
+      "type": "header",
+      "content": "Section spacing — desktop"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Section spacing — mobile"
+    },
+    {
+      "type": "paragraph",
+      "content": "Empty space outside the hero, above and below the image. To move the text and buttons within the image, use \"Content position — mobile\" instead."
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Padding above hero",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Padding below hero",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "kpi",
+      "name": "KPI item",
+      "settings": [
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Style",
+          "options": [
+            { "value": "rating", "label": "Star rating + text" },
+            { "value": "plain", "label": "Text only" }
+          ],
+          "default": "plain"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "All Natural"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text color",
+          "default": "#ffffff"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve Hydrate Hero",
+      "blocks": [
+        { "type": "kpi", "settings": { "style": "rating", "text": "4.9" } },
+        { "type": "kpi", "settings": { "style": "plain", "text": "500mg Electrolytes" } },
+        { "type": "kpi", "settings": { "style": "plain", "text": "All Natural" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

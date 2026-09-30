@@ -1,0 +1,358 @@
+{% comment %}
+  Reeve "The Science" section for Horizon theme
+  Section handle: reeve-science
+{% endcomment %}
+
+{{ 'section-reeve-science.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'reeve-science.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+{% liquid
+  assign glass_bg = section.settings.glass_background_color
+  assign glass_alpha = section.settings.glass_background_opacity | times: 1.0 | divided_by: 100
+  assign bg_overlay_alpha = section.settings.background_image_overlay_opacity | times: 1.0 | divided_by: 100
+
+  # Desktop pin duration: how tall the scroll spacer is, in vh. Scales with
+  # step count so more steps = more scroll needed before the section
+  # releases to the next one. 100vh base (so it releases even with 0-1
+  # steps) + 55vh per step.
+  assign pin_vh = section.blocks.size | times: 55 | plus: 100
+%}
+
+<reeve-science-section
+  class="reeve-science-section"
+  style="
+    --reeve-science-bg: {{ section.settings.section_background }};
+    --reeve-science-text-color: {{ section.settings.text_color }};
+    --reeve-science-muted-color: {{ section.settings.muted_text_color }};
+    --reeve-science-progress-color: {{ section.settings.progress_color }};
+    --reeve-science-progress-track-color: {{ section.settings.progress_track_color }};
+    --reeve-science-glass-bg-rgb: {{ glass_bg.rgb }};
+    --reeve-science-glass-alpha: {{ glass_alpha }};
+    --reeve-science-glass-blur: {{ section.settings.glass_blur }}px;
+    --reeve-science-bg-overlay-alpha: {{ bg_overlay_alpha }};
+  "
+>
+  {%- if section.settings.background_image != blank -%}
+    <div class="reeve-science-bg-image">
+      {{
+        section.settings.background_image
+        | image_url: width: 2400
+        | image_tag: loading: 'lazy', alt: '', class: 'reeve-science-bg-image__el'
+      }}
+      <div class="reeve-science-bg-image__overlay"></div>
+    </div>
+  {%- endif -%}
+
+  <div
+    class="reeve-science-pin-spacer"
+    data-reeve-science-pin-spacer
+    style="--reeve-science-pin-height: {{ pin_vh }}vh;"
+  >
+    <div class="reeve-science-pin-inner">
+      <div class="reeve-science-page-width">
+        {%- if section.settings.small_text != blank -%}
+          <p class="reeve-science-eyebrow">{{ section.settings.small_text }}</p>
+        {%- endif -%}
+
+        <div class="reeve-science-row">
+      <div class="reeve-science-progress" data-reeve-science-progress>
+        <div class="reeve-science-progress__track">
+          <div class="reeve-science-progress__fill" data-reeve-science-progress-fill></div>
+        </div>
+      </div>
+
+      {%- if section.settings.heading != blank -%}
+        <div class="reeve-science-heading">{{ section.settings.heading }}</div>
+      {%- endif -%}
+
+      {%- if section.blocks.size > 0 -%}
+        <div class="reeve-science-steps" data-reeve-science-steps>
+          {%- for block in section.blocks -%}
+              {%- assign step_video_url = block.settings.video.sources.last.url -%}
+
+              {%- case block.type -%}
+                {%- when 'feature' -%}
+                  <div
+                    class="reeve-science-step reeve-science-step--text"
+                    data-reeve-science-step
+                    data-step-index="{{ forloop.index0 }}"
+                    {% if step_video_url != blank %}
+                      data-step-video="{{ step_video_url }}"
+                    {% endif %}
+                    {{ block.shopify_attributes }}
+                  >
+                    {%- if block.settings.heading != blank -%}
+                      <h3 class="reeve-science-step__heading">{{ block.settings.heading }}</h3>
+                    {%- endif -%}
+                    {%- if block.settings.text != blank -%}
+                      <p class="reeve-science-step__text">{{ block.settings.text }}</p>
+                    {%- endif -%}
+                  </div>
+
+                {%- when 'product' -%}
+                  {%- assign science_product = block.settings.product -%}
+                  <div
+                    class="reeve-science-step reeve-science-step--product"
+                    data-reeve-science-step
+                    data-step-index="{{ forloop.index0 }}"
+                    {% if step_video_url != blank %}
+                      data-step-video="{{ step_video_url }}"
+                    {% endif %}
+                    {{ block.shopify_attributes }}
+                  >
+                    {%- if science_product != blank -%}
+                      <div class="reeve-science-product-card">
+                        <a href="{{ science_product.url }}" class="reeve-science-product-card__media">
+                          {%- if science_product.featured_image -%}
+                            {{
+                              science_product.featured_image
+                              | image_url: width: 160
+                              | image_tag: loading: 'lazy', class: 'reeve-science-product-card__image'
+                            }}
+                          {%- endif -%}
+                        </a>
+
+                        <div class="reeve-science-product-card__info">
+                          <a href="{{ science_product.url }}" class="reeve-science-product-card__title">
+                            {{ science_product.title }}
+                          </a>
+                          {%- assign science_subtitle = science_product.metafields.reeve.benefit_subtitle -%}
+                          {%- if science_subtitle != blank -%}
+                            <p class="reeve-science-product-card__subtitle">{{ science_subtitle }}</p>
+                          {%- endif -%}
+                        </div>
+
+                        <product-form-component
+                          class="reeve-science-product-card__form"
+                          data-section-id="{{ section.id }}"
+                          data-product-id="{{ science_product.id }}"
+                          on:submit="/handleSubmit"
+                        >
+                          <div
+                            class="visually-hidden"
+                            aria-live="assertive"
+                            role="status"
+                            aria-atomic="true"
+                            ref="liveRegion"
+                          ></div>
+                          {%- assign science_form_id = 'ReeveScienceForm-' | append: block.id -%}
+                          {%- form 'product', science_product, id: science_form_id -%}
+                            <input
+                              type="hidden"
+                              name="id"
+                              ref="variantId"
+                              value="{{ science_product.selected_or_first_available_variant.id }}"
+                            >
+                            <button
+                              type="submit"
+                              class="reeve-science-product-card__add"
+                              aria-label="{{ 'products.product.add_to_cart' | t }}"
+                            >
+                              +
+                            </button>
+                          {%- endform -%}
+                        </product-form-component>
+                      </div>
+                    {%- endif -%}
+                  </div>
+              {%- endcase -%}
+            {%- endfor -%}
+        </div>
+        {%- endif -%}
+
+      <div class="reeve-science-media" data-reeve-science-media>
+        <video
+          class="reeve-science-media__video"
+          data-reeve-science-video
+          autoplay
+          muted
+          loop
+          playsinline
+        >
+          {%- if section.settings.default_video != blank -%}
+            <source src="{{ section.settings.default_video.sources.last.url }}">
+          {%- endif -%}
+        </video>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+</reeve-science-section>
+
+{% schema %}
+{
+  "name": "Reeve science",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "small_text",
+      "label": "Small text (eyebrow)",
+      "default": "03 / THE SCIENCE"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Drinkable IV Formula™</p>"
+    },
+    {
+      "type": "header",
+      "content": "Default media"
+    },
+    {
+      "type": "video",
+      "id": "default_video",
+      "label": "Default video",
+      "info": "Shown for any step (feature or product) that doesn't have its own video. Leave every step's video blank to show just this one video throughout."
+    },
+    {
+      "type": "header",
+      "content": "Text colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Active text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Inactive (muted) text color",
+      "default": "#5b6b85"
+    },
+    {
+      "type": "header",
+      "content": "Progress bar"
+    },
+    {
+      "type": "color",
+      "id": "progress_color",
+      "label": "Progress fill color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "progress_track_color",
+      "label": "Progress track color",
+      "default": "#3a4a63"
+    },
+    {
+      "type": "header",
+      "content": "Glassmorphism cards"
+    },
+    {
+      "type": "color",
+      "id": "glass_background_color",
+      "label": "Glass background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "glass_background_opacity",
+      "label": "Glass background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "glass_blur",
+      "label": "Glass blur",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Section style"
+    },
+    {
+      "type": "color",
+      "id": "section_background",
+      "label": "Section background",
+      "info": "Shows behind the background image (if any), or on its own if no image is set",
+      "default": "#0b1a33"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Section background image"
+    },
+    {
+      "type": "range",
+      "id": "background_image_overlay_opacity",
+      "label": "Background image overlay darkness",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 20,
+      "visible_if": "{{ section.settings.background_image != blank }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Feature",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Quality ingredients, better absorption"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text",
+          "default": "Every vitamin, mineral, and antioxidant is intentionally selected for its superior bioavailability, ensuring more of what you take in is absorbed and put to work by your body."
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Video (optional)",
+          "info": "Falls back to the section's default video if left blank"
+        }
+      ]
+    },
+    {
+      "type": "product",
+      "name": "Product",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Video (optional)",
+          "info": "Falls back to the section's default video if left blank"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve science",
+      "blocks": [
+        { "type": "feature" },
+        { "type": "feature" },
+        { "type": "feature" }
+      ]
+    }
+  ]
+}
+{% endschema %}

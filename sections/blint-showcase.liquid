@@ -1,0 +1,281 @@
+{%- assign features = section.blocks | where: 'type', 'feature' -%}
+
+<div
+  class="blint-showcase spacing-style color-{{ section.settings.color_scheme }}"
+  style="{% render 'spacing-style', settings: section.settings %} --heading-size: {{ section.settings.heading_font_size }}px;"
+  {% if request.visual_preview_mode %}
+    data-shopify-visual-preview
+  {% endif %}
+>
+  <div class="blint-showcase__inner">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="blint-showcase__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <div class="blint-showcase__grid">
+      <div class="blint-showcase__col blint-showcase__col--left">
+        {%- for block in features -%}
+          {%- if block.settings.column == 'left' -%}
+            {%- render 'blint-showcase-feature', block: block -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      <div class="blint-showcase__media">
+        {%- if section.settings.image != blank -%}
+          {{
+            section.settings.image
+            | image_url: width: 1000
+            | image_tag:
+              loading: 'lazy',
+              sizes: '(min-width: 990px) 40vw, 80vw',
+              widths: '400, 600, 800, 1000',
+              class: 'blint-showcase__image'
+          }}
+        {%- else -%}
+          {{ 'product-1' | placeholder_svg_tag: 'blint-showcase__image' }}
+        {%- endif -%}
+      </div>
+
+      <div class="blint-showcase__col blint-showcase__col--right">
+        {%- for block in features -%}
+          {%- if block.settings.column == 'right' -%}
+            {%- render 'blint-showcase-feature', block: block -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .blint-showcase__inner {
+    max-width: var(--page-width, 1500px);
+    margin-inline: auto;
+    padding-inline: clamp(1.5rem, 5vw, 5rem);
+  }
+
+  .blint-showcase__heading {
+    margin: 0 0 1rem;
+    text-align: center;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: min(var(--heading-size, 28px), 14vw);
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+
+  .blint-showcase__grid {
+    display: grid;
+    grid-template-columns: 1fr 2.25fr 1fr;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .blint-showcase__col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(2.5rem, 12vh, 9rem);
+  }
+
+  .blint-showcase__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .blint-showcase__image {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    object-fit: contain;
+  }
+
+  /* Feature */
+  .blint-showcase__feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 22rem;
+    text-align: center;
+  }
+
+  .blint-showcase__feature-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    margin-bottom: 0.25rem;
+  }
+
+  .blint-showcase__feature-icon img,
+  .blint-showcase__feature-icon svg {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .blint-showcase__feature-eyebrow {
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-foreground, #111);
+  }
+
+  .blint-showcase__feature-title {
+    margin: 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+    letter-spacing: 0.01em;
+    text-transform: none;
+  }
+
+  .blint-showcase__feature-desc {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--color-foreground, #333);
+  }
+
+  @media screen and (max-width: 989px) {
+    .blint-showcase__grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem 1.5rem;
+    }
+
+    .blint-showcase__media {
+      grid-column: 1 / -1;
+      order: -1;
+    }
+
+    .blint-showcase__col {
+      gap: 2.5rem;
+      justify-content: flex-start;
+    }
+  }
+
+  @media screen and (max-width: 600px) {
+    .blint-showcase__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Blint showcase",
+  "tag": "section",
+  "class": "blint-showcase-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The next generation of pouches"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "Heading font size",
+      "min": 20,
+      "max": 120,
+      "step": 1,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Center image",
+      "info": "The product image shown in the middle (e.g. the can with pouches)."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 56
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Feature",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "Column",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow (small text above title)"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Feature title"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blint showcase",
+      "blocks": [
+        { "type": "feature", "settings": { "column": "left", "eyebrow": "100% Nicotine Free", "title": "Nicotine free", "description": "A clean alternative for focus without nicotine, tobacco, or smoke." } },
+        { "type": "feature", "settings": { "column": "left", "title": "Discreet & convenient", "description": "Easy-to-use oral pouch format, perfect for work, travel, or everyday routines." } },
+        { "type": "feature", "settings": { "column": "right", "title": "Calm, balanced energy", "description": "Designed to deliver effective and consistent outcomes." } },
+        { "type": "feature", "settings": { "column": "right", "title": "Smooth, steady focus", "description": "Designed to support mental clarity without overstimulation or sudden crashes." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

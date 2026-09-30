@@ -1,0 +1,1639 @@
+{% comment %}
+  Reeve "When to reach for it" — editorial tilted photo-strip section for Horizon theme
+  Section handle: reeve-when-to-reach
+{% endcomment %}
+
+{%- liquid
+  assign s = section.settings
+  assign use_cases = section.blocks | where: 'type', 'use_case'
+  assign how_to_steps = section.blocks | where: 'type', 'how_to_step'
+  assign trust_items = section.blocks | where: 'type', 'trust_item'
+
+  assign use_case_count = use_cases.size
+  assign half = use_case_count | plus: 1 | divided_by: 2
+  assign left_cases = use_cases | slice: 0, half
+  assign right_cases = use_cases | slice: half, use_case_count
+
+  assign heading_html = s.heading | newline_to_br
+  assign section_id = section.id
+-%}
+
+{%- capture icon_sun -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_dumbbell -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9v6M4 10.5v3M18 9v6M20 10.5v3M8.5 12h7" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_plane -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 21l1.5-5.5L21 10l-.6-1.6L11 11l-2-6-1.6.5.7 6.4-5 1.5v1.7l5.3-1L9 18l-2 .6V20l3-.6 1 1.6z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_sun_temp -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="10" r="3.4"/><path d="M9 3v1.6M9 14.8v1.6M3 10h1.6M14.8 10h1.6M4.9 4.9l1.1 1.1M11.1 4.9L10 6M4.9 15.1l1.1-1.1" stroke-linecap="round"/><path d="M17 8v6.6a2.4 2.4 0 1 1-2 0V8a1 1 0 0 1 2 0z"/></svg>{%- endcapture -%}
+{%- capture icon_heart -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 5c-2.3 4.6-9.3 9-9.3 9z" stroke-linejoin="round"/><path d="M9 11h1.4l1-1.8L12.6 13l1-2h1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_backpack -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 8V6a4 4 0 0 1 8 0v2" stroke-linecap="round"/><path d="M6 9.5A2.5 2.5 0 0 1 8.5 7h7A2.5 2.5 0 0 1 18 9.5V19a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9.5z"/><path d="M9.5 11h5M9.5 15h5" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_droplet -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3s6.5 7.2 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10.2 12 3 12 3z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_leaf -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 4S8.5 3.5 5 9s-1 11-1 11 6.5 2.5 11-1 5-15 5-15z" stroke-linejoin="round"/><path d="M4.5 19.5L12 12" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_bolt -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_star -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3.5l2.5 5.4 5.9.6-4.4 4 1.2 5.9L12 16.4l-5.2 3 1.2-5.9-4.4-4 5.9-.6z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_tear -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3h8l1 6-1 12H8L7 9z" stroke-linejoin="round"/><path d="M7.5 6.5h9M10 3v3M14 3v3" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_mix -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h12l-1.4 15.3A2 2 0 0 1 14.6 20H9.4a2 2 0 0 1-2-1.7L6 3z" stroke-linejoin="round"/><path d="M6.6 9.5h10.8M11 13v3" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_sip -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2h6M12 2v3" stroke-linecap="round"/><path d="M7 5h10l-1.2 13.5A2 2 0 0 1 13.8 20h-3.6a2 2 0 0 1-2-1.5L7 5z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+
+<section
+  class="reeve-when-to-reach"
+  data-section-id="{{ section_id }}"
+  data-animations-enabled="{{ s.enable_animations }}"
+  data-float-enabled="{{ s.enable_product_float }}"
+  style="
+    --rwtr-bg: {{ s.background_color }};
+    --rwtr-text: {{ s.text_color }};
+    --rwtr-eyebrow: {{ s.eyebrow_color }};
+    --rwtr-accent: {{ s.accent_color }};
+    --rwtr-highlight: {{ s.highlight_color }};
+    --rwtr-card-bg: {{ s.card_bg_color }};
+    --rwtr-card-border: {{ s.card_border_color }};
+    --rwtr-radius: {{ s.border_radius }}px;
+    --rwtr-tile-tilt: {{ s.tile_tilt }}px;
+    --rwtr-tile-height: {{ s.tile_height }}px;
+    --rwtr-tile-aspect-ratio: {{ s.tile_aspect_ratio | default: '3 / 4' }};
+    --rwtr-max-width: {{ s.max_width }}px;
+    --rwtr-heading-max-width: {{ s.heading_max_width }}px;
+    --rwtr-heading-size-desktop: {{ s.heading_size_desktop }}px;
+    --rwtr-heading-size-mobile: {{ s.heading_size_mobile }}px;
+    --rwtr-padding-top-desktop: {{ s.padding_top_desktop }}px;
+    --rwtr-padding-bottom-desktop: {{ s.padding_bottom_desktop }}px;
+    --rwtr-padding-top-mobile: {{ s.padding_top_mobile }}px;
+    --rwtr-padding-bottom-mobile: {{ s.padding_bottom_mobile }}px;
+    --rwtr-padding-inline-mobile: {{ s.mobile_horizontal_padding }}px;
+    --rwtr-product-max-width: {{ s.product_max_width }}px;
+    --rwtr-product-offset: {{ s.product_vertical_offset }}px;
+  "
+>
+  <div class="reeve-when-to-reach__inner">
+
+    {%- comment -%} ================= HEADER ================= {%- endcomment -%}
+    <header class="reeve-when-to-reach__header" data-rwtr-header>
+      {%- if s.eyebrow != blank -%}
+        <p class="reeve-when-to-reach__eyebrow" data-rwtr-reveal>{{ s.eyebrow }}</p>
+      {%- endif -%}
+
+      {%- if s.heading != blank -%}
+        <h2 class="reeve-when-to-reach__heading" data-rwtr-reveal>
+          {{ heading_html }}
+          {%- if s.highlight_text != blank -%}
+            <span class="reeve-when-to-reach__highlight" data-rwtr-highlight>{{ s.highlight_text }}</span>
+          {%- endif -%}
+        </h2>
+      {%- endif -%}
+
+      {%- if s.paragraph != blank -%}
+        <div class="reeve-when-to-reach__paragraph" data-rwtr-reveal>{{ s.paragraph }}</div>
+      {%- endif -%}
+    </header>
+
+    {%- comment -%} ================= PHOTO STRIP + PRODUCT ================= {%- endcomment -%}
+    {%- if use_case_count > 0 -%}
+      <div class="reeve-when-to-reach__mosaic" data-rwtr-mosaic>
+
+        <div class="reeve-when-to-reach__strip reeve-when-to-reach__strip--left" data-rwtr-column="left">
+          {%- for block in left_cases -%}
+            {%- liquid
+              assign bs = block.settings
+              assign accent = bs.accent_color | default: s.accent_color
+            -%}
+            <div class="reeve-when-to-reach__use-case" style="--rwtr-use-case-accent: {{ accent }};" {{ block.shopify_attributes }}>
+              <div class="reeve-when-to-reach__use-case-media">
+                {%- if bs.show_image and bs.image != blank -%}
+                  {{
+                    bs.image
+                    | image_url: width: 500
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '260, 380, 500',
+                      sizes: '(min-width: 990px) 14vw, 40vw',
+                      alt: bs.image.alt | default: bs.heading,
+                      class: 'reeve-when-to-reach__use-case-image-el'
+                  }}
+                {%- else -%}
+                  {{ 'lifestyle-1' | placeholder_svg_tag: 'reeve-when-to-reach__use-case-image-el reeve-when-to-reach__use-case-image-el--placeholder' }}
+                {%- endif -%}
+                <div class="reeve-when-to-reach__use-case-scrim" aria-hidden="true"></div>
+              </div>
+
+              <div class="reeve-when-to-reach__use-case-top">
+                {%- if bs.number != blank -%}
+                  <span class="reeve-when-to-reach__use-case-number">{{ bs.number }}</span>
+                {%- endif -%}
+                <h3 class="reeve-when-to-reach__use-case-heading">{{ bs.heading }}</h3>
+                {%- if bs.description != blank -%}
+                  <p class="reeve-when-to-reach__use-case-desc">{{ bs.description }}</p>
+                {%- endif -%}
+              </div>
+
+              {%- if bs.show_icon and bs.icon != 'none' -%}
+                <span class="reeve-when-to-reach__use-case-icon">
+                  {%- case bs.icon -%}
+                    {%- when 'sun' -%}{{ icon_sun }}
+                    {%- when 'dumbbell' -%}{{ icon_dumbbell }}
+                    {%- when 'plane' -%}{{ icon_plane }}
+                    {%- when 'sun_temp' -%}{{ icon_sun_temp }}
+                    {%- when 'heart' -%}{{ icon_heart }}
+                    {%- when 'backpack' -%}{{ icon_backpack }}
+                    {%- when 'droplet' -%}{{ icon_droplet }}
+                    {%- when 'leaf' -%}{{ icon_leaf }}
+                    {%- when 'bolt' -%}{{ icon_bolt }}
+                    {%- when 'star' -%}{{ icon_star }}
+                  {%- endcase -%}
+                </span>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        <div class="reeve-when-to-reach__hero" data-rwtr-hero>
+          <div class="reeve-when-to-reach__hero-stack" data-rwtr-product>
+            {%- if s.show_decorative_image and s.decorative_image != blank -%}
+              <div class="reeve-when-to-reach__hero-decor">
+                {{ s.decorative_image | image_url: width: 900 | image_tag: loading: 'lazy', widths: '400, 600, 900', sizes: '(min-width: 990px) 24vw, 60vw', alt: '', class: 'reeve-when-to-reach__hero-decor-img' }}
+              </div>
+            {%- endif -%}
+
+            {%- if s.show_glass_image and s.glass_image != blank -%}
+              <div class="reeve-when-to-reach__hero-glass">
+                {{ s.glass_image | image_url: width: 900 | image_tag: loading: 'eager', widths: '400, 600, 900', sizes: '(min-width: 990px) 22vw, 45vw', alt: s.glass_image.alt | default: 'Reevé drink', class: 'reeve-when-to-reach__hero-glass-img' }}
+              </div>
+            {%- endif -%}
+
+            {%- if s.show_product_image and s.product_image != blank -%}
+              <div class="reeve-when-to-reach__hero-product">
+                {{ s.product_image | image_url: width: 900 | image_tag: loading: 'eager', widths: '300, 450, 700, 900', sizes: '(min-width: 990px) 16vw, 38vw', alt: s.product_image.alt | default: 'Reevé stick pack', class: 'reeve-when-to-reach__hero-product-img' }}
+              </div>
+            {%- elsif s.show_product_image -%}
+              {{ 'product-1' | placeholder_svg_tag: 'reeve-when-to-reach__hero-product-img reeve-when-to-reach__hero-product-img--placeholder' }}
+            {%- endif -%}
+
+            {%- if s.show_secondary_image and s.secondary_image != blank -%}
+              <div class="reeve-when-to-reach__hero-secondary">
+                {{ s.secondary_image | image_url: width: 500 | image_tag: loading: 'lazy', widths: '250, 400, 500', sizes: '(min-width: 990px) 10vw, 26vw', alt: s.secondary_image.alt | default: '', class: 'reeve-when-to-reach__hero-secondary-img' }}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+
+        <div class="reeve-when-to-reach__strip reeve-when-to-reach__strip--right" data-rwtr-column="right">
+          {%- for block in right_cases -%}
+            {%- liquid
+              assign bs = block.settings
+              assign accent = bs.accent_color | default: s.accent_color
+            -%}
+            <div class="reeve-when-to-reach__use-case" style="--rwtr-use-case-accent: {{ accent }};" {{ block.shopify_attributes }}>
+              <div class="reeve-when-to-reach__use-case-media">
+                {%- if bs.show_image and bs.image != blank -%}
+                  {{
+                    bs.image
+                    | image_url: width: 500
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '260, 380, 500',
+                      sizes: '(min-width: 990px) 14vw, 40vw',
+                      alt: bs.image.alt | default: bs.heading,
+                      class: 'reeve-when-to-reach__use-case-image-el'
+                  }}
+                {%- else -%}
+                  {{ 'lifestyle-1' | placeholder_svg_tag: 'reeve-when-to-reach__use-case-image-el reeve-when-to-reach__use-case-image-el--placeholder' }}
+                {%- endif -%}
+                <div class="reeve-when-to-reach__use-case-scrim" aria-hidden="true"></div>
+              </div>
+
+              <div class="reeve-when-to-reach__use-case-top">
+                {%- if bs.number != blank -%}
+                  <span class="reeve-when-to-reach__use-case-number">{{ bs.number }}</span>
+                {%- endif -%}
+                <h3 class="reeve-when-to-reach__use-case-heading">{{ bs.heading }}</h3>
+                {%- if bs.description != blank -%}
+                  <p class="reeve-when-to-reach__use-case-desc">{{ bs.description }}</p>
+                {%- endif -%}
+              </div>
+
+              {%- if bs.show_icon and bs.icon != 'none' -%}
+                <span class="reeve-when-to-reach__use-case-icon">
+                  {%- case bs.icon -%}
+                    {%- when 'sun' -%}{{ icon_sun }}
+                    {%- when 'dumbbell' -%}{{ icon_dumbbell }}
+                    {%- when 'plane' -%}{{ icon_plane }}
+                    {%- when 'sun_temp' -%}{{ icon_sun_temp }}
+                    {%- when 'heart' -%}{{ icon_heart }}
+                    {%- when 'backpack' -%}{{ icon_backpack }}
+                    {%- when 'droplet' -%}{{ icon_droplet }}
+                    {%- when 'leaf' -%}{{ icon_leaf }}
+                    {%- when 'bolt' -%}{{ icon_bolt }}
+                    {%- when 'star' -%}{{ icon_star }}
+                  {%- endcase -%}
+                </span>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} ================= HOW TO USE ================= {%- endcomment -%}
+    {%- if how_to_steps.size > 0 -%}
+      <div class="reeve-when-to-reach__how-to" data-rwtr-howto>
+        {%- if s.how_to_heading != blank -%}
+          <p class="reeve-when-to-reach__how-to-heading" data-rwtr-reveal>{{ s.how_to_heading }}</p>
+        {%- endif -%}
+
+        <div class="reeve-when-to-reach__how-to-steps">
+          {%- for block in how_to_steps -%}
+            {%- liquid
+              assign bs = block.settings
+              assign is_last = forloop.last
+            -%}
+            <div class="reeve-when-to-reach__step" data-rwtr-step {{ block.shopify_attributes }}>
+              <div class="reeve-when-to-reach__step-top">
+                <span class="reeve-when-to-reach__step-number" style="--rwtr-step-accent: {{ bs.accent_color | default: s.accent_color }};">{{ bs.number }}</span>
+                {%- if bs.show_icon and bs.icon != 'none' -%}
+                  <span class="reeve-when-to-reach__step-icon" style="color: {{ bs.accent_color | default: s.accent_color }};">
+                    {%- case bs.icon -%}
+                      {%- when 'tear' -%}{{ icon_tear }}
+                      {%- when 'mix' -%}{{ icon_mix }}
+                      {%- when 'sip' -%}{{ icon_sip }}
+                      {%- when 'droplet' -%}{{ icon_droplet }}
+                      {%- when 'bolt' -%}{{ icon_bolt }}
+                    {%- endcase -%}
+                  </span>
+                {%- endif -%}
+              </div>
+
+              {%- if bs.show_image and bs.image != blank -%}
+                <div class="reeve-when-to-reach__step-image">
+                  {{ bs.image | image_url: width: 300 | image_tag: loading: 'lazy', widths: '150, 220, 300', sizes: '120px', alt: bs.image.alt | default: bs.heading, class: 'reeve-when-to-reach__step-image-el' }}
+                </div>
+              {%- endif -%}
+
+              <h3 class="reeve-when-to-reach__step-heading">{{ bs.heading }}</h3>
+              {%- if bs.description != blank -%}
+                <p class="reeve-when-to-reach__step-desc">{{ bs.description }}</p>
+              {%- endif -%}
+            </div>
+
+            {%- unless is_last -%}
+              <div class="reeve-when-to-reach__step-connector" data-rwtr-step-connector aria-hidden="true">
+                <svg class="reeve-when-to-reach__step-connector-line reeve-when-to-reach__step-connector-line--h" viewBox="0 0 100 2" preserveAspectRatio="none"><path d="M0 1 H100" pathLength="1"/></svg>
+                <svg class="reeve-when-to-reach__step-connector-line reeve-when-to-reach__step-connector-line--v" viewBox="0 0 2 60" preserveAspectRatio="none"><path d="M1 0 V60" pathLength="1"/></svg>
+              </div>
+            {%- endunless -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} ================= TRUST BAR ================= {%- endcomment -%}
+    {%- if trust_items.size > 0 and s.show_trust_bar -%}
+      <div class="reeve-when-to-reach__trust" data-rwtr-trust>
+        {%- for block in trust_items -%}
+          {%- liquid assign bs = block.settings -%}
+          <div class="reeve-when-to-reach__trust-item" data-rwtr-trust-item {{ block.shopify_attributes }}>
+            {%- if bs.show_icon and bs.icon != 'none' -%}
+              <span class="reeve-when-to-reach__trust-icon" style="color: {{ bs.accent_color | default: s.accent_color }};">
+                {%- case bs.icon -%}
+                  {%- when 'droplet' -%}{{ icon_droplet }}
+                  {%- when 'leaf' -%}{{ icon_leaf }}
+                  {%- when 'bolt' -%}{{ icon_bolt }}
+                  {%- when 'star' -%}{{ icon_star }}
+                {%- endcase -%}
+              </span>
+            {%- endif -%}
+            <span class="reeve-when-to-reach__trust-text">
+              <span class="reeve-when-to-reach__trust-label">{{ bs.label }}</span>
+              {%- if bs.value != blank -%}
+                <span class="reeve-when-to-reach__trust-value">{{ bs.value }}</span>
+              {%- endif -%}
+            </span>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<script>
+  (function () {
+    var ROOT_SELECTOR = '.reeve-when-to-reach[data-section-id="{{ section_id }}"]';
+    window.__reeveWtr = window.__reeveWtr || {};
+
+    function cleanup(sectionId) {
+      var entry = window.__reeveWtr[sectionId];
+      if (!entry) return;
+      if (entry.triggers) {
+        entry.triggers.forEach(function (t) {
+          try { t.kill(); } catch (e) {}
+        });
+      }
+      if (entry.timelines) {
+        entry.timelines.forEach(function (tl) {
+          try { tl.kill(); } catch (e) {}
+        });
+      }
+      delete window.__reeveWtr[sectionId];
+    }
+
+    function init() {
+      var root = document.querySelector(ROOT_SELECTOR);
+      if (!root) return;
+      var sectionId = root.getAttribute('data-section-id');
+
+      cleanup(sectionId);
+
+      var animationsEnabled = root.getAttribute('data-animations-enabled') === 'true';
+      var floatEnabled = root.getAttribute('data-float-enabled') === 'true';
+
+      Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(function (mods) {
+        var gsap = mods[0].gsap;
+        var ScrollTrigger = mods[0].ScrollTrigger;
+        var prefersReducedMotion = mods[0].prefersReducedMotion;
+        var getScrollContainer = mods[1].getScrollContainer;
+        var scroller = getScrollContainer();
+
+        var reduced = prefersReducedMotion();
+        var triggers = [];
+        var timelines = [];
+        window.__reeveWtr[sectionId] = { triggers: triggers, timelines: timelines };
+
+        var headerItems = Array.prototype.slice.call(root.querySelectorAll('[data-rwtr-reveal]'));
+        var highlight = root.querySelector('[data-rwtr-highlight]');
+        var leftCards = Array.prototype.slice.call(root.querySelectorAll('[data-rwtr-column="left"] .reeve-when-to-reach__use-case'));
+        var rightCards = Array.prototype.slice.call(root.querySelectorAll('[data-rwtr-column="right"] .reeve-when-to-reach__use-case'));
+        var product = root.querySelector('[data-rwtr-product]');
+        var mobileCards = Array.prototype.slice.call(root.querySelectorAll('.reeve-when-to-reach__use-case'));
+        var steps = Array.prototype.slice.call(root.querySelectorAll('[data-rwtr-step]'));
+        var stepConnectors = Array.prototype.slice.call(root.querySelectorAll('.reeve-when-to-reach__step-connector-line path'));
+        var trustItems = Array.prototype.slice.call(root.querySelectorAll('[data-rwtr-trust-item]'));
+
+        if (reduced || !animationsEnabled) {
+          gsap.set(headerItems, { opacity: 1, y: 0 });
+          gsap.set(mobileCards, { opacity: 1, y: 0 });
+          gsap.set(steps, { opacity: 1, y: 0 });
+          gsap.set(trustItems, { opacity: 1, y: 0 });
+          if (product) gsap.set(product, { opacity: 1, scale: 1, y: 0 });
+          if (stepConnectors.length) gsap.set(stepConnectors, { strokeDashoffset: 0 });
+          return;
+        }
+
+        stepConnectors.forEach(function (p) {
+          try {
+            var len = p.getTotalLength();
+            gsap.set(p, { strokeDasharray: len, strokeDashoffset: len });
+          } catch (e) {}
+        });
+
+        // Header reveal
+        gsap.set(headerItems, { opacity: 0, y: 24 });
+        if (highlight) gsap.set(highlight, { clipPath: 'inset(0 100% 0 0)' });
+
+        var headerTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        timelines.push(headerTl);
+        headerItems.forEach(function (item, i) {
+          headerTl.to(item, { opacity: 1, y: 0, duration: 0.7 }, i * 0.12);
+        });
+        if (highlight) {
+          headerTl.to(highlight, { clipPath: 'inset(0 0% 0 0)', duration: 0.6 }, '-=0.4');
+        }
+        headerTl.pause();
+
+        var headerTrigger = ScrollTrigger.create({
+          scroller: scroller,
+          trigger: root.querySelector('.reeve-when-to-reach__header'),
+          start: 'top 85%',
+          once: true,
+          onEnter: function () { headerTl.play(); },
+        });
+        triggers.push(headerTrigger);
+
+        // Desktop mosaic sequential reveal: 01 02 03, product, 04 05 06
+        if (leftCards.length || rightCards.length || product) {
+          gsap.set(leftCards.concat(rightCards), { opacity: 0, y: 35, scale: 0.97 });
+          if (product) gsap.set(product, { opacity: 0, y: 35, scale: 0.88 });
+
+          var mosaicTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+          timelines.push(mosaicTl);
+
+          leftCards.forEach(function (card, i) {
+            mosaicTl.to(card, { opacity: 1, y: 0, scale: 1, duration: 0.6 }, i * 0.12);
+          });
+          if (product) {
+            mosaicTl.to(product, { opacity: 1, y: 0, scale: 1, duration: 1.1 }, '-=0.15');
+          }
+          rightCards.forEach(function (card, i) {
+            mosaicTl.to(card, { opacity: 1, y: 0, scale: 1, duration: 0.6 }, (leftCards.length * 0.12) + 0.15 + i * 0.12);
+          });
+          mosaicTl.pause();
+
+          var mosaicTrigger = ScrollTrigger.create({
+            scroller: scroller,
+            trigger: root.querySelector('[data-rwtr-mosaic]') || root,
+            start: 'top 80%',
+            once: true,
+            onEnter: function () { mosaicTl.play(); },
+          });
+          triggers.push(mosaicTrigger);
+
+          // Mobile: each card reveals individually as it enters the viewport
+          mobileCards.forEach(function (card) {
+            gsap.set(card, { opacity: 0, y: 30 });
+
+            var cardTrigger = ScrollTrigger.create({
+              scroller: scroller,
+              trigger: card,
+              start: 'top 85%',
+              once: true,
+              onEnter: function () {
+                var tl = gsap.timeline();
+                timelines.push(tl);
+                tl.to(card, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' });
+              },
+            });
+            triggers.push(cardTrigger);
+          });
+        }
+
+        // Product floating animation
+        if (product && floatEnabled) {
+          var floatTween = gsap.to(product, {
+            y: -8,
+            duration: 3.4,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+            delay: 1.2,
+          });
+          timelines.push(floatTween);
+        }
+
+        // How to use steps
+        if (steps.length) {
+          gsap.set(steps, { opacity: 0, y: 25 });
+          var howtoTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+          timelines.push(howtoTl);
+          steps.forEach(function (step, i) {
+            howtoTl.to(step, { opacity: 1, y: 0, duration: 0.6 }, i * 0.15);
+          });
+          if (stepConnectors.length) {
+            howtoTl.to(stepConnectors, { strokeDashoffset: 0, duration: 0.5, stagger: 0.15 }, '-=0.5');
+          }
+          howtoTl.pause();
+
+          var howtoTrigger = ScrollTrigger.create({
+            scroller: scroller,
+            trigger: root.querySelector('[data-rwtr-howto]') || root,
+            start: 'top 85%',
+            once: true,
+            onEnter: function () { howtoTl.play(); },
+          });
+          triggers.push(howtoTrigger);
+        }
+
+        // Trust bar
+        if (trustItems.length) {
+          gsap.set(trustItems, { opacity: 0, y: 10 });
+          var trustTrigger = ScrollTrigger.create({
+            scroller: scroller,
+            trigger: root.querySelector('[data-rwtr-trust]') || root,
+            start: 'top 90%',
+            once: true,
+            onEnter: function () {
+              var tl = gsap.timeline();
+              timelines.push(tl);
+              tl.to(trustItems, { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out' });
+            },
+          });
+          triggers.push(trustTrigger);
+        }
+      });
+    }
+
+    init();
+
+    document.addEventListener('shopify:section:load', function (event) {
+      if (event.detail && event.detail.sectionId === '{{ section_id }}') {
+        init();
+      }
+    });
+
+    document.addEventListener('shopify:section:unload', function (event) {
+      if (event.detail && event.detail.sectionId === '{{ section_id }}') {
+        cleanup('{{ section_id }}');
+      }
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .reeve-when-to-reach {
+    background: var(--rwtr-bg, #f7f1e7);
+    color: var(--rwtr-text, #10192b);
+    padding-block: var(--rwtr-padding-top-mobile, 48px) var(--rwtr-padding-bottom-mobile, 48px);
+    overflow: hidden;
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-when-to-reach {
+      padding-block: var(--rwtr-padding-top-desktop, 96px) var(--rwtr-padding-bottom-desktop, 96px);
+    }
+  }
+
+  .reeve-when-to-reach__inner {
+    max-width: var(--rwtr-max-width, 1400px);
+    margin-inline: auto;
+    padding-inline: var(--rwtr-padding-inline-mobile, 20px);
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-when-to-reach__inner {
+      padding-inline: clamp(1.5rem, 4vw, 3rem);
+    }
+  }
+
+  /* ---------- Header (always centered) ---------- */
+  .reeve-when-to-reach__header {
+    max-width: var(--rwtr-heading-max-width, 900px);
+    margin: 0 auto clamp(2rem, 6vw, 3.5rem);
+    text-align: center;
+  }
+
+  .reeve-when-to-reach__eyebrow {
+    margin: 0 0 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rwtr-eyebrow, #1c8a7a);
+  }
+
+  .reeve-when-to-reach__heading {
+    margin: 0 0 1rem;
+    font-family: var(--font-heading--family);
+    font-style: var(--font-heading--style);
+    font-weight: var(--font-heading--weight, 600);
+    line-height: 1.18;
+    font-size: var(--rwtr-heading-size-mobile, 30px);
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-when-to-reach__heading {
+      font-size: var(--rwtr-heading-size-desktop, 48px);
+    }
+  }
+
+  .reeve-when-to-reach__highlight {
+    display: inline;
+    font-style: italic;
+    color: var(--rwtr-highlight, #e14f8a);
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+    text-decoration-thickness: 0.06em;
+  }
+
+  .reeve-when-to-reach__paragraph {
+    margin: 0 auto;
+    max-width: 40rem;
+    color: var(--rwtr-text, #10192b);
+    opacity: 0.72;
+    font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+    line-height: 1.6;
+  }
+
+  /* ---------- Mobile use-case cards: icon | number+text | faded image ---------- */
+  .reeve-when-to-reach__mosaic {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .reeve-when-to-reach__strip {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .reeve-when-to-reach__use-case {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    background: var(--rwtr-card-bg, #ffffff);
+    border: 1px solid var(--rwtr-card-border, #e7ded0);
+    border-radius: var(--rwtr-radius, 16px);
+    padding: 0.9rem 1rem;
+    overflow: hidden;
+  }
+
+  .reeve-when-to-reach__use-case-media {
+    order: 3;
+    flex: 0 0 auto;
+    position: relative;
+    width: 34%;
+    max-width: 120px;
+    aspect-ratio: 1 / 1;
+    border-radius: calc(var(--rwtr-radius, 16px) * 0.7);
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 55%);
+    mask-image: linear-gradient(to right, transparent, #000 55%);
+  }
+
+  .reeve-when-to-reach__use-case-image-el {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .reeve-when-to-reach__use-case-image-el--placeholder svg {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-background, #eee);
+  }
+
+  .reeve-when-to-reach__use-case-scrim {
+    display: none;
+  }
+
+  .reeve-when-to-reach__use-case-icon {
+    order: 1;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    padding: 0.6rem;
+    background: color-mix(in srgb, var(--rwtr-use-case-accent, var(--rwtr-accent, #1c8a7a)) 16%, #fff);
+    color: var(--rwtr-use-case-accent, var(--rwtr-accent, #1c8a7a));
+  }
+
+  .reeve-when-to-reach__use-case-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .reeve-when-to-reach__use-case-top {
+    order: 2;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .reeve-when-to-reach__use-case-number {
+    display: block;
+    margin-bottom: 0.15rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--rwtr-use-case-accent, var(--rwtr-accent, #1c8a7a));
+  }
+
+  .reeve-when-to-reach__use-case-heading {
+    margin: 0 0 0.2rem;
+    font-family: var(--font-heading--family);
+    font-weight: 600;
+    font-size: 0.98rem;
+    line-height: 1.25;
+  }
+
+  .reeve-when-to-reach__use-case-desc {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    opacity: 0.72;
+  }
+
+  /* ---------- Desktop: tilted photo strip with text/icon overlaid on image ---------- */
+  @media screen and (min-width: 990px) {
+    .reeve-when-to-reach__mosaic {
+      flex-direction: row;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .reeve-when-to-reach__strip {
+      flex: 1 1 0;
+      flex-direction: row;
+      min-width: 0;
+      gap: 0;
+    }
+
+    .reeve-when-to-reach__hero {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: clamp(320px, 30vw, 460px);
+      margin-inline: clamp(0.5rem, 1.5vw, 1.25rem);
+      z-index: 2;
+    }
+
+    .reeve-when-to-reach__use-case {
+      flex: 1 1 0;
+      min-width: 0;
+      align-self: center;
+      display: block;
+      aspect-ratio: var(--rwtr-tile-aspect-ratio, 3 / 4);
+      height: auto;
+      max-height: var(--rwtr-tile-height, 480px);
+      overflow: hidden;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      clip-path: polygon(
+        var(--rwtr-tile-tilt, 22px) 0%,
+        100% 0%,
+        calc(100% - var(--rwtr-tile-tilt, 22px)) 100%,
+        0% 100%
+      );
+    }
+
+    .reeve-when-to-reach__strip--left .reeve-when-to-reach__use-case:not(:first-child) {
+      margin-left: calc(var(--rwtr-tile-tilt, 22px) * -1);
+    }
+
+    .reeve-when-to-reach__strip--right .reeve-when-to-reach__use-case:not(:first-child) {
+      margin-left: calc(var(--rwtr-tile-tilt, 22px) * -1);
+    }
+
+    .reeve-when-to-reach__use-case-media {
+      order: 0;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      max-width: none;
+      aspect-ratio: auto;
+      border-radius: 0;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+
+    .reeve-when-to-reach__use-case-scrim {
+      display: block;
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgb(255 255 255 / 0.92) 0%, rgb(255 255 255 / 0.35) 40%, rgb(255 255 255 / 0) 62%);
+    }
+
+    .reeve-when-to-reach__use-case-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+      padding: 1.4rem 1.25rem 0;
+    }
+
+    .reeve-when-to-reach__use-case-number,
+    .reeve-when-to-reach__use-case-heading,
+    .reeve-when-to-reach__use-case-desc {
+      color: var(--rwtr-text, #10192b);
+    }
+
+    .reeve-when-to-reach__use-case-icon {
+      position: absolute;
+      z-index: 1;
+      bottom: 1.1rem;
+      left: 1.25rem;
+      width: 2.4rem;
+      height: 2.4rem;
+      padding: 0.55rem;
+      background: rgb(255 255 255 / 0.92);
+      box-shadow: 0 4px 12px rgb(16 25 43 / 0.12);
+    }
+  }
+
+  @media (hover: hover) {
+    @media screen and (min-width: 990px) {
+      .reeve-when-to-reach__use-case {
+        transition: transform 0.4s ease;
+      }
+
+      .reeve-when-to-reach__use-case:hover {
+        transform: translateY(-6px);
+      }
+
+      .reeve-when-to-reach__use-case:hover .reeve-when-to-reach__use-case-image-el {
+        transform: scale(1.05);
+      }
+
+      .reeve-when-to-reach__use-case-image-el {
+        transition: transform 0.5s ease;
+      }
+    }
+  }
+
+  /* ---------- Product hero stack ---------- */
+  .reeve-when-to-reach__hero-stack {
+    position: relative;
+    width: 100%;
+    max-width: var(--rwtr-product-max-width, 320px);
+    margin-inline: auto;
+    transform: translateY(var(--rwtr-product-offset, 0px));
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .reeve-when-to-reach__hero-decor {
+    position: absolute;
+    inset: -10% -20%;
+    z-index: 0;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .reeve-when-to-reach__hero-decor-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .reeve-when-to-reach__hero-glass {
+    position: relative;
+    z-index: 1;
+    width: 58%;
+    margin-inline-start: -6%;
+  }
+
+  .reeve-when-to-reach__hero-glass-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+  }
+
+  .reeve-when-to-reach__hero-product {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    margin-inline-start: -8%;
+  }
+
+  .reeve-when-to-reach__hero-product-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 18px 30px rgb(16 25 43 / 0.18));
+  }
+
+  .reeve-when-to-reach__hero-product-img--placeholder svg {
+    width: 100%;
+    background-color: var(--color-background, #eee);
+  }
+
+  .reeve-when-to-reach__hero-secondary {
+    position: absolute;
+    z-index: 3;
+    width: 34%;
+    bottom: -8%;
+    right: -6%;
+    pointer-events: none;
+  }
+
+  .reeve-when-to-reach__hero-secondary-img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  /* ---------- How to use ---------- */
+  .reeve-when-to-reach__how-to {
+    margin-top: clamp(2.5rem, 7vw, 4.5rem);
+    background: var(--rwtr-card-bg, #ffffff);
+    border: 1px solid var(--rwtr-card-border, #e7ded0);
+    border-radius: calc(var(--rwtr-radius, 16px) * 1.2);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .reeve-when-to-reach__how-to-heading {
+    margin: 0 0 1.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rwtr-eyebrow, #1c8a7a);
+  }
+
+  .reeve-when-to-reach__how-to-steps {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .reeve-when-to-reach__step {
+    width: 100%;
+    max-width: 22rem;
+    text-align: center;
+  }
+
+  .reeve-when-to-reach__step-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .reeve-when-to-reach__step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--rwtr-step-accent, var(--rwtr-accent, #1c8a7a)) 14%, #fff);
+    color: var(--rwtr-step-accent, var(--rwtr-accent, #1c8a7a));
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .reeve-when-to-reach__step-icon {
+    display: inline-flex;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .reeve-when-to-reach__step-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .reeve-when-to-reach__step-image {
+    width: 110px;
+    height: 115px;
+    margin: 0 auto 0.75rem;
+  }
+
+  .reeve-when-to-reach__step-image-el {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .reeve-when-to-reach__step-heading {
+    margin: 0 0 0.3rem;
+    font-family: var(--font-heading--family);
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+
+  .reeve-when-to-reach__step-desc {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    opacity: 0.72;
+  }
+
+  .reeve-when-to-reach__step-connector {
+    display: flex;
+    justify-content: center;
+    padding-block: 1rem;
+  }
+
+  .reeve-when-to-reach__step-connector-line {
+    stroke: var(--rwtr-card-border, #d8cdb8);
+    stroke-width: 1.5;
+  }
+
+  .reeve-when-to-reach__step-connector-line--h {
+    display: none;
+  }
+
+  .reeve-when-to-reach__step-connector-line--v {
+    width: 2px;
+    height: 40px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-when-to-reach__how-to-steps {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .reeve-when-to-reach__step {
+      flex: 1 1 0;
+    }
+
+    .reeve-when-to-reach__step-connector {
+      align-items: center;
+      padding-inline: clamp(1rem, 3vw, 2.5rem);
+      padding-block: 0;
+      margin-top: 0.8rem;
+    }
+
+    .reeve-when-to-reach__step-connector-line--h {
+      display: block;
+      width: 60%;
+      min-width: 40px;
+    }
+
+    .reeve-when-to-reach__step-connector-line--v {
+      display: none;
+    }
+  }
+
+  /* ---------- Trust bar ---------- */
+  .reeve-when-to-reach__trust {
+    margin-top: clamp(2rem, 5vw, 3rem);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 1rem;
+  }
+
+  .reeve-when-to-reach__trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .reeve-when-to-reach__trust-icon {
+    display: inline-flex;
+    width: 1.3rem;
+    height: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .reeve-when-to-reach__trust-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .reeve-when-to-reach__trust-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+
+  .reeve-when-to-reach__trust-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .reeve-when-to-reach__trust-value {
+    font-size: 0.78rem;
+    opacity: 0.65;
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-when-to-reach__trust {
+      grid-template-columns: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0;
+    }
+
+    .reeve-when-to-reach__trust-item {
+      padding-inline: clamp(1rem, 3vw, 2rem);
+      border-right: 1px solid var(--rwtr-card-border, #e7ded0);
+    }
+
+    .reeve-when-to-reach__trust-item:last-child {
+      border-right: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reeve-when-to-reach * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve when to reach",
+  "tag": "section",
+  "class": "section-reeve-when-to-reach-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section background color",
+      "default": "#f7f1e7"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "Eyebrow color",
+      "default": "#1c8a7a"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "info": "Default color for use-case/step/trust numbers, icons, and dividers unless overridden per block.",
+      "default": "#1c8a7a"
+    },
+    {
+      "type": "color",
+      "id": "highlight_color",
+      "label": "Heading highlight color",
+      "default": "#e14f8a"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_border_color",
+      "label": "Card border / divider color",
+      "default": "#e7ded0"
+    },
+    {
+      "type": "header",
+      "content": "Header content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "WHEN TO REACH FOR IT"
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Use a new line to control how it wraps. The highlighted text below is appended after this.",
+      "default": "One stick pack. 16 to 32 oz of water.\nAnytime you are"
+    },
+    {
+      "type": "text",
+      "id": "highlight_text",
+      "label": "Highlighted heading text",
+      "default": "running low."
+    },
+    {
+      "type": "richtext",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "<p>Reevé helps you hydrate, replenish, and bounce back—no matter what your day throws at you.</p>"
+    },
+    {
+      "type": "range",
+      "id": "heading_max_width",
+      "label": "Header max width",
+      "min": 500,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "default": 900
+    },
+    {
+      "type": "range",
+      "id": "heading_size_desktop",
+      "label": "Heading size — desktop",
+      "min": 28,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile",
+      "label": "Heading size — mobile",
+      "min": 22,
+      "max": 44,
+      "step": 1,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Central product"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_image",
+      "label": "Show product image",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "product_image",
+      "label": "Product image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_glass_image",
+      "label": "Show glass / drink image",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "glass_image",
+      "label": "Glass / drink image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "label": "Show secondary image",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "secondary_image",
+      "label": "Secondary image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_decorative_image",
+      "label": "Show decorative background image",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "decorative_image",
+      "label": "Decorative image"
+    },
+    {
+      "type": "range",
+      "id": "product_max_width",
+      "label": "Product stack max width",
+      "min": 200,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "default": 440
+    },
+    {
+      "type": "range",
+      "id": "product_vertical_offset",
+      "label": "Product vertical offset",
+      "min": -60,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Photo strip (desktop)"
+    },
+    {
+      "type": "range",
+      "id": "tile_tilt",
+      "label": "Tile tilt amount",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "select",
+      "id": "tile_aspect_ratio",
+      "label": "Tile shape (desktop)",
+      "info": "Tiles scale their height to match this shape as the screen gets narrower, so photos never get over-cropped or push the icon out of frame on smaller desktop screens.",
+      "options": [
+        { "value": "1 / 1", "label": "Square (1:1)" },
+        { "value": "4 / 5", "label": "Portrait (4:5)" },
+        { "value": "3 / 4", "label": "Portrait (3:4)" },
+        { "value": "2 / 3", "label": "Tall portrait (2:3)" }
+      ],
+      "default": "3 / 4"
+    },
+    {
+      "type": "range",
+      "id": "tile_height",
+      "label": "Max tile height (desktop)",
+      "info": "A ceiling on how tall tiles can grow on wide screens. Tiles below this size are controlled by the tile shape above.",
+      "min": 280,
+      "max": 640,
+      "step": 10,
+      "unit": "px",
+      "default": 480
+    },
+    {
+      "type": "header",
+      "content": "How to use"
+    },
+    {
+      "type": "text",
+      "id": "how_to_heading",
+      "label": "How-to eyebrow",
+      "default": "HOW TO USE"
+    },
+    {
+      "type": "header",
+      "content": "Trust bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_bar",
+      "label": "Show trust bar",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Layout & spacing"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Section max width",
+      "min": 1000,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 1400
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Card border radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "mobile_horizontal_padding",
+      "label": "Mobile horizontal padding",
+      "min": 12,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Section spacing — desktop"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "label": "Padding top",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "header",
+      "content": "Section spacing — mobile"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_animations",
+      "label": "Enable scroll animations",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_product_float",
+      "label": "Enable product floating animation",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "use_case",
+      "name": "Use case",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number",
+          "label": "Number",
+          "default": "01"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Morning hydration"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Start your day hydrated and stay focused throughout."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_image",
+          "label": "Show image",
+          "default": true
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "sun", "label": "Sun" },
+            { "value": "dumbbell", "label": "Dumbbell" },
+            { "value": "plane", "label": "Plane" },
+            { "value": "sun_temp", "label": "Sun + heat" },
+            { "value": "heart", "label": "Heart" },
+            { "value": "backpack", "label": "Backpack" },
+            { "value": "droplet", "label": "Droplet" },
+            { "value": "leaf", "label": "Leaf" },
+            { "value": "bolt", "label": "Bolt" },
+            { "value": "star", "label": "Star" }
+          ],
+          "default": "sun"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_icon",
+          "label": "Show icon",
+          "default": true
+        },
+        {
+          "type": "color",
+          "id": "accent_color",
+          "label": "Accent color",
+          "info": "Overrides the section's accent color for this card's number/icon."
+        }
+      ]
+    },
+    {
+      "type": "how_to_step",
+      "name": "How-to step",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number",
+          "label": "Number",
+          "default": "01"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Tear"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Tear one stick pack at the top."
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_image",
+          "label": "Show image",
+          "default": true
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "tear", "label": "Tear" },
+            { "value": "mix", "label": "Mix" },
+            { "value": "sip", "label": "Sip" },
+            { "value": "droplet", "label": "Droplet" },
+            { "value": "bolt", "label": "Bolt" }
+          ],
+          "default": "tear"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_icon",
+          "label": "Show icon",
+          "default": true
+        },
+        {
+          "type": "color",
+          "id": "accent_color",
+          "label": "Accent color"
+        }
+      ]
+    },
+    {
+      "type": "trust_item",
+      "name": "Trust item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Zero sugar"
+        },
+        {
+          "type": "text",
+          "id": "value",
+          "label": "Optional secondary value"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "droplet", "label": "Droplet" },
+            { "value": "leaf", "label": "Leaf" },
+            { "value": "bolt", "label": "Bolt" },
+            { "value": "star", "label": "Star" }
+          ],
+          "default": "droplet"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_icon",
+          "label": "Show icon",
+          "default": true
+        },
+        {
+          "type": "color",
+          "id": "accent_color",
+          "label": "Accent color"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve when to reach",
+      "blocks": [
+        { "type": "use_case", "settings": { "number": "01", "heading": "Morning hydration", "description": "Start your day hydrated and stay focused throughout.", "icon": "sun" } },
+        { "type": "use_case", "settings": { "number": "02", "heading": "Workout support", "description": "Pre-load, sip mid-session, refuel after.", "icon": "dumbbell" } },
+        { "type": "use_case", "settings": { "number": "03", "heading": "Travel hydration", "description": "Flights and long drives dehydrate you fast.", "icon": "plane" } },
+        { "type": "use_case", "settings": { "number": "04", "heading": "Hot day essential", "description": "Runs, courts, trails, construction, and more.", "icon": "sun_temp" } },
+        { "type": "use_case", "settings": { "number": "05", "heading": "Recovery day", "description": "After a fever, stomach bug, or a long night out.", "icon": "heart" } },
+        { "type": "use_case", "settings": { "number": "06", "heading": "On-the-go hydration", "description": "Desk drawer, gym bag, glovebox. Zero prep, always ready.", "icon": "backpack" } },
+        { "type": "how_to_step", "settings": { "number": "01", "heading": "Tear", "description": "Tear one stick pack at the top.", "icon": "tear" } },
+        { "type": "how_to_step", "settings": { "number": "02", "heading": "Mix", "description": "Pour into 16 to 32 oz of water. Shake or stir until fully dissolved.", "icon": "mix" } },
+        { "type": "how_to_step", "settings": { "number": "03", "heading": "Sip", "description": "Drink before, during, or after activity—anytime you're running low.", "icon": "sip" } },
+        { "type": "trust_item", "settings": { "label": "Zero sugar", "icon": "droplet" } },
+        { "type": "trust_item", "settings": { "label": "All natural", "icon": "leaf" } },
+        { "type": "trust_item", "settings": { "label": "500mg", "value": "Electrolytes", "icon": "bolt" } },
+        { "type": "trust_item", "settings": { "label": "4.9/5", "value": "From happy customers", "icon": "star" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

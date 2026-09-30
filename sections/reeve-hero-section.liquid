@@ -1,0 +1,741 @@
+{{ 'section-reeve-hero.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    --hero-bg: {{ section.settings.bg_color }};
+    --hero-text: {{ section.settings.text_color }};
+    --hero-muted: {{ section.settings.muted_text_color }};
+    --hero-card-bg: {{ section.settings.card_bg_color }};
+    --hero-border: {{ section.settings.border_color }};
+    --hero-accent: {{ section.settings.button_bg_color }};
+    --hero-accent-text: {{ section.settings.button_text_color }};
+  }
+
+  .reeve-hero {
+    background: var(--hero-bg);
+    color: var(--hero-text);
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+
+  /* When this is the first section on the page and the theme's header is
+     transparent/overlaid, the theme already pulls this section up (negative
+     margin) so its background sits behind the header — that's the "hero
+     covers the header" look. Add the header's height back as extra top
+     padding so the hero's OWN content (announcement bar, nav, heading) still
+     starts below the header instead of being hidden under it; the
+     background/color keeps extending all the way to the true top. */
+  body:has(#header-component[transparent]) .reeve-hero {
+    padding-top: calc(var(--header-group-height, 0px) + {{ section.settings.padding_top }}px);
+  }
+
+  .reeve-hero__announcement {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    background: {{ section.settings.announcement_bg }};
+    color: {{ section.settings.announcement_text_color }};
+  }
+
+  .reeve-hero__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  .reeve-hero__grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 48px;
+    align-items: start;
+    padding: 32px 0 56px;
+  }
+
+  .reeve-hero__content { max-width: 560px; }
+
+  .reeve-hero__eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hero-muted);
+    margin: 0 0 18px;
+  }
+
+  .reeve-hero__heading {
+    font-family: var(--font-heading--family, serif);
+    font-size: clamp(34px, 4.2vw, 52px);
+    line-height: 1.08;
+    font-weight: 500;
+    margin: 0 0 20px;
+    color: var(--hero-text);
+  }
+
+  .reeve-hero__description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--hero-muted);
+    margin: 0 0 12px;
+    max-width: 480px;
+  }
+
+  .reeve-hero__subtext {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--hero-muted);
+    opacity: 0.75;
+    margin: 0 0 28px;
+  }
+
+  .reeve-hero__cta-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .reeve-hero__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--hero-accent);
+    color: var(--hero-accent-text);
+    border-radius: 999px;
+    padding: 16px 32px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    white-space: nowrap;
+  }
+
+  .reeve-hero__link-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: var(--hero-text);
+    border: 1px solid var(--hero-border);
+    border-radius: 999px;
+    padding: 15px 22px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .reeve-hero__link-pill svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .reeve-hero__proof {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--hero-muted);
+    margin-bottom: 6px;
+  }
+
+  .reeve-hero__stars {
+    color: {{ section.settings.star_color }};
+    letter-spacing: 1px;
+    font-size: 13px;
+  }
+
+  .reeve-hero__proof-divider {
+    opacity: 0.4;
+  }
+
+  .reeve-hero__subline {
+    font-size: 13px;
+    color: var(--hero-muted);
+    opacity: 0.85;
+  }
+
+  /* Stat / ratio card */
+  .reeve-hero__card {
+    background: var(--hero-card-bg);
+    border: 1px solid var(--hero-border);
+    border-radius: 18px;
+    padding: 28px;
+  }
+
+  .reeve-hero__card-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hero-muted);
+    margin: 0 0 18px;
+  }
+
+  .reeve-hero__ratio-bar {
+    display: flex;
+    width: 100%;
+    height: 14px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .reeve-hero__ratio-segment { height: 100%; }
+
+  .reeve-hero__legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 20px;
+    margin-bottom: 20px;
+  }
+
+  .reeve-hero__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--hero-text);
+  }
+
+  .reeve-hero__legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .reeve-hero__card-footnote {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--hero-muted);
+    opacity: 0.8;
+    border-top: 1px solid var(--hero-border);
+    padding-top: 16px;
+    margin: 0;
+  }
+
+  /* Stat tiles */
+  .reeve-hero__stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--hero-border);
+    border-bottom: 1px solid var(--hero-border);
+  }
+
+  .reeve-hero__stat {
+    text-align: center;
+    padding: 28px 8px;
+    border-right: 1px solid var(--hero-border);
+  }
+
+  .reeve-hero__stat:last-child { border-right: none; }
+
+  .reeve-hero__stat-value {
+    font-family: var(--font-heading--family, serif);
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--hero-text);
+    margin: 0 0 4px;
+  }
+
+  .reeve-hero__stat-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hero-muted);
+  }
+
+  /* Badge strip */
+  .reeve-hero__badges {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 18px 24px;
+    background: {{ section.settings.badge_strip_bg }};
+  }
+
+  .reeve-hero__badge {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--hero-muted);
+    white-space: nowrap;
+  }
+
+  .reeve-hero__badge:not(:last-child)::after {
+    content: '';
+    display: inline-block;
+    width: 1px;
+    height: 10px;
+    background: var(--hero-border);
+    margin-left: 20px;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 749px) {
+    .reeve-hero__inner { padding: 50px 20px; }
+
+    .reeve-hero__grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+      padding: 12px 0 32px;
+    }
+
+    .reeve-hero__content { max-width: 100%; order: 1; }
+    .reeve-hero__card { order: 2; }
+
+    .reeve-hero__heading { font-size: clamp(28px, 8vw, 34px); }
+    .reeve-hero__description { font-size: 15px; }
+
+    .reeve-hero__cta-row { flex-direction: column; align-items: stretch; gap: 10px; }
+    .reeve-hero__button, .reeve-hero__link-pill { width: 100%; }
+
+    .reeve-hero__proof { justify-content: flex-start; }
+
+    .reeve-hero__stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .reeve-hero__stat:nth-child(2) { border-right: none; }
+    .reeve-hero__stat:nth-child(1), .reeve-hero__stat:nth-child(2) {
+      border-bottom: 1px solid var(--hero-border);
+    }
+
+    .reeve-hero__badges {
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+    .reeve-hero__badge::after { display: none; }
+  }
+{%- endstyle -%}
+
+<section class="reeve-hero" id="shopify-section-{{ section.id }}">
+
+  {%- if section.settings.show_announcement -%}
+    <div class="reeve-hero__announcement">{{ section.settings.announcement_text }}</div>
+  {%- endif -%}
+
+  <div class="reeve-hero__inner">
+    <div class="reeve-hero__grid">
+      <div class="reeve-hero__content">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="reeve-hero__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+
+        <h1 class="reeve-hero__heading">{{ section.settings.heading }}</h1>
+
+        {%- if section.settings.description != blank -%}
+          <div class="reeve-hero__description">{{ section.settings.description }}</div>
+        {%- endif -%}
+
+        {%- if section.settings.subtext != blank -%}
+          <p class="reeve-hero__subtext">{{ section.settings.subtext }}</p>
+        {%- endif -%}
+
+        <div class="reeve-hero__cta-row">
+          {%- if section.settings.button_label != blank -%}
+            <a href="{{ section.settings.button_link | default: '#' }}" class="reeve-hero__button">
+              {{ section.settings.button_label }}
+            </a>
+          {%- endif -%}
+
+          {%- if section.settings.secondary_label != blank -%}
+            <a href="{{ section.settings.secondary_link | default: '#' }}" class="reeve-hero__link-pill">
+              {{ section.settings.secondary_label }}
+              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 1V11M1 6H11" stroke="currentColor" stroke-width="1" transform="rotate(90 6 6)"/>
+                <path d="M6 9L2 5H10L6 9Z" fill="currentColor"/>
+              </svg>
+            </a>
+          {%- endif -%}
+        </div>
+
+        {%- if section.settings.show_reviews -%}
+          <div class="reeve-hero__proof">
+            <span class="reeve-hero__stars">
+              {%- for i in (1..5) -%}★{%- endfor -%}
+            </span>
+            <span>{{ section.settings.review_text }}</span>
+            <span class="reeve-hero__proof-divider">·</span>
+            <span>{{ section.settings.tested_text }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.footer_line != blank -%}
+          <p class="reeve-hero__subline">{{ section.settings.footer_line }}</p>
+        {%- endif -%}
+      </div>
+
+      <div class="reeve-hero__card">
+        <p class="reeve-hero__card-label">{{ section.settings.card_label }}</p>
+
+        <div class="reeve-hero__ratio-bar">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'electrolyte' -%}
+              <span class="reeve-hero__ratio-segment" style="background: {{ block.settings.color }}; width: {{ block.settings.ratio_width }}%;"></span>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+
+        <div class="reeve-hero__legend">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'electrolyte' -%}
+              <div class="reeve-hero__legend-item" {{ block.shopify_attributes }}>
+                <span class="reeve-hero__legend-dot" style="background: {{ block.settings.color }};"></span>
+                <span>{{ block.settings.name }}</span>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+
+        {%- if section.settings.card_footnote != blank -%}
+          <p class="reeve-hero__card-footnote">{{ section.settings.card_footnote }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  {%- liquid
+    assign stat_count = 0
+    for block in section.blocks
+      if block.type == 'stat'
+        assign stat_count = stat_count | plus: 1
+      endif
+    endfor
+  -%}
+
+  {%- if stat_count > 0 -%}
+    <div class="reeve-hero__stats">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'stat' -%}
+          <div class="reeve-hero__stat" {{ block.shopify_attributes }}>
+            <p class="reeve-hero__stat-value">{{ block.settings.value }}</p>
+            <p class="reeve-hero__stat-label">{{ block.settings.label }}</p>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+
+  {%- liquid
+    assign badge_count = 0
+    for block in section.blocks
+      if block.type == 'badge'
+        assign badge_count = badge_count | plus: 1
+      endif
+    endfor
+  -%}
+
+  {%- if badge_count > 0 -%}
+    <div class="reeve-hero__badges">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'badge' -%}
+          <span class="reeve-hero__badge" {{ block.shopify_attributes }}>{{ block.settings.text }}</span>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Reevë Hydration Hero",
+  "tag": "section",
+  "class": "section-reeve-hero-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Announcement bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_announcement",
+      "label": "Show announcement bar",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "announcement_text",
+      "label": "Announcement text",
+      "default": "FREE SHIPPING ON ALL ORDERS"
+    },
+    {
+      "type": "color",
+      "id": "announcement_bg",
+      "label": "Announcement background",
+      "default": "#0f1523"
+    },
+    {
+      "type": "color",
+      "id": "announcement_text_color",
+      "label": "Announcement text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Hero content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "REFUEL · RECHARGE · REPEAT"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>The electrolyte powder that replaces what water can't.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Six electrolytes, collagen, and real coconut water in one 6g stick pack. Zero added sugar, 8 calories, no artificial flavors or dyes. Engineered for daily hydration, hard training, and hot days.</p>"
+    },
+    {
+      "type": "text",
+      "id": "subtext",
+      "label": "Supporting subtext",
+      "default": "A sugar-free electrolyte powder built as a daily hydration supplement, not just a post-workout fix."
+    },
+    {
+      "type": "header",
+      "content": "Buttons"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Primary button label",
+      "default": "Shop 30 stick packs, $34.99"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Primary button link"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Primary button background",
+      "default": "#f5f0e8"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Primary button text",
+      "default": "#101726"
+    },
+    {
+      "type": "text",
+      "id": "secondary_label",
+      "label": "Secondary link label",
+      "default": "Why it beats water"
+    },
+    {
+      "type": "url",
+      "id": "secondary_link",
+      "label": "Secondary link URL"
+    },
+    {
+      "type": "header",
+      "content": "Reviews / social proof"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_reviews",
+      "label": "Show review stars",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_text",
+      "label": "Review text",
+      "default": "4.9/5 from 2,400+ reviews"
+    },
+    {
+      "type": "color",
+      "id": "star_color",
+      "label": "Star color",
+      "default": "#e8a33d"
+    },
+    {
+      "type": "text",
+      "id": "tested_text",
+      "label": "Tested text",
+      "default": "Third-party tested"
+    },
+    {
+      "type": "text",
+      "id": "footer_line",
+      "label": "Footer line under proof",
+      "default": "Made with real coconut water"
+    },
+    {
+      "type": "header",
+      "content": "Ratio card"
+    },
+    {
+      "type": "text",
+      "id": "card_label",
+      "label": "Card label",
+      "default": "THE RATIO YOUR BODY ACTUALLY LOSES"
+    },
+    {
+      "type": "textarea",
+      "id": "card_footnote",
+      "label": "Card footnote",
+      "default": "One stick pack, six electrolytes, plus collagen peptides and real coconut water. No proprietary blends, no hidden ingredients: this is exactly what's in the glass."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Section background",
+      "default": "#101726"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading / primary text",
+      "default": "#f7f5f0"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted / body text",
+      "default": "#9aa3b5"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background",
+      "default": "#161e2f"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border / divider color",
+      "default": "#2a3345"
+    },
+    {
+      "type": "color",
+      "id": "badge_strip_bg",
+      "label": "Badge strip background",
+      "default": "#1a2332"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "electrolyte",
+      "name": "Electrolyte legend item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Name",
+          "default": "Sodium"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "Color swatch",
+          "default": "#4f8f7e"
+        },
+        {
+          "type": "range",
+          "id": "ratio_width",
+          "min": 1,
+          "max": 50,
+          "step": 1,
+          "unit": "%",
+          "label": "Ratio bar width",
+          "default": 17
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "name": "Stat tile",
+      "settings": [
+        {
+          "type": "text",
+          "id": "value",
+          "label": "Value",
+          "default": "6"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "ELECTROLYTES"
+        }
+      ]
+    },
+    {
+      "type": "badge",
+      "name": "Badge strip item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Badge text",
+          "default": "NO FAKE STUFF"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reevë Hydration Hero",
+      "blocks": [
+        { "type": "electrolyte", "settings": { "name": "Sodium", "color": "#4f8f7e", "ratio_width": 17 } },
+        { "type": "electrolyte", "settings": { "name": "Potassium", "color": "#7bab9a", "ratio_width": 17 } },
+        { "type": "electrolyte", "settings": { "name": "Magnesium", "color": "#c99a3e", "ratio_width": 17 } },
+        { "type": "electrolyte", "settings": { "name": "Calcium", "color": "#8a97ab", "ratio_width": 17 } },
+        { "type": "electrolyte", "settings": { "name": "Chloride", "color": "#b98a6a", "ratio_width": 16 } },
+        { "type": "electrolyte", "settings": { "name": "Phosphorus", "color": "#d9c9a8", "ratio_width": 16 } },
+        { "type": "stat", "settings": { "value": "6", "label": "ELECTROLYTES" } },
+        { "type": "stat", "settings": { "value": "0g", "label": "ADDED SUGAR" } },
+        { "type": "stat", "settings": { "value": "8", "label": "CALORIES" } },
+        { "type": "stat", "settings": { "value": "30", "label": "SERVINGS" } },
+        { "type": "badge", "settings": { "text": "NO FAKE STUFF" } },
+        { "type": "badge", "settings": { "text": "THIRD-PARTY TESTED" } },
+        { "type": "badge", "settings": { "text": "MONK FRUIT SWEETENED ELECTROLYTE" } },
+        { "type": "badge", "settings": { "text": "COLLAGEN PEPTIDES POWDER" } },
+        { "type": "badge", "settings": { "text": "ZERO ADDED SUGAR" } },
+        { "type": "badge", "settings": { "text": "NO SUGAR CRASH" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

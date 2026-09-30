@@ -1,0 +1,1182 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "blint-product",
+      "blocks": {
+        "tier_1": {
+          "type": "quantity_tier",
+          "settings": {
+            "min_qty": 1,
+            "discount_percent": 0
+          }
+        },
+        "tier_2": {
+          "type": "quantity_tier",
+          "settings": {
+            "min_qty": 3,
+            "discount_percent": 10
+          }
+        },
+        "tier_3": {
+          "type": "quantity_tier",
+          "settings": {
+            "min_qty": 6,
+            "discount_percent": 15
+          }
+        }
+      },
+      "block_order": [
+        "tier_1",
+        "tier_2",
+        "tier_3"
+      ],
+      "disabled": true,
+      "settings": {
+        "title_font_size": 24,
+        "description": "<p>One stick, all six electrolytes —<strong>sodium, chloride, potassium, magnesium, calcium and phosphorus</strong>. No sugar, five calories, no crash. Thirty sticks to a pack.</p>",
+        "description_font_size": 14,
+        "bullets": "",
+        "show_rating": true,
+        "rating_value": "4.63 526",
+        "rating_count": "{{ product.metafields.reviews.rating_count.value }} reviews",
+        "chips": "All 6 electrolytes, Zero Sugar, 5 Calories",
+        "guarantees": "Free shipping over $60, 30-day guarantee, Ships in 1 day",
+        "flavors_heading": "Choose your flavours — mix as many as you like",
+        "sticks_per_pack": 30,
+        "pack_word": "pack",
+        "packs_word": "packs",
+        "unit_word": "stick",
+        "units_word": "sticks",
+        "upgrade_text": "Upgrade to [quantity] & Save [percent]!",
+        "best_value_text": "You've unlocked the best value 🔥",
+        "default_to_subscription": true,
+        "subscribe_label": "Subscribe & save",
+        "onetime_label": "One-time purchase",
+        "frequency_label": "Delivery frequency",
+        "default_frequency_name": "Deliver every month",
+        "sub_note_right": "Cancel anytime",
+        "offer_label": "",
+        "savings_label": "Your savings:",
+        "atc_label": "Try it now",
+        "cta_color": "#eaff3a",
+        "cta_text_color": "#000000",
+        "urgency_heading": "Next batch ships in:",
+        "countdown_enable": true,
+        "countdown_cutoff_hour": 0,
+        "urgency_value": "1 day",
+        "urgency_text": "Orders placed before the cutoff go out with this batch.",
+        "urgency_background": "linear-gradient(135deg, rgba(230, 232, 253, 1), rgba(240, 241, 254, 1) 100%)",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "blint_product_custom_ab_HPXL6G": {
+      "type": "blint-product-custom-ab",
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {
+            "title_override": "",
+            "title_font_size": 24
+          }
+        },
+        "rating": {
+          "type": "rating",
+          "settings": {
+            "show_rating": true,
+            "sync_with_judgeme": true,
+            "rating_count_template": "[count] reviews",
+            "rating_value": "4.9",
+            "rating_count": "500+ reviews"
+          }
+        },
+        "short_description": {
+          "type": "short_description",
+          "settings": {
+            "short_description": "<p>1 Stick = 740mg of Electrolytes + 0 Sugar</p>"
+          }
+        },
+        "chips_bxF4DA": {
+          "type": "chips",
+          "settings": {
+            "chips": "0 Sugar, 8 calories, Non GMO, Collagen Infused, No fake stuff"
+          }
+        },
+        "flavor_override_Dj3hgz": {
+          "type": "flavor_override",
+          "settings": {
+            "override_product": "reeve-electrolytes-all-six-zero-sugar-citrus-lemonade-30-hydration-sticks",
+            "flavor_name": "",
+            "flavor_image": "shopify://shop_images/ChatGPT_Image_Sep_7_2026_06_47_33_PM.png",
+            "flavor_color": "#d5a60d"
+          }
+        },
+        "flavor_override_9Effit": {
+          "type": "flavor_override",
+          "settings": {
+            "override_product": "reeve-hydration-drink-mix-blue-raspberry",
+            "flavor_name": "",
+            "flavor_image": "shopify://shop_images/ChatGPT_Image_Sep_7_2026_06_44_05_PM.png",
+            "flavor_color": "#275ed7"
+          }
+        },
+        "flavor_override_HXiTFc": {
+          "type": "flavor_override",
+          "settings": {
+            "override_product": "reeve-hydration-drink-mix-cotton-candy",
+            "flavor_name": "",
+            "flavor_image": "shopify://shop_images/ChatGPT_Image_Sep_7_2026_06_44_10_PM.png",
+            "flavor_color": "#d6316f"
+          }
+        },
+        "flavor": {
+          "type": "flavor",
+          "settings": {
+            "enable_flavor_select": true,
+            "flavor_switch_heading": "Flavors",
+            "select_flavors_label": "Select from [count] Flavors",
+            "flavor_auto_short_name": true,
+            "flavor_name_max_chars": 24,
+            "flavor_name_overrides": "",
+            "flavor_color_overrides": "reeve-electrolytes-all-six-zero-sugar-citrus-lemonade-30-hydration-sticks=#FFF5B7"
+          }
+        },
+        "boxes": {
+          "type": "boxes",
+          "settings": {
+            "count_option_name": "",
+            "show_quantity_badges": false,
+            "count_as_cards": false,
+            "count_units_per_box": 30,
+            "count_unit_label": "stick",
+            "count_badge_popular": "Most Popular",
+            "count_badge_best": "Best Value",
+            "upgrade_text": "Upgrade to [quantity] & Save [percent]!",
+            "best_value_text": "You've unlocked the best value 🔥"
+          }
+        },
+        "subscription": {
+          "type": "subscription",
+          "settings": {
+            "default_to_subscription": true,
+            "subscribe_label": "Subscribe & save",
+            "frequency_label": "Delivery frequency",
+            "default_frequency_name": "Deliver every month",
+            "sub_note_right": "Cancel anytime"
+          }
+        },
+        "one_time_purchase": {
+          "type": "one_time_purchase",
+          "settings": {
+            "onetime_label": "One-time purchase"
+          }
+        },
+        "price_and_buy": {
+          "type": "price_and_buy",
+          "settings": {
+            "show_quantity_selector": false,
+            "offer_label": "Limited time offer:",
+            "savings_label": "Your savings:",
+            "atc_label": "Try it now",
+            "enable_direct_checkout": true,
+            "cta_color": "#111111",
+            "cta_text_color": "#ffffff"
+          }
+        },
+        "payment_icons_YTbJgW": {
+          "type": "payment_icons",
+          "settings": {
+            "label": "Secure checkout with",
+            "alignment": "flex-start",
+            "icon_size": 24
+          }
+        },
+        "timer_fjRfGC": {
+          "type": "timer",
+          "settings": {
+            "urgency_heading": "Order within:",
+            "countdown_enable": true,
+            "countdown_cutoff_hour": 0,
+            "urgency_value": "1 day",
+            "urgency_text": "Reserve yours before we sell out again!",
+            "urgency_background": "linear-gradient(135deg, rgba(248, 246, 242, 1), rgba(248, 246, 242, 1) 95%, rgba(255, 255, 255, 0) 100%, rgba(248, 246, 242, 1) 100%)",
+            "countdown_box_color": "#000000",
+            "countdown_text_color": "#ffffff",
+            "countdown_sep_color": "#000000"
+          }
+        },
+        "guarantees": {
+          "type": "guarantees",
+          "settings": {
+            "guarantees": "Third-Party Lab Tested, Ships from USA, Secure Checkout"
+          }
+        },
+        "accordion": {
+          "type": "accordion",
+          "settings": {
+            "accordion_description_label": "Description",
+            "accordion_ingredients_label": "Ingredients",
+            "ingredients_content": "{{ section.settings.selected_product.metafields.custom.ingredients | metafield_tag }}",
+            "accordion_benefits_label": "{{ section.settings.selected_product.metafields.reeve.benefit_subtitle.value }}",
+            "benefits_content": "{{ section.settings.selected_product.metafields.custom.benefits | metafield_tag }}"
+          }
+        }
+      },
+      "block_order": [
+        "title",
+        "rating",
+        "short_description",
+        "chips_bxF4DA",
+        "flavor_override_Dj3hgz",
+        "flavor_override_9Effit",
+        "flavor_override_HXiTFc",
+        "flavor",
+        "boxes",
+        "subscription",
+        "one_time_purchase",
+        "price_and_buy",
+        "payment_icons_YTbJgW",
+        "timer_fjRfGC",
+        "guarantees",
+        "accordion"
+      ],
+      "name": "Blint product AB",
+      "settings": {
+        "selected_product": "reeve-electrolytes-all-six-zero-sugar-orange-30-hydration-sticks",
+        "color_scheme": "",
+        "enable_glass_cards": true,
+        "gallery_badge_show_discount": true,
+        "gallery_badge_text": "",
+        "gallery_badge_style": "wedge",
+        "gallery_badge_prefix": "",
+        "gallery_badge_suffix": "Off",
+        "gallery_badge_first_only": true,
+        "gallery_badge_size": 70,
+        "gallery_badge_size_mobile": 60,
+        "gallery_badge_inset": 25,
+        "gallery_badge_inset_mobile": 10,
+        "gallery_badge_position": "top_right",
+        "gallery_badge_bg": "#d5a60d",
+        "gallery_badge_text_color": "#ffffff",
+        "background_overlay_opacity": 45,
+        "padding-block-start": 100,
+        "padding-block-end": 40
+      }
+    },
+    "ingredients": {
+      "type": "blint-ingredients",
+      "blocks": {
+        "feat_1": {
+          "type": "feature",
+          "settings": {
+            "icon": "drop",
+            "label": "Full-spectrum minerals"
+          }
+        },
+        "feat_2": {
+          "type": "feature",
+          "settings": {
+            "icon": "lightning",
+            "label": "Zero sugar"
+          }
+        },
+        "feat_3": {
+          "type": "feature",
+          "settings": {
+            "icon": "flask",
+            "label": "Recovery"
+          }
+        },
+        "feat_4": {
+          "type": "feature",
+          "settings": {
+            "icon": "shield",
+            "label": "Collagen"
+          }
+        },
+        "ing_6": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/unnamed_3_2e1a9d68-40a8-4392-a890-21c624b36b45.png",
+            "name": "Himalayan Pink Salt",
+            "tags": "REHYDRATION, ELECTROLYTES",
+            "description": "Replenishes sodium lost through sweat to support faster rehydration and help reduce that drained, foggy feeling."
+          }
+        },
+        "ing_1": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/unnamed_4.png",
+            "name": "Potassium Chloride",
+            "tags": "MUSCLE FUNCTION, FLUID BALANCE",
+            "description": "Helps maintain fluid balance and supports normal muscle function during workouts, travel, and everyday activity."
+          }
+        },
+        "ing_2": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/unnamed_5.png",
+            "name": "Coconut Water",
+            "tags": "NATURAL BASE, HYDRATION",
+            "description": "Provides naturally occurring electrolytes and creates a light, refreshing base without a heavy or syrupy aftertaste."
+          }
+        },
+        "ing_3": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/WhatsApp_Image_2026-08-27_at_2.43.59_PM.jpg",
+            "name": "Collagen",
+            "tags": "HAIR, JOINTS, SKIN",
+            "description": "Supports healthy skin, joints, and hair, turning everyday hydration into a simple beauty and wellness ritual."
+          }
+        },
+        "ingredient_BR4jJ8": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/unnamed_7.png",
+            "name": "Magnesium Citrate",
+            "tags": "ENERGY, RECOVERY",
+            "description": "Supports normal muscle function, energy production, and recovery after physical activity."
+          }
+        },
+        "ing_4": {
+          "type": "ingredient",
+          "settings": {
+            "image": "shopify://shop_images/unnamed_8.png",
+            "name": "Monk Fruit",
+            "tags": "ZERO SUGAR, NATURAL SWEETNESS",
+            "description": "Adds clean, natural sweetness without added sugar, artificial sweeteners, or a lingering aftertaste."
+          }
+        },
+        "ingredient_r9BwHJ": {
+          "type": "ingredient",
+          "disabled": true,
+          "settings": {
+            "name": "Vitamin b6",
+            "tags": "alertness, energy",
+            "description": "Supports energy metabolism by helping the body break down protein and stored carbohydrates into usable fuel, making it a natural partner to caffeine for sustained performance"
+          }
+        }
+      },
+      "block_order": [
+        "feat_1",
+        "feat_2",
+        "feat_3",
+        "feat_4",
+        "ing_6",
+        "ing_1",
+        "ing_2",
+        "ing_3",
+        "ingredient_BR4jJ8",
+        "ing_4",
+        "ingredient_r9BwHJ"
+      ],
+      "name": "Blint ingredients",
+      "settings": {
+        "heading": "Real minerals. Bright citrus. Nothing artificial.",
+        "heading_font_size": 28,
+        "body": "<p>A full electrolyte and mineral blend, collagen, and a light lemonade finish - built for the way you actually hydrate.</p>",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "blint_bundle_builder_flavor": {
+      "type": "blint-bundle-builder",
+      "name": "Blint bundle builder",
+      "settings": {
+        "selected_product": "reeve-electrolytes-all-six-zero-sugar-orange-30-hydration-sticks",
+        "heading": "Build your box",
+        "frequency_note": "Delivery: Every 30 days",
+        "checkout_label": "Add to cart",
+        "checkout_color": "#111111",
+        "checkout_text_color": "#ffffff"
+      }
+    },
+    "timeline": {
+      "type": "blint-timeline",
+      "blocks": {
+        "step_1": {
+          "type": "step",
+          "settings": {
+            "title": "01 Pink salt + potassium",
+            "text": "The two minerals your body loses fastest through sweat, replaced in the balance your cells actually use."
+          }
+        },
+        "step_2": {
+          "type": "step",
+          "settings": {
+            "title": "02 Coconut water",
+            "text": "A naturally hydrating, low-sugar base that lets the citrus flavor shine without feeling heavy."
+          }
+        },
+        "step_3": {
+          "type": "step",
+          "settings": {
+            "title": "03 Collagen",
+            "text": "One scoop supports your skin and joints while you rehydrate - no extra pills, no extra steps."
+          }
+        },
+        "step_4": {
+          "type": "step",
+          "settings": {
+            "title": "04 Magnesium + monk fruit",
+            "text": "Magnesium supports recovery while monk fruit keeps every glass bright and sweet with zero sugar."
+          }
+        },
+        "note_1": {
+          "type": "note",
+          "disabled": true,
+          "settings": {
+            "label": "Timing",
+            "text": "Use BLINT whenever it best fits your routine. Many customers prefer it before work, studying, training, meetings, or other demanding activities."
+          }
+        },
+        "note_2": {
+          "type": "note",
+          "disabled": true,
+          "settings": {
+            "label": "Results",
+            "text": "Most users notice the benefits of BLINT shortly after use and greater consistency as it becomes part of their routine."
+          }
+        },
+        "note_3": {
+          "type": "note",
+          "disabled": true,
+          "settings": {
+            "label": "Loading",
+            "text": "No loading phase required. Simply use BLINT as directed and make it part of your daily routine."
+          }
+        }
+      },
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3",
+        "step_4",
+        "note_1",
+        "note_2",
+        "note_3"
+      ],
+      "name": "Blint timeline",
+      "settings": {
+        "heading": "WHAT YOU GET INSIDE",
+        "heading_font_size": 28,
+        "body": "<p><strong>Citrus refreshment. Full-spectrum function.</strong></p>",
+        "image": "shopify://shop_images/ChatGPT_Image_Aug_26_2026_06_18_31_PM.png",
+        "bg_color": "#d3ded3",
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "reeve_compare_XR6fGe": {
+      "type": "reeve-compare",
+      "blocks": {
+        "row_Dwcymf": {
+          "type": "row",
+          "settings": {
+            "label": "Electrolytes",
+            "our_value": "6",
+            "competitor_1_value": "2",
+            "competitor_2_value": "3 to 4",
+            "competitor_3_value": "2",
+            "competitor_4_value": "3"
+          }
+        },
+        "row_GQNYwc": {
+          "type": "row",
+          "settings": {
+            "label": "Added sugar",
+            "our_value": "0g",
+            "competitor_1_value": "21g to 28g",
+            "competitor_2_value": "0g to 9g",
+            "competitor_3_value": "21g to 28g",
+            "competitor_4_value": "0g to 5g"
+          }
+        },
+        "row_cLtMpd": {
+          "type": "row",
+          "settings": {
+            "label": "Calories",
+            "our_value": "8",
+            "competitor_1_value": "80 to 140",
+            "competitor_2_value": "10 to 45",
+            "competitor_3_value": "80 to 140",
+            "competitor_4_value": "25 to 35"
+          }
+        },
+        "row_MxbnCf": {
+          "type": "row",
+          "settings": {
+            "label": "Collagen peptides",
+            "our_value": "Yes",
+            "competitor_1_value": "No",
+            "competitor_2_value": "Rarely",
+            "competitor_3_value": "No",
+            "competitor_4_value": "No"
+          }
+        },
+        "row_KaHEYq": {
+          "type": "row",
+          "settings": {
+            "label": "Real coconut water",
+            "our_value": "Yes",
+            "competitor_1_value": "No",
+            "competitor_2_value": "Rarely",
+            "competitor_3_value": "No",
+            "competitor_4_value": "No"
+          }
+        },
+        "row_PAt7cd": {
+          "type": "row",
+          "settings": {
+            "label": "Magnesium form",
+            "our_value": "Citrate",
+            "competitor_1_value": "None",
+            "competitor_2_value": "Often oxide",
+            "competitor_3_value": "None",
+            "competitor_4_value": "None"
+          }
+        },
+        "row_JJNtp6": {
+          "type": "row",
+          "settings": {
+            "label": "Sweetener",
+            "our_value": "Monk fruit",
+            "competitor_1_value": "Cane sugar",
+            "competitor_2_value": "Stevia or sucralose",
+            "competitor_3_value": "Cane sugar",
+            "competitor_4_value": "Dextrose or none"
+          }
+        },
+        "row_JWLrEk": {
+          "type": "row",
+          "disabled": true,
+          "settings": {
+            "label": "Artificial flavors or dyes",
+            "our_value": "None",
+            "competitor_1_value": "None",
+            "competitor_2_value": "Sometimes",
+            "competitor_3_value": "Usually",
+            "competitor_4_value": "Sometimes"
+          }
+        },
+        "row_cdgXLy": {
+          "type": "row",
+          "disabled": true,
+          "settings": {
+            "label": "Prevents the afternoon fog",
+            "our_value": "Yes",
+            "competitor_1_value": "No",
+            "competitor_2_value": "Rarely",
+            "competitor_3_value": "No",
+            "competitor_4_value": "Rarely"
+          }
+        },
+        "row_7nBWez": {
+          "type": "row",
+          "disabled": true,
+          "settings": {
+            "label": "Cost per serving",
+            "our_value": "~$1.00",
+            "competitor_1_value": "Free",
+            "competitor_2_value": "$1.30 to $1.50",
+            "competitor_3_value": "$1.00 to $2.00",
+            "competitor_4_value": "~$0.90"
+          }
+        }
+      },
+      "block_order": [
+        "row_Dwcymf",
+        "row_GQNYwc",
+        "row_cLtMpd",
+        "row_MxbnCf",
+        "row_KaHEYq",
+        "row_PAt7cd",
+        "row_JJNtp6",
+        "row_JWLrEk",
+        "row_cdgXLy",
+        "row_7nBWez"
+      ],
+      "name": "Reeve compare",
+      "settings": {
+        "eyebrow": "REEVË VS. EVERYTHING ELSE",
+        "heading": "How Reevë compares to the entire hydration aisle",
+        "subheading": "<p>Not just better than water. Better than the whole category, plain water included. One table, no exceptions.</p>",
+        "footnote": "",
+        "column_header_label": "Per serving",
+        "our_name": "Reevë",
+        "competitor_1_name": "Sports Drinks",
+        "competitor_1_value_color": "#000000",
+        "mute_competitor_1": false,
+        "competitor_2_name": "Typical Electrolyte",
+        "competitor_2_value_color": "#000000",
+        "mute_competitor_2": false,
+        "competitor_3_name": "",
+        "competitor_3_value_color": "#1f2430",
+        "mute_competitor_3": true,
+        "competitor_4_name": "",
+        "competitor_4_value_color": "#1f2430",
+        "mute_competitor_4": true,
+        "muted_keywords": "no,none,rarely",
+        "muted_text_color": "#9aa3ab",
+        "section_bg": "#f8f6f2",
+        "card_bg": "#fbf9f4",
+        "border_color": "#e8e2d4",
+        "row_alt_bg": "#f7f4ec",
+        "eyebrow_color": "#8a8478",
+        "heading_color": "#10192b",
+        "subheading_color": "#6b6a63",
+        "label_color": "#16233a",
+        "competitor_header_color": "#16233a",
+        "header_font_weight": "600",
+        "footnote_color": "#9a9488",
+        "ours_pill_bg": "#10192b",
+        "ours_pill_text": "#ffffff",
+        "ours_column_bg": "#fff5b7",
+        "ours_value_color": "#10192b",
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
+    },
+    "blint_showcase_Fd3d9N": {
+      "type": "blint-showcase",
+      "blocks": {
+        "feature_MmjYjb": {
+          "type": "feature",
+          "settings": {
+            "column": "left",
+            "eyebrow": "",
+            "title": "Non-GMO, always",
+            "description": "No fake stuff, no artificial flavors, no shortcuts."
+          }
+        },
+        "feature_fA9bK9": {
+          "type": "feature",
+          "settings": {
+            "column": "left",
+            "eyebrow": "",
+            "title": "Zero sugar, real sweetness",
+            "description": "Sweetened naturally with monk fruit, just 8 calories a scoop."
+          }
+        },
+        "feature_zXM7Ja": {
+          "type": "feature",
+          "settings": {
+            "column": "right",
+            "eyebrow": "",
+            "title": "Built for daily rotation",
+            "description": "Pair Citrus lemonade with your other Reeve flavors so hydration never feels like a chore."
+          }
+        },
+        "feature_UQDzUq": {
+          "type": "feature",
+          "settings": {
+            "column": "right",
+            "eyebrow": "",
+            "title": "Collagen included",
+            "description": "The only hydration mix doing double duty for your skin, joints, and hair."
+          }
+        }
+      },
+      "block_order": [
+        "feature_MmjYjb",
+        "feature_fA9bK9",
+        "feature_zXM7Ja",
+        "feature_UQDzUq"
+      ],
+      "name": "Blint showcase",
+      "settings": {
+        "heading": "HYDRATION, REIMAGINED",
+        "heading_font_size": 28,
+        "image": "shopify://shop_images/ChatGPT_Image_Aug_28_2026_12_53_59_PM.png",
+        "color_scheme": "",
+        "padding-block-start": 56,
+        "padding-block-end": 56
+      }
+    },
+    "reeve_trust_markers_VjzMM8": {
+      "type": "reeve-trust-markers",
+      "blocks": {
+        "marker_DA4rU7": {
+          "type": "marker",
+          "settings": {
+            "label": "Non-GMO",
+            "value": "",
+            "show_icon": true,
+            "icon": "leaf",
+            "accent_color": ""
+          }
+        },
+        "marker_VDVrKj": {
+          "type": "marker",
+          "settings": {
+            "label": "Third-Party Tested",
+            "value": "",
+            "show_icon": true,
+            "icon": "shield",
+            "accent_color": ""
+          }
+        },
+        "marker_dYMRwx": {
+          "type": "marker",
+          "settings": {
+            "label": "Free Shipping",
+            "value": "On orders $35+",
+            "show_icon": true,
+            "icon": "truck",
+            "accent_color": ""
+          }
+        },
+        "marker_JTqxiq": {
+          "type": "marker",
+          "settings": {
+            "label": "30-Day Guarantee",
+            "value": "",
+            "show_icon": true,
+            "icon": "refresh",
+            "accent_color": ""
+          }
+        },
+        "marker_JxF4Dp": {
+          "type": "marker",
+          "settings": {
+            "label": "Doctor Formulated",
+            "value": "",
+            "show_icon": true,
+            "icon": "medal",
+            "accent_color": ""
+          }
+        },
+        "marker_VCiTTw": {
+          "type": "marker",
+          "settings": {
+            "label": "Secure Checkout",
+            "value": "",
+            "show_icon": true,
+            "icon": "lock",
+            "accent_color": ""
+          }
+        }
+      },
+      "block_order": [
+        "marker_DA4rU7",
+        "marker_VDVrKj",
+        "marker_dYMRwx",
+        "marker_JTqxiq",
+        "marker_JxF4Dp",
+        "marker_VCiTTw"
+      ],
+      "disabled": true,
+      "name": "Reeve trust markers",
+      "settings": {
+        "eyebrow": "WHY TRUST US",
+        "heading": "",
+        "layout_style": "minimal",
+        "icon_style": "circle",
+        "icon_size": 26,
+        "background_color": "",
+        "text_color": "#10192b",
+        "accent_color": "#1c8a7a",
+        "divider_color": "#e7ded0",
+        "max_width": 1200,
+        "gap": 24,
+        "columns_mobile": "2",
+        "mobile_horizontal_padding": 20,
+        "padding_top_desktop": 48,
+        "padding_bottom_desktop": 48,
+        "padding_top_mobile": 32,
+        "padding_bottom_mobile": 32,
+        "margin_top_desktop": 0,
+        "margin_bottom_desktop": 0,
+        "margin_top_mobile": 0,
+        "margin_bottom_mobile": 0,
+        "enable_animations": true
+      }
+    },
+    "judgeme": {
+      "type": "blint-judgeme",
+      "disabled": true,
+      "name": "Blint reviews (Judge.me)",
+      "settings": {
+        "heading": "Reviews",
+        "heading_font_size": 24,
+        "review_title_size": 15,
+        "review_text_size": 14,
+        "star_size": 16,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40
+      }
+    },
+    "reeve_reviews_carousel_rEAbpX": {
+      "type": "reeve-reviews-carousel",
+      "blocks": {
+        "review_37WH9H": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "verified": true,
+            "title": "Finally, an electrolyte drink I actually look forward to.",
+            "body": "The taste is amazing and it keeps me hydrated all day long. Love the clean ingredients!",
+            "reviewer_name": "Sarah M.",
+            "reviewed_date": "2 days ago"
+          }
+        },
+        "review_PU6yxB": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "verified": true,
+            "title": "The Blue Raspberry flavor is insane.",
+            "body": "Refreshing without being overly sweet. Perfect balance and super refreshing after workouts.",
+            "reviewer_name": "Alex R.",
+            "reviewed_date": "5 days ago"
+          }
+        },
+        "review_Gt7xUE": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "verified": true,
+            "title": "Perfect after workouts. Tastes great and doesn't feel heavy.",
+            "body": "It replenishes fast and I feel the difference. No crash, no bloating. 100% recommended!",
+            "reviewer_name": "Jordan K.",
+            "reviewed_date": "1 week ago"
+          }
+        },
+        "review_hyq3in": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "verified": true,
+            "title": "Best hydration drink I've tried.",
+            "body": "I've tried so many brands but Reeve is on another level. Clean, effective and tastes amazing.",
+            "reviewer_name": "Priya S.",
+            "reviewed_date": "1 week ago"
+          }
+        },
+        "review_kNBcPe": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "verified": true,
+            "title": "Love the energy and hydration combo.",
+            "body": "Keeps me going throughout the day. The flavors are next level!",
+            "reviewer_name": "Monica T.",
+            "reviewed_date": "2 weeks ago"
+          }
+        },
+        "review_V3rb7R": {
+          "type": "review",
+          "settings": {
+            "rating": 4,
+            "verified": true,
+            "title": "Great taste, wish it came in bigger packs.",
+            "body": "Really enjoy the flavor and how quickly it mixes. Would love a bulk option.",
+            "reviewer_name": "Daniel P.",
+            "reviewed_date": "3 weeks ago"
+          }
+        }
+      },
+      "block_order": [
+        "review_37WH9H",
+        "review_PU6yxB",
+        "review_Gt7xUE",
+        "review_hyq3in",
+        "review_kNBcPe",
+        "review_V3rb7R"
+      ],
+      "disabled": true,
+      "name": "Reeve reviews carousel",
+      "settings": {
+        "sync_with_judgeme": true,
+        "eyebrow": "Real people. Real results.",
+        "heading_normal": "Loved by",
+        "heading_highlight": "Thousands.",
+        "subheading": "Hydration you'll actually look forward to.",
+        "average_rating": "{{ product.metafields.reviews.rating | metafield_text }}",
+        "rating_out_of": "5",
+        "review_count_number": "{{ product.metafields.reviews.rating_count.value }}",
+        "review_count_text": "verified reviews",
+        "show_read_all": true,
+        "read_all_label": "Read all reviews",
+        "all_reviews_heading_normal": "All",
+        "all_reviews_heading_highlight": "Reviews",
+        "all_reviews_subheading": "Real people. Real results.",
+        "search_placeholder": "Search reviews...",
+        "reviews_per_page": 10,
+        "background_color": "#f7f4ef",
+        "text_color": "#10192b",
+        "muted_text_color": "#6b6f68",
+        "accent_color": "#d5a60d",
+        "card_bg_color": "#ffffff",
+        "card_border_color": "#e2d7c3",
+        "max_width": 1400,
+        "padding_top_desktop": 32,
+        "padding_bottom_desktop": 32,
+        "padding_top_mobile": 28,
+        "padding_bottom_mobile": 28,
+        "enable_animations": true
+      }
+    },
+    "1788767736e8ba2423": {
+      "type": "_blocks",
+      "blocks": {
+        "judge_me_reviews_review_widget_9QRYim": {
+          "type": "shopify://apps/judge-me-reviews/blocks/review_widget/61ccd3b1-a9f2-4160-9fe9-4fec8413e5d8",
+          "settings": {
+            "review_data": "real_data",
+            "max_width": 1200,
+            "show_shop_reviews": false,
+            "empty_state": "empty_widget"
+          }
+        }
+      },
+      "block_order": [
+        "judge_me_reviews_review_widget_9QRYim"
+      ],
+      "settings": {
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "flex-start",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 12,
+        "section_width": "page-width",
+        "section_height": "",
+        "section_height_custom": 50,
+        "background_media": "none",
+        "background_color": "",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "toggle_overlay": false,
+        "overlay_color": "#00000026",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_color": "",
+        "border_radius": 0,
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
+    "reeve_faq_Q8Qtkk": {
+      "type": "reeve-faq",
+      "blocks": {
+        "trust_item_C473XB": {
+          "type": "trust_item",
+          "settings": {
+            "icon": "flask",
+            "title": "Third-Party Tested",
+            "subtitle": "Purity, potency & safety"
+          }
+        },
+        "trust_item_rNyaAC": {
+          "type": "trust_item",
+          "settings": {
+            "icon": "leaf",
+            "title": "Clean Ingredients",
+            "subtitle": "No artificial dyes or fillers"
+          }
+        },
+        "trust_item_BCe9Ly": {
+          "type": "trust_item",
+          "settings": {
+            "icon": "droplet",
+            "title": "Real Hydration",
+            "subtitle": "6 electrolytes, real results"
+          }
+        },
+        "trust_item_rTJjKw": {
+          "type": "trust_item",
+          "settings": {
+            "icon": "shield",
+            "title": "Made for Results",
+            "subtitle": "Feel better, perform better"
+          }
+        },
+        "faq_TBFc4p": {
+          "type": "faq",
+          "settings": {
+            "question": "What is an electrolyte powder and do I actually need one?",
+            "answer": "<p>An electrolyte powder is a supplement that replaces minerals lost through sweat, heat, illness, or daily activity. It contains sodium, potassium, magnesium, and calcium, minerals that maintain fluid balance, nerve transmission, and muscle function. If you train, travel, sweat, or drink coffee, water alone is not putting those minerals back.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_8dc7KF": {
+          "type": "faq",
+          "settings": {
+            "question": "How is Reevë different from a typical electrolyte drink mix?",
+            "answer": "<p>Most electrolyte drink mixes cover two or three minerals. Reevë covers six, in the ratio your body actually loses them, and adds collagen peptides and real coconut water on top, at 8 calories and zero added sugar. See the full comparison table above for the category-by-category breakdown.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_MYN9nj": {
+          "type": "faq",
+          "settings": {
+            "question": "How do I use Reevë, and how many sticks a day is normal?",
+            "answer": "<p>Mix one stick pack with 16 to 32 oz of water, depending on taste preference. Shake or stir until dissolved. Most people do 1 to 2 sticks a day, and 2 to 3 on hot days, during intense training, travel, or illness recovery. Listen to your body.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_WxMKPB": {
+          "type": "faq",
+          "settings": {
+            "question": "Does Reevë contain caffeine?",
+            "answer": "<p>No. Reevë is caffeine-free, just clean hydration you can drink any time of day without affecting sleep or stacking on top of your usual coffee.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_iqcEFR": {
+          "type": "faq",
+          "settings": {
+            "question": "Why does Reevë taste different from other electrolyte powders?",
+            "answer": "<p>No artificial flavors and no sucralose aftertaste. Sweetness comes entirely from monk fruit extract, so the finish is clean rather than syrupy, and the coconut water base gives it a naturally rounder mouthfeel than a citric-acid-only powder.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_G7iNRa": {
+          "type": "faq",
+          "settings": {
+            "question": "Can I mix Reevë into sparkling water or a smoothie?",
+            "answer": "<p>Yes. Reevë dissolves cleanly in still or sparkling water, and works just as well stirred into a smoothie for an electrolyte and collagen boost.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_dPhzj8": {
+          "type": "faq",
+          "settings": {
+            "question": "Is Reevë good as a pre-workout or post-workout electrolyte powder?",
+            "answer": "<p>Both. Sip before training to pre-load sodium and magnesium, mid-session to stay ahead of cramping, and after to replace what sweat took and support recovery with collagen peptides. It is caffeine-free, so it will not interfere with pre-workout stimulants you already use.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_XRTFbF": {
+          "type": "faq",
+          "disabled": true,
+          "settings": {
+            "question": "Will Reevë help with muscle cramps and soreness?",
+            "answer": "<p>Cramping is frequently linked to low sodium, potassium, magnesium, or calcium, exactly the four minerals a typical sports drink skips or under-doses. Reevë replaces all six electrolytes together, which is the combination most associated with reduced cramping in hard training.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_RGJLiN": {
+          "type": "faq",
+          "disabled": true,
+          "settings": {
+            "question": "Will Reevë help with muscle cramps and soreness?",
+            "answer": "<p>Cramping is frequently linked to low sodium, potassium, magnesium, or calcium, exactly the four minerals a typical sports drink skips or under-doses. Reevë replaces all six electrolytes together, which is the combination most associated with reduced cramping in hard training.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_TC3zzL": {
+          "type": "faq",
+          "disabled": true,
+          "settings": {
+            "question": "Is Reevë suitable for runners, cyclists, and endurance athletes?",
+            "answer": "<p>Yes. Reevë is built for anyone who needs rapid electrolyte replenishment and collagen support for joint recovery, from casual gym-goers to long-distance runners and cyclists logging heavy mileage.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_XEVAWg": {
+          "type": "faq",
+          "disabled": true,
+          "settings": {
+            "question": "Can I use Reevë for recovery after a hangover or a long night out?",
+            "answer": "<p>Yes. Dehydration and depleted electrolytes are a large part of what makes the morning after feel rough. One or two sticks with plenty of water is a common recovery-morning ritual for exactly that reason.</p>",
+            "open_by_default": false
+          }
+        }
+      },
+      "block_order": [
+        "trust_item_C473XB",
+        "trust_item_rNyaAC",
+        "trust_item_BCe9Ly",
+        "trust_item_rTJjKw",
+        "faq_TBFc4p",
+        "faq_8dc7KF",
+        "faq_MYN9nj",
+        "faq_WxMKPB",
+        "faq_iqcEFR",
+        "faq_G7iNRa",
+        "faq_dPhzj8",
+        "faq_XRTFbF",
+        "faq_RGJLiN",
+        "faq_TC3zzL",
+        "faq_XEVAWg"
+      ],
+      "custom_css": [
+        ".reeve-faq__image {object-fit: contain;}"
+      ],
+      "name": "Reeve FAQ",
+      "settings": {
+        "eyebrow": "Frequently Asked Questions",
+        "heading": "Your questions,",
+        "highlight_text": "answered.",
+        "paragraph": "Everything you need to know about Reevé and how it fits into your daily routine.",
+        "desktop_image": "shopify://shop_images/ChatGPT_Image_Sep_1_2026_03_55_58_PM.png",
+        "mobile_image": "shopify://shop_images/ChatGPT_Image_Sep_1_2026_03_55_58_PM.png",
+        "image_border_radius": 24,
+        "show_trust_markers": true,
+        "trust_columns": 2,
+        "exclusive_accordion": true,
+        "show_contact_block": false,
+        "contact_heading": "Still have questions?",
+        "contact_subheading": "We're here to help.",
+        "contact_email": "hello@drinkreeve.com",
+        "reply_time_prefix": "We usually reply within",
+        "reply_time_value": "12–24 hours",
+        "more_doubts_label": "Know More",
+        "more_doubts_link": "shopify://pages/faqs",
+        "background_color": "{{ settings.color_palette.background }}",
+        "heading_color": "#10192b",
+        "text_color": "#10192b",
+        "eyebrow_color": "#d5a60d",
+        "accent_color": "#d5a60d",
+        "highlight_color": "#d5a60d",
+        "card_bg_color": "#ffffff",
+        "card_border_color": "#ecdfe9",
+        "active_bg_color": "#10192b",
+        "active_text_color": "#ffffff",
+        "mobile_active_bg_color": "#fdeef3",
+        "max_width": 1400,
+        "column_gap": 64,
+        "border_radius": 16,
+        "padding_top_desktop": 0,
+        "padding_bottom_desktop": 36,
+        "padding_top_mobile": 48,
+        "padding_bottom_mobile": 48
+      }
+    }
+  },
+  "order": [
+    "main",
+    "blint_product_custom_ab_HPXL6G",
+    "ingredients",
+    "blint_bundle_builder_flavor",
+    "timeline",
+    "reeve_compare_XR6fGe",
+    "blint_showcase_Fd3d9N",
+    "reeve_trust_markers_VjzMM8",
+    "judgeme",
+    "reeve_reviews_carousel_rEAbpX",
+    "1788767736e8ba2423",
+    "reeve_faq_Q8Qtkk"
+  ]
+}

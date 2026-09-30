@@ -1,0 +1,17 @@
+{% doc %}
+  Renders a comparison-table cell value: a check, a cross, or plain text.
+
+  @param {string} value - The cell value. "yes/true/✓" → check, "no/false/✗/x" → cross, otherwise text.
+{% enddoc %}
+{%- assign v = value | strip | downcase -%}
+{%- if v == 'yes' or v == 'true' or v == 'check' or v == '✓' -%}
+  <span class="blint-ct__mark blint-ct__mark--yes" aria-label="Yes">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M4 12.5l5 5 11-11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </span>
+{%- elsif v == 'no' or v == 'false' or v == 'cross' or v == 'x' or v == '✗' -%}
+  <span class="blint-ct__mark blint-ct__mark--no" aria-label="No">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  </span>
+{%- elsif value != blank -%}
+  {{ value }}
+{%- endif -%}

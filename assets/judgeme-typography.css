@@ -1,0 +1,109 @@
+/* ==========================================================================
+   Judge.me review widget — type scale
+   ==========================================================================
+
+   Loaded globally (see snippets/stylesheets.liquid) rather than from the
+   blint-judgeme section, because the same widget is commonly placed as a
+   Judge.me *app block* straight into a template. Section stylesheets only load
+   when that section renders, so scoping this there would leave the app-block
+   copy at Judge.me's default sizes.
+
+   The app forwards its own design tokens through custom properties — inspect a
+   .jm-text node and its element.style reads
+   `--text-size: var(--jm-heading-sm-size)` — so rescaling the tokens is far
+   more robust than fighting the widget's Vue-scoped, unstable class names, and
+   it preserves Judge.me's internal hierarchy: everything shifts down together.
+
+   Judge.me also exposes Small/Medium/Large presets in-app under
+   Review widget -> Review -> Styling. Set those first where you can; this
+   stylesheet overrides whatever they resolve to.
+
+   The direct class rules at the bottom are a backup for anything that does not
+   route through a variable. They use !important because the app's own
+   stylesheet loads after ours and its specificity is outside our control.
+   ========================================================================== */
+
+.blint-judgeme,
+.jdgm-widget,
+.jdgm-widget-revamp {
+  /* Judge.me's defaults run large for a product page — a 20px review title and
+     24px stars out-shout the product copy above them. This is a conventional
+     12/13/14/15/17/20/24 scale off a 16px root: body copy at 14px, titles one
+     step up at 15px, metadata down at 12px.
+
+     --blint-jm-title / --blint-jm-body / --blint-jm-star are left undefined
+     here on purpose, so the fallbacks below are the site-wide defaults. The
+     blint-judgeme section sets them from its own settings via an inline style,
+     which inherits into the widget and wins over these declarations. */
+  --blint-jm-meta: 12px;
+  --blint-jm-small: 13px;
+  --blint-jm-body-lg: calc(var(--blint-jm-body, 14px) + 1px);
+  --blint-jm-subhead: 17px;
+  --blint-jm-head: 20px;
+  --blint-jm-head-lg: 24px;
+
+  --jm-heading-xs-size: var(--blint-jm-small);
+  --jm-heading-sm-size: var(--blint-jm-title, 15px);
+  --jm-heading-md-size: var(--blint-jm-subhead);
+  --jm-heading-lg-size: var(--blint-jm-head);
+  --jm-heading-xl-size: var(--blint-jm-head-lg);
+
+  --jm-text-xs-size: var(--blint-jm-meta);
+  --jm-text-sm-size: var(--blint-jm-small);
+  --jm-text-md-size: var(--blint-jm-body, 14px);
+  --jm-text-lg-size: var(--blint-jm-body-lg);
+
+  /* Judge.me's own default is 1.4, which is tight for multi-line review bodies
+     at this size. 1.55 is the readable range for 13-15px copy. */
+  --jm-default-line-height: 1.55;
+
+  --jm-heading-sm-weight-bold: var(--font-heading--weight, 600);
+  --jm-heading-sm-weight: var(--font-heading--weight, 600);
+  --jm-heading-md-weight-bold: var(--font-heading--weight, 600);
+  --jm-heading-md-weight: var(--font-heading--weight, 600);
+  --jm-heading-lg-weight-bold: var(--font-heading--weight, 600);
+  --jm-heading-lg-weight: var(--font-heading--weight, 600);
+}
+
+/* Nudge everything down one more step on phones, where the widget sits in a
+   much narrower measure and long titles would otherwise wrap awkwardly. */
+@media screen and (max-width: 749px) {
+  .blint-judgeme,
+  .jdgm-widget,
+  .jdgm-widget-revamp {
+    --blint-jm-subhead: 16px;
+    --blint-jm-head: 18px;
+    --blint-jm-head-lg: 21px;
+  }
+}
+
+/* Match the theme's heading face so review titles don't read as a third font. */
+:is(.blint-judgeme, .jdgm-widget, .jdgm-widget-revamp)
+  :is(.jm-review-content__title, .jdgm-rev__title, .jdgm-rev-widg__title, .jdgm-rev-widg__summary-title) {
+  font-family: var(--font-heading--family) !important;
+  font-weight: var(--font-heading--weight, 600) !important;
+}
+
+/* Backup for the element that measured largest (20px), in case a token name
+   shifts under us on a widget update. Headings keep tighter leading than body. */
+:is(.blint-judgeme, .jdgm-widget, .jdgm-widget-revamp)
+  :is(.jm-review-content__title, .jdgm-rev__title) {
+  font-size: var(--blint-jm-title, 15px) !important;
+  line-height: 1.35 !important;
+}
+
+/* Stars measured 24px, which reads as a headline rather than metadata. The
+   font-size catches em-sized icons; the explicit width/height catches fixed
+   ones. .jdgm-star is the legacy widget's glyph. */
+:is(.blint-judgeme, .jdgm-widget, .jdgm-widget-revamp) .jm-star-rating {
+  font-size: var(--blint-jm-star, 16px) !important;
+}
+
+:is(.blint-judgeme, .jdgm-widget, .jdgm-widget-revamp) .jm-star-rating :is(svg, img) {
+  width: var(--blint-jm-star, 16px) !important;
+  height: var(--blint-jm-star, 16px) !important;
+}
+
+:is(.blint-judgeme, .jdgm-widget, .jdgm-widget-revamp) .jdgm-star {
+  font-size: var(--blint-jm-star, 16px) !important;
+}

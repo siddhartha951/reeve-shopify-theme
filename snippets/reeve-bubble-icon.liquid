@@ -1,0 +1,20 @@
+{%- liquid
+  assign icon_key = icon_key | default: 'none'
+  case icon_key
+    when 'droplet'
+      assign icon_svg = '<path d="M12 2.7 17.5 9a7 7 0 1 1-11 0z"/>'
+    when 'molecule'
+      assign icon_svg = '<path d="M12 3 19 7v10l-7 4-7-4V7z"/><circle cx="12" cy="3" r="1.4"/><circle cx="19" cy="7" r="1.4"/><circle cx="19" cy="17" r="1.4"/><circle cx="12" cy="21" r="1.4"/><circle cx="5" cy="17" r="1.4"/><circle cx="5" cy="7" r="1.4"/>'
+    when 'lightning'
+      assign icon_svg = '<path d="M13 2 3 14h8l-1 8 10-12h-8z"/>'
+    when 'sparkles'
+      assign icon_svg = '<path d="M12 3l1.2 4.8L18 9l-4.8 1.2L12 15l-1.2-4.8L6 9l4.8-1.2z"/><path d="M18 15l.6 2.4L21 18l-2.4.6L18 21l-.6-2.4L15 18l2.4-.6z"/>'
+    else
+      assign icon_svg = ''
+  endcase
+-%}
+{%- if icon_image != blank -%}
+  {{ icon_image | image_url: width: 96 | image_tag: loading: 'lazy' }}
+{%- elsif icon_svg != blank -%}
+  <svg viewBox="0 0 24 24" aria-hidden="true">{{ icon_svg }}</svg>
+{%- endif -%}

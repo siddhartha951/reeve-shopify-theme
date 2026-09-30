@@ -1,0 +1,400 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "blocks": {
+        "heading": {
+          "type": "text",
+          "name": "t:names.title",
+          "settings": {
+            "text": "<h1>{{ closest.page.title }}</h1>",
+            "width": "100%",
+            "max_width": "normal",
+            "alignment": "left",
+            "type_preset": "h2",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text_color": "",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "page-content": {
+          "type": "page-content",
+          "settings": {
+            "text_color": ""
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "heading",
+        "page-content"
+      ],
+      "disabled": true,
+      "settings": {
+        "content_direction": "column",
+        "gap": 32,
+        "background_color": "{{ settings.color_palette.background }}",
+        "padding-block-start": 40,
+        "padding-block-end": 80
+      }
+    },
+    "reeve_faq_pills_MahpPi": {
+      "type": "reeve-faq-pills",
+      "blocks": {
+        "faq_zdMmcJ": {
+          "type": "faq",
+          "settings": {
+            "category": "General",
+            "question": "What is an electrolyte powder and do I actually need one?",
+            "answer": "<p>An electrolyte powder is a supplement that replaces minerals lost through sweat, heat, illness, or daily activity. It contains sodium, potassium, magnesium, and calcium, minerals that maintain fluid balance, nerve transmission, and muscle function. If you train, travel, sweat, or drink coffee, water alone is not putting those minerals back.</p>",
+            "open_by_default": true
+          }
+        },
+        "faq_jcRQRR": {
+          "type": "faq",
+          "settings": {
+            "category": "General",
+            "question": "How is Reevë different from a typical electrolyte drink mix?",
+            "answer": "<p>Most electrolyte drink mixes cover two or three minerals. Reevë covers six, in the ratio your body actually loses them, and adds collagen peptides and real coconut water on top, at 8 calories and zero added sugar. See the full comparison table above for the category-by-category breakdown.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_wzn8BN": {
+          "type": "faq",
+          "settings": {
+            "category": "General",
+            "question": "How do I use Reevë, and how many sticks a day is normal?",
+            "answer": "<p>Mix one stick pack with 16 to 32 oz of water, depending on taste preference. Shake or stir until dissolved. Most people do 1 to 2 sticks a day, and 2 to 3 on hot days, during intense training, travel, or illness recovery. Listen to your body.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_Wp4geC": {
+          "type": "faq",
+          "settings": {
+            "category": "General",
+            "question": "Does Reevë contain caffeine?",
+            "answer": "<p>No. Reevë is caffeine-free, just clean hydration you can drink any time of day without affecting sleep or stacking on top of your usual coffee.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_TN4YxY": {
+          "type": "faq",
+          "settings": {
+            "category": "General",
+            "question": "Why does Reevë taste different from other electrolyte powders?",
+            "answer": "<p>No artificial flavors and no sucralose aftertaste. Sweetness comes entirely from monk fruit extract, so the finish is clean rather than syrupy, and the coconut water base gives it a naturally rounder mouthfeel than a citric-acid-only powder.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_zXxP3B": {
+          "type": "faq",
+          "settings": {
+            "category": "General",
+            "question": "Can I mix Reevë into sparkling water or a smoothie?",
+            "answer": "<p>Yes. Reevë dissolves cleanly in still or sparkling water, and works just as well stirred into a smoothie for an electrolyte and collagen boost.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_fTygbh": {
+          "type": "faq",
+          "settings": {
+            "category": "Training & recovery",
+            "question": "Is Reevë good as a pre-workout or post-workout electrolyte powder?",
+            "answer": "<p>Both. Sip before training to pre-load sodium and magnesium, mid-session to stay ahead of cramping, and after to replace what sweat took and support recovery with collagen peptides. It is caffeine-free, so it will not interfere with pre-workout stimulants you already use.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_kchKb4": {
+          "type": "faq",
+          "settings": {
+            "category": "Training & recovery",
+            "question": "Will Reevë help with muscle cramps and soreness?",
+            "answer": "<p>Cramping is frequently linked to low sodium, potassium, magnesium, or calcium, exactly the four minerals a typical sports drink skips or under-doses. Reevë replaces all six electrolytes together, which is the combination most associated with reduced cramping in hard training.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_yCw4Gf": {
+          "type": "faq",
+          "settings": {
+            "category": "Training & recovery",
+            "question": "Is Reevë suitable for runners, cyclists, and endurance athletes?",
+            "answer": "<p>Yes. Reevë is built for anyone who needs rapid electrolyte replenishment and collagen support for joint recovery, from casual gym-goers to long-distance runners and cyclists logging heavy mileage.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_HzQpUL": {
+          "type": "faq",
+          "settings": {
+            "category": "Training & recovery",
+            "question": "Can I use Reevë for recovery after a hangover or a long night out?",
+            "answer": "<p>Yes. Dehydration and depleted electrolytes are a large part of what makes the morning after feel rough. One or two sticks with plenty of water is a common recovery-morning ritual for exactly that reason.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_nyXJDV": {
+          "type": "faq",
+          "settings": {
+            "category": "Travel & on-the-go",
+            "question": "Why is Reevë a good electrolyte drink mix for travelers?",
+            "answer": "<p>Cabin air, time zone changes, and long layovers all dehydrate you faster than you notice. A stick pack weighs almost nothing, needs no refrigeration, and turns any bottle of water, at the gate, on the plane, or in a hotel room, into a full hydration reset.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_hrGqKV": {
+          "type": "faq",
+          "settings": {
+            "category": "Travel & on-the-go",
+            "question": "Can I bring Reevë stick packs through airport security?",
+            "answer": "<p>Reevë is a dry powder, so it is not subject to liquid carry-on restrictions. Individual stick packs pack flat in a bag, a pocket, or a dopp kit.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_X6tjre": {
+          "type": "faq",
+          "settings": {
+            "category": "Travel & on-the-go",
+            "question": "Is Reevë good for hot climates, humidity, or outdoor work?",
+            "answer": "<p>Yes. Heavy sweat loss from heat, humidity, or physical outdoor work is exactly the scenario six electrolytes are built for. Many people increase to 2 to 3 sticks a day during extended heat exposure.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_3V9NEP": {
+          "type": "faq",
+          "settings": {
+            "category": "Keto, fasting & GLP-1",
+            "question": "Reevë a good electrolyte powder for a keto diet?",
+            "answer": "<p>Yes. Keto flu is largely an electrolyte problem, sodium and magnesium losses spike as carbohydrate intake drops. A clean electrolyte powder with monk fruit and zero sugar fits keto, paleo, and low-carb eating patterns without adding carbs or artificial sweeteners.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_p3cKbJ": {
+          "type": "faq",
+          "settings": {
+            "category": "Keto, fasting & GLP-1",
+            "question": "Does Reevë break an intermittent fast?",
+            "answer": "<p>At 8 calories per serving with zero sugar, Reevë is generally considered fast-friendly by most intermittent fasting protocols. That said, definitions of a fast vary, so check your own protocol's rules if you are being strict about it.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_wgUi7B": {
+          "type": "faq",
+          "settings": {
+            "category": "Keto, fasting & GLP-1",
+            "question": "I'm on a GLP-1 medication and eating less. Will Reevë help with hydration?",
+            "answer": "<p>Appetite suppression often means lower fluid and electrolyte intake overall, since so much of both normally comes from food. A daily hydration supplement that also delivers collagen can help cover two common gaps at once. Talk to your prescribing doctor about how electrolyte supplementation fits your specific plan.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_bdThRR": {
+          "type": "faq",
+          "settings": {
+            "category": "Keto, fasting & GLP-1",
+            "question": "Will Reevë cause a sugar crash or spike blood sugar?",
+            "answer": "<p>No. Reevë is sweetened entirely with monk fruit extract, a zero-calorie, zero-glycemic sweetener, so there is no added sugar to spike blood sugar and no crash to follow.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_9dU7iz": {
+          "type": "faq",
+          "settings": {
+            "category": "Beauty & wellness",
+            "question": "Can electrolytes and collagen actually help with skin hydration?",
+            "answer": "<p>Collagen peptides support the skin's structural proteins, while balanced electrolytes help your body actually retain the water you drink instead of losing it. Together, that is the logic behind Reevë's collagen hydration powder for skin positioning: hydration from within, not just a topical routine.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_nJh7D9": {
+          "type": "faq",
+          "settings": {
+            "category": "Beauty & wellness",
+            "question": "What type of collagen does Reevë use, and how much is in each stick?",
+            "answer": "<p>Hydrolyzed bovine collagen peptides, chosen for absorption and bioavailability. Each 6g stick pack carries a meaningful daily dose alongside the six-electrolyte blend.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_tyVrqY": {
+          "type": "faq",
+          "settings": {
+            "category": "Beauty & wellness",
+            "question": "Is Reevë part of the \"drinkable beauty\" trend, and how is that different from a normal supplement?",
+            "answer": "<p>Drinkable beauty simply means treating what you drink as part of your skincare and wellness routine, not a separate category. Reevë is built for that overlap: a daily electrolyte supplement that also carries collagen peptides, so one habit covers hydration and skin support at once.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_QGjQpR": {
+          "type": "faq",
+          "settings": {
+            "category": "Family & safety",
+            "question": "Is Reevë safe for kids?",
+            "answer": "<p>Reevë is formulated for adults. If you are considering it for a child, especially for rehydration during illness, talk to your pediatrician first, children's electrolyte needs and appropriate dosing differ from adults.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_PcVb6m": {
+          "type": "faq",
+          "settings": {
+            "category": "Family & safety",
+            "question": "Can I drink Reevë while pregnant or nursing?",
+            "answer": "<p>Talk to your healthcare provider before taking any new supplement during pregnancy or nursing. They can confirm whether Reevë's ingredient profile fits your specific situation.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_AqUFbD": {
+          "type": "faq",
+          "settings": {
+            "category": "Family & safety",
+            "question": "Can I take Reevë if I have high blood pressure or kidney issues?",
+            "answer": "<p>Talk to your doctor before starting Reevë, especially if you have high blood pressure, kidney issues, or take medications that affect fluid or electrolyte balance. Added sodium and potassium intake can matter for these conditions.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_YDBPPY": {
+          "type": "faq",
+          "settings": {
+            "category": "Family & safety",
+            "question": "Is Reevë vegan or gluten-free?",
+            "answer": "<p>Reevë contains bovine collagen peptides, so it is not vegan. It is gluten-free and non-GMO.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_4DYz48": {
+          "type": "faq",
+          "settings": {
+            "category": "Family & safety",
+            "question": "Is Reevë third-party tested, and how do I know what's actually in it?",
+            "answer": "<p>Every batch is third-party tested for purity, potency, and safety. There are no proprietary blends anywhere on the label, every ingredient and its function is listed in full above.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_hay6WM": {
+          "type": "faq",
+          "settings": {
+            "category": "Family & safety",
+            "question": "How should I store Reevë, and what is the shelf life?",
+            "answer": "<p>Store in a cool, dry place away from direct sunlight. Shelf life is 24 months from the manufacture date, printed on the box.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_XGgAmc": {
+          "type": "faq",
+          "settings": {
+            "category": "Subscription & shipping",
+            "question": "How much does a box cost, and can I subscribe?",
+            "answer": "<p>A box of 30 stick packs is $34.99 one-time, or $29.99 on subscription, about $1.00 a serving either way. Subscriptions ship on your chosen schedule and can be paused, changed, or canceled anytime.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_xhizKH": {
+          "type": "faq",
+          "settings": {
+            "category": "Subscription & shipping",
+            "question": "Which flavor should I start with?",
+            "answer": "<p>Citrus Lemonade is the classic starting point, Blue Raspberry suits post-training and hot days, and Cotton Candy is the sugar-free crowd-pleaser. The variety pack lets you try all three before committing to a subscription flavor.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_PfPMAn": {
+          "type": "faq",
+          "settings": {
+            "category": "Subscription & shipping",
+            "question": "Can I cancel or change my subscription anytime?",
+            "answer": "<p>Yes. Change flavors, adjust frequency, or cancel your subscription anytime from your account, no phone calls, no retention scripts.</p>",
+            "open_by_default": false
+          }
+        },
+        "faq_Vn8WKP": {
+          "type": "faq",
+          "settings": {
+            "category": "Subscription & shipping",
+            "question": "How long does shipping take?",
+            "answer": "<p>Most orders ship within 1 to 2 business days and arrive within 3 to 6 business days, depending on location. Tracking is emailed as soon as your order leaves the warehouse.</p>",
+            "open_by_default": false
+          }
+        }
+      },
+      "block_order": [
+        "faq_zdMmcJ",
+        "faq_jcRQRR",
+        "faq_wzn8BN",
+        "faq_Wp4geC",
+        "faq_TN4YxY",
+        "faq_zXxP3B",
+        "faq_fTygbh",
+        "faq_kchKb4",
+        "faq_yCw4Gf",
+        "faq_HzQpUL",
+        "faq_nyXJDV",
+        "faq_hrGqKV",
+        "faq_X6tjre",
+        "faq_3V9NEP",
+        "faq_p3cKbJ",
+        "faq_wgUi7B",
+        "faq_bdThRR",
+        "faq_9dU7iz",
+        "faq_nJh7D9",
+        "faq_tyVrqY",
+        "faq_QGjQpR",
+        "faq_PcVb6m",
+        "faq_AqUFbD",
+        "faq_YDBPPY",
+        "faq_4DYz48",
+        "faq_hay6WM",
+        "faq_XGgAmc",
+        "faq_xhizKH",
+        "faq_PfPMAn",
+        "faq_Vn8WKP"
+      ],
+      "name": "Reeve FAQ pills",
+      "settings": {
+        "eyebrow": "Questions, by who's asking",
+        "heading": "Everything you'd ask before your first sip",
+        "paragraph": "Filter by what applies to you. Every answer stays the same either way: full transparency, nothing hidden.",
+        "all_label": "All questions",
+        "exclusive_accordion": true,
+        "empty_state_text": "No questions in this category yet.",
+        "background_color": "#F8F2F6",
+        "heading_color": "#10192b",
+        "text_color": "#10192b",
+        "eyebrow_color": "#4a7a8c",
+        "accent_color": "#4a7a8c",
+        "divider_color": "#e2d7c3",
+        "pill_bg_color": "",
+        "pill_border_color": "#ded2ba",
+        "pill_text_color": "#10192b",
+        "active_pill_bg_color": "#10192b",
+        "active_pill_text_color": "#ffffff",
+        "max_width": 900,
+        "padding_top_desktop": 24,
+        "padding_bottom_desktop": 96,
+        "padding_top_mobile": 48,
+        "padding_bottom_mobile": 48,
+        "enable_animations": true
+      }
+    }
+  },
+  "order": [
+    "main",
+    "reeve_faq_pills_MahpPi"
+  ]
+}

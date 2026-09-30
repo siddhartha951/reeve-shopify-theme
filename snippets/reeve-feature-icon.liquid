@@ -1,0 +1,50 @@
+{%- liquid
+  assign icon_key = icon_key | default: 'none'
+  case icon_key
+    when 'water_drop'
+      assign icon_svg = '<path d="M12 2.7 17.5 9a7 7 0 1 1-11 0z"/>'
+    when 'lightning'
+      assign icon_svg = '<path d="M13 2 3 14h8l-1 8 10-12h-8z"/>'
+    when 'brain'
+      assign icon_svg = '<path d="M9 4a3 3 0 0 0-3 3v.6A3 3 0 0 0 4 10.4V13a3 3 0 0 0 1.3 2.5A3 3 0 0 0 8 19h1"/><path d="M15 4a3 3 0 0 1 3 3v.6a3 3 0 0 1 2 2.8V13a3 3 0 0 1-1.3 2.5A3 3 0 0 1 16 19h-1"/><path d="M12 4v15"/>'
+    when 'skin'
+      assign icon_svg = '<path d="M12 3.5 15 7a4 4 0 1 1-6 0z"/><path d="M5 14h14"/><path d="M5 17h14"/><path d="M5 20h14"/>'
+    when 'shield'
+      assign icon_svg = '<path d="M12 3 5 5.5V11c0 5 3 8.5 7 10 4-1.5 7-5 7-10V5.5z"/>'
+    when 'leaf'
+      assign icon_svg = '<path d="M6 20A9 9 0 0 1 15 4c3 0 5 2 5 5a9 9 0 0 1-9 9H6z"/><path d="M6 20c0-4 2-8 6-10"/>'
+    when 'stick_pack'
+      assign icon_svg = '<path d="M9 3h6v2H9z"/><rect x="8" y="5" width="8" height="15" rx="2"/>'
+    when 'cube'
+      assign icon_svg = '<path d="M12 3 20 7.5v9L12 21 4 16.5v-9z"/><path d="M4 7.5 12 12l8-4.5"/><path d="M12 12v9"/>'
+    when 'droplet_slash'
+      assign icon_svg = '<path d="M12 2.7 17.5 9a7 7 0 1 1-11 0z"/><line x1="4" y1="4" x2="20" y2="20"/>'
+    when 'flask'
+      assign icon_svg = '<path d="M9 2h6"/><path d="M10 2v6l-5.5 9.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-3.5L14 8V2"/>'
+    when 'shield_check'
+      assign icon_svg = '<path d="M12 3 5 5.5V11c0 5 3 8.5 7 10 4-1.5 7-5 7-10V5.5z"/><path d="M9 12l2 2 4-4"/>'
+    when 'molecule'
+      assign icon_svg = '<path d="M12 12 5 6"/><path d="M12 12 19 6"/><path d="M12 12 5 18"/><path d="M12 12 19 18"/><circle cx="12" cy="12" r="2"/><circle cx="5" cy="6" r="1.4"/><circle cx="19" cy="6" r="1.4"/><circle cx="5" cy="18" r="1.4"/><circle cx="19" cy="18" r="1.4"/>'
+    when 'coconut'
+      assign icon_svg = '<path d="M4 12a8 8 0 0 1 16 0c0 4.5-3.5 8-8 8s-8-3.5-8-8z"/><path d="M8 12a4 4 0 0 1 8 0"/>'
+    when 'sun'
+      assign icon_svg = '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'
+    when 'dollar'
+      assign icon_svg = '<path d="M12 2v20"/><path d="M17 6.5A4 4 0 0 0 13 4h-2.5a3.25 3.25 0 0 0 0 6.5h3a3.25 3.25 0 0 1 0 6.5H10a4 4 0 0 1-4-2.5"/>'
+    when 'check'
+      assign icon_svg = '<path d="M4 12l5 5L20 6"/>'
+    when 'bottle'
+      assign icon_svg = '<path d="M9 2h6v3l2 2v13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7l2-2z"/><path d="M7 11h10"/>'
+    when 'spoon'
+      assign icon_svg = '<circle cx="8" cy="7" r="4"/><path d="M8 11v10"/>'
+    when 'jug'
+      assign icon_svg = '<path d="M8 2h8v4l2 2v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8l2-2z"/><path d="M6 12h12"/>'
+    else
+      assign icon_svg = ''
+  endcase
+-%}
+{%- if icon_image != blank -%}
+  {{ icon_image | image_url: width: 96 | image_tag: loading: 'lazy' }}
+{%- elsif icon_svg != blank -%}
+  <svg viewBox="0 0 24 24" aria-hidden="true">{{ icon_svg }}</svg>
+{%- endif -%}

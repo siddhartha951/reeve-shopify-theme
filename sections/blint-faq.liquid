@@ -1,0 +1,326 @@
+{%- assign faqs = section.blocks | where: 'type', 'faq' -%}
+
+<div
+  class="blint-faq spacing-style color-{{ section.settings.color_scheme }}"
+  style="{% render 'spacing-style', settings: section.settings %} --heading-size: {{ section.settings.heading_font_size }}px; --subheading-size: {{ section.settings.subheading_font_size }}px;"
+  {% if request.visual_preview_mode %}
+    data-shopify-visual-preview
+  {% endif %}
+>
+  <div class="blint-faq__inner">
+    {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+      <div class="blint-faq__header">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="blint-faq__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.subheading != blank -%}
+          <p class="blint-faq__subheading">{{ section.settings.subheading }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if faqs.size > 0 -%}
+      <div class="blint-faq__list">
+        {%- for block in faqs -%}
+          <details
+            class="blint-faq__item"
+            {% if block.settings.open_by_default %}open{% endif %}
+            {{ block.shopify_attributes }}
+          >
+            <summary class="blint-faq__question">
+              <span>{{ block.settings.question }}</span>
+              <span class="blint-faq__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="blint-faq__answer">
+              {{ block.settings.answer }}
+            </div>
+          </details>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .blint-faq__inner {
+    max-width: 880px;
+    margin-inline: auto;
+    padding-inline: clamp(1.5rem, 5vw, 3rem);
+  }
+
+  .blint-faq__header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .blint-faq__heading {
+    margin: 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: min(var(--heading-size, 72px), 14vw);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+
+  .blint-faq__heading::after {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    height: 4px;
+    margin: 1.1rem auto 0;
+    border-radius: 2px;
+    background: var(--blint-ink, #4f5bd5);
+  }
+
+  .blint-faq__subheading {
+    margin: 1rem 0 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 700;
+    font-size: min(var(--subheading-size, 40px), 9vw);
+    line-height: 1.1;
+  }
+
+  .blint-faq__item {
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+  }
+
+  .blint-faq__item:last-child {
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+  }
+
+  .blint-faq__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 1.5rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 700;
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
+    letter-spacing: 0.01em;
+    text-transform: none;
+    transition: color 0.2s ease;
+  }
+
+  .blint-faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .blint-faq__question:hover,
+  .blint-faq__item[open] .blint-faq__question {
+    color: var(--blint-ink, #111);
+  }
+
+  /* +/- icon — circular brand toggle */
+  .blint-faq__icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--blint-ink, #4f5bd5) 10%, #fff);
+    color: var(--blint-ink, #4f5bd5);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .blint-faq__item[open] .blint-faq__icon {
+    background: var(--blint-ink, #4f5bd5);
+    color: #fff;
+  }
+
+  .blint-faq__icon::before,
+  .blint-faq__icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.85rem;
+    height: 2px;
+    background: currentColor;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .blint-faq__icon::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
+  .blint-faq__item[open] .blint-faq__icon::after {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  .blint-faq__answer {
+    padding-bottom: 2rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.85);
+  }
+
+  .blint-faq__answer > :first-child {
+    margin-top: 0;
+  }
+
+  .blint-faq__answer ul {
+    padding-left: 1.25rem;
+    margin: 1rem 0;
+  }
+
+  .blint-faq__answer li {
+    margin-bottom: 0.5rem;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Blint FAQ",
+  "tag": "section",
+  "class": "blint-faq-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Questions?"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "Heading font size",
+      "min": 20,
+      "max": 120,
+      "step": 1,
+      "unit": "px",
+      "default": 72
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Straight answers, backed by real ingredients."
+    },
+    {
+      "type": "range",
+      "id": "subheading_font_size",
+      "label": "Subheading font size",
+      "min": 12,
+      "max": 64,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 56
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq",
+      "name": "Question",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "Frequently asked question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Add your answer here.</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_by_default",
+          "label": "Open by default",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blint FAQ",
+      "blocks": [
+        {
+          "type": "faq",
+          "settings": {
+            "question": "What are Blint's ingredients?",
+            "open_by_default": true,
+            "answer": "<p>Six active ingredients, each targeting a specific aspect of sleep:</p><ul><li><strong>Melatonin (1 mg)</strong> — Supports your circadian rhythm and sleep onset</li><li><strong>L-Theanine (50 mg)</strong> — Promotes alpha brain waves and calm relaxation</li><li><strong>Magnesium Gluconate (30 mg)</strong> — Supports muscle relaxation and GABA activity</li><li><strong>Chamomile Extract (10 mg)</strong> — Promotes natural calm via GABA receptor activity</li><li><strong>Passionflower Extract (10 mg)</strong> — Supports GABA pathways; helps quiet nervous restlessness</li><li><strong>Lemon Balm Extract (12 mg)</strong> — Supports deep sleep and helps calm the mind</li></ul><p><em>*These statements have not been evaluated by the FDA. This product is not intended to diagnose, treat, cure, or prevent any disease.</em></p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "Why only 1 mg of melatonin?",
+            "answer": "<p>Research suggests that low doses of melatonin (around 0.5–1 mg) are often as effective as higher doses for supporting sleep onset, with less risk of next-day grogginess.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "How do I use Blint Sleep?",
+            "answer": "<p>Place one pouch under your upper lip 30–45 minutes before bed and leave it in for 15–30 minutes.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "Can I use Blint Sleep every night?",
+            "answer": "<p>Yes. Blint Sleep is formulated for nightly use with non-habit-forming ingredients.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "Can I become dependent on these?",
+            "answer": "<p>No. Our ingredients are non-habit-forming and designed to support your natural sleep processes rather than replace them.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "Will I feel groggy the next morning?",
+            "answer": "<p>Our low-dose formula is designed to help you wake up feeling refreshed, not groggy.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

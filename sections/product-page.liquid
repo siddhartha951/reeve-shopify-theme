@@ -1,0 +1,246 @@
+{% comment %}
+  Portable Product Page section
+  ------------------------------------------------------------
+  Self-contained rebuild of this store's product page, made to be
+  dropped into the `sections/` folder of ANY Shopify theme.
+
+  Install:
+  1. Copy this file to `sections/product-page.liquid` in the target theme.
+  2. Copy `product-page.css` to `assets/product-page.css`.
+  3. Copy `product-page.js` to `assets/product-page.js`.
+  4. Add this section to the product template (theme editor -> Add section,
+     or reference it as "product-page" inside templates/product.json).
+
+  Uses only standard Shopify Liquid objects/filters (product, form,
+  recommendations, payment_button) - no dependency on any other file
+  in the original theme.
+{% endcomment %}
+
+<link rel="stylesheet" href="{{ 'product-page.css' | asset_url }}">
+
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+{% liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign compare_at_price = current_variant.compare_at_price
+  assign show_compare_price = false
+  if compare_at_price > current_variant.price
+    assign show_compare_price = true
+  endif
+%}
+
+<section
+  class="ppg-product-page"
+  data-product-page
+  data-money-format="{{ shop.money_format | escape }}"
+>
+  <div class="ppg-product-page__inner">
+    <div class="ppg-gallery" data-gallery>
+      <div class="ppg-gallery__main">
+        {%- if product.featured_media -%}
+          <img
+            data-gallery-main-image
+            src="{{ product.featured_media.preview_image | image_url: width: 1600 }}"
+            alt="{{ product.featured_media.alt | default: product.title | escape }}"
+            width="{{ product.featured_media.preview_image.width }}"
+            height="{{ product.featured_media.preview_image.height }}"
+            loading="eager"
+          >
+        {%- else -%}
+          {{ 'product-1' | placeholder_svg_tag: 'ppg-gallery__placeholder' }}
+        {%- endif -%}
+      </div>
+
+      {%- if product.images.size > 1 -%}
+        <div class="ppg-gallery__thumbs" data-gallery-thumbs>
+          {%- for image in product.images -%}
+            <button
+              type="button"
+              class="ppg-gallery__thumb{% if forloop.first %} is-active{% endif %}"
+              data-index="{{ forloop.index0 }}"
+              data-media-id="{{ image.id }}"
+              data-full-src="{{ image | image_url: width: 1600 }}"
+              aria-label="{{ 'Show image' }} {{ forloop.index }}"
+            >
+              <img
+                src="{{ image | image_url: width: 200 }}"
+                alt="{{ image.alt | escape }}"
+                loading="lazy"
+                width="100"
+                height="100"
+              >
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="ppg-details">
+      <h1 class="ppg-title">{{ product.title }}</h1>
+
+      <div class="ppg-price{% if show_compare_price %} is-sale{% endif %}" data-price-wrapper>
+        <span
+          class="ppg-price__compare"
+          data-compare-price
+          {% unless show_compare_price %}hidden{% endunless %}
+        >
+          {{ compare_at_price | money }}
+        </span>
+        <span class="ppg-price__regular" data-regular-price>
+          {{ current_variant.price | money }}
+        </span>
+      </div>
+
+      <div class="ppg-divider"></div>
+
+      {% form 'product', product, id: 'ppg-product-form', data-product-form: true %}
+        <input
+          type="hidden"
+          name="id"
+          value="{{ current_variant.id }}"
+          data-variant-id-input
+        >
+
+        {%- unless product.has_only_default_variant -%}
+          <div class="ppg-variants" data-variant-picker>
+            {%- for option in product.options_with_values -%}
+              <div
+                class="ppg-variant-option"
+                data-option-index="{{ forloop.index0 }}"
+              >
+                <div class="ppg-variant-option__label">
+                  {{ option.name }}: <span data-selected-value>{{ option.selected_value }}</span>
+                </div>
+                <div class="ppg-variant-option__values">
+                  {%- for value in option.values -%}
+                    <button
+                      type="button"
+                      class="ppg-variant-value{% if value == option.selected_value %} is-selected{% endif %}"
+                      data-option-index="{{ forloop.parentloop.index0 }}"
+                      data-value="{{ value | escape }}"
+                    >
+                      {{ value }}
+                    </button>
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endunless -%}
+
+        <div class="ppg-buy-row">
+          <div class="ppg-quantity" data-quantity-wrapper>
+            <button
+              type="button"
+              class="ppg-quantity__btn"
+              data-quantity-decrease
+              aria-label="Decrease quantity"
+            >
+              &minus;
+            </button>
+            <input
+              type="number"
+              name="quantity"
+              min="1"
+              value="1"
+              class="ppg-quantity__input"
+              data-quantity-input
+            >
+            <button
+              type="button"
+              class="ppg-quantity__btn"
+              data-quantity-increase
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            name="add"
+            class="ppg-btn ppg-btn--primary"
+            data-add-to-cart
+            {% unless current_variant.available %}disabled{% endunless %}
+          >
+            <span data-add-to-cart-text>
+              {%- if current_variant.available -%}
+                Add to cart
+              {%- else -%}
+                Sold out
+              {%- endif -%}
+            </span>
+          </button>
+        </div>
+
+        {{ form | payment_button }}
+      {% endform %}
+
+      {%- if product.description != blank -%}
+        <div class="ppg-description">
+          {{ product.description }}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  <script type="application/json" data-product-variants>
+    {{ product.variants | json }}
+  </script>
+
+  <div
+    data-recommendations
+    data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit=4&intent=related"
+  >
+    {%- if recommendations.performed and recommendations.products_count > 0 -%}
+      <div class="ppg-recommendations">
+        <h2 class="ppg-recommendations__heading">
+          {{ section.settings.recommendations_heading | default: 'You may also like' }}
+        </h2>
+        <div class="ppg-recommendations__grid">
+          {%- for rec_product in recommendations.products -%}
+            <a
+              href="{{ rec_product.url }}"
+              class="ppg-rec-card"
+            >
+              <div class="ppg-rec-card__media">
+                {%- if rec_product.featured_image -%}
+                  {{
+                    rec_product.featured_image
+                    | image_url: width: 600
+                    | image_tag: loading: 'lazy', alt: rec_product.featured_image.alt | escape
+                  }}
+                {%- endif -%}
+              </div>
+              <p class="ppg-rec-card__title">{{ rec_product.title }}</p>
+              <p class="ppg-rec-card__price">{{ rec_product.price | money }}</p>
+            </a>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<script src="{{ 'product-page.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Product page (portable)",
+  "settings": [
+    {
+      "type": "text",
+      "id": "recommendations_heading",
+      "label": "Recommendations heading",
+      "default": "You may also like"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product page (portable)"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,272 @@
+/* Reeve science section styles */
+
+.reeve-science-section {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--reeve-science-bg, #0b1a33);
+  color: var(--reeve-science-text-color, #ffffff);
+  padding-block: clamp(4rem, 8vw, 7rem);
+}
+
+/* Background image */
+.reeve-science-bg-image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.reeve-science-bg-image__el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.reeve-science-bg-image__overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--reeve-science-bg-overlay-alpha, 0.2);
+}
+
+/* Pin spacer/inner: a native CSS position:sticky "pin" — the tall spacer
+   (height set inline from the block count in Liquid) gives the scroll
+   runway; the inner frame sticks to the top of the viewport for that whole
+   runway, then releases naturally once the spacer's bottom passes. This
+   achieves the same "stuck until content ends" effect as GSAP's pin: true
+   without it — sticky works reliably with this theme's custom .page-wrapper
+   scroll container (already proven elsewhere in this section), whereas
+   GSAP's JS-driven pin does not (see assets/reeve-science.js). */
+.reeve-science-pin-spacer {
+  position: relative;
+}
+
+.reeve-science-pin-inner {
+  width: 100%;
+}
+
+.reeve-science-page-width {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--page-margin, 24px);
+}
+
+@media screen and (min-width: 990px) {
+  .reeve-science-pin-spacer {
+    height: var(--reeve-science-pin-height, 100vh);
+  }
+
+  .reeve-science-pin-inner {
+    position: sticky;
+    top: var(--header-height, 0px);
+    height: calc(100vh - var(--header-height, 0px));
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+}
+
+.reeve-science-eyebrow {
+  margin: 0 0 2rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Row 2: 3-column grid, reorderable via named areas per breakpoint */
+.reeve-science-row {
+  display: grid;
+  grid-template-columns: 10% 45% 1fr;
+  grid-template-areas: 'progress heading media' 'progress steps media';
+  column-gap: 2rem;
+  row-gap: 1.5rem;
+  align-items: start;
+}
+
+.reeve-science-progress {
+  grid-area: progress;
+  display: flex;
+  justify-content: center;
+}
+
+.reeve-science-progress__track {
+  position: relative;
+  width: 2px;
+  height: clamp(200px, 30vh, 320px);
+  background-color: var(--reeve-science-progress-track-color, #3a4a63);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.reeve-science-progress__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background-color: var(--reeve-science-progress-color, #ffffff);
+}
+
+.reeve-science-heading {
+  grid-area: heading;
+  font-family: var(--font-heading--family);
+  font-style: var(--font-heading--style);
+  font-weight: var(--font-heading--weight);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.2;
+}
+
+.reeve-science-steps {
+  grid-area: steps;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 5vw, 4rem);
+}
+
+.reeve-science-step--text {
+  transition: opacity 300ms ease;
+}
+
+.reeve-science-step__heading,
+.reeve-science-step__text {
+  color: var(--reeve-science-muted-color, #5b6b85);
+  transition: color 300ms ease;
+}
+
+.reeve-science-step__heading {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.reeve-science-step__text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  max-width: 30rem;
+}
+
+.reeve-science-step.is-active .reeve-science-step__heading,
+.reeve-science-step.is-active .reeve-science-step__text {
+  color: var(--reeve-science-text-color, #ffffff);
+}
+
+/* Product step: glassmorphism card */
+.reeve-science-step--product {
+  opacity: 0.5;
+  transition: opacity 300ms ease;
+}
+
+.reeve-science-step--product.is-active {
+  opacity: 1;
+}
+
+.reeve-science-product-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  background-color: rgba(var(--reeve-science-glass-bg-rgb, 255 255 255), var(--reeve-science-glass-alpha, 0.12));
+  backdrop-filter: blur(var(--reeve-science-glass-blur, 16px));
+  -webkit-backdrop-filter: blur(var(--reeve-science-glass-blur, 16px));
+}
+
+.reeve-science-product-card__media {
+  display: block;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.reeve-science-product-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.reeve-science-product-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.reeve-science-product-card__title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--reeve-science-text-color, #ffffff);
+  text-decoration: none;
+}
+
+.reeve-science-product-card__subtitle {
+  margin: 0.125rem 0 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--reeve-science-muted-color, #5b6b85);
+}
+
+.reeve-science-product-card__form {
+  flex-shrink: 0;
+}
+
+.reeve-science-product-card__add {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.reeve-science-media {
+  grid-area: media;
+  aspect-ratio: 4 / 5;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.reeve-science-media__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Mobile: simple stacked order, no progress bar, video between heading and content */
+@media screen and (max-width: 989px) {
+  .reeve-science-row {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'heading' 'media' 'steps';
+    row-gap: 2rem;
+  }
+
+  .reeve-science-progress {
+    display: none;
+  }
+
+  .reeve-science-media {
+    aspect-ratio: 16 / 9;
+  }
+
+  .reeve-science-step--text,
+  .reeve-science-step--product {
+    opacity: 1;
+  }
+
+  .reeve-science-step__heading,
+  .reeve-science-step__text {
+    color: var(--reeve-science-text-color, #ffffff);
+  }
+}

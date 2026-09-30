@@ -1,0 +1,309 @@
+{%- liquid
+  assign rows = section.blocks | where: 'type', 'row'
+  assign has_c2 = false
+  if section.settings.competitor_2 != blank
+    assign has_c2 = true
+  endif
+  assign grid_cols = 'minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr)'
+  if has_c2
+    assign grid_cols = grid_cols | append: ' minmax(0, 1fr)'
+  endif
+  assign our_alt = section.settings.our_name | escape
+-%}
+
+{%- capture yes_mark -%}
+  <span class="blint-compare__check blint-compare__check--yes" aria-label="Yes">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M5 12.5l4 4 10-10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </span>
+{%- endcapture -%}
+{%- capture no_mark -%}<span class="blint-compare__check blint-compare__check--no" aria-label="No"></span>{%- endcapture -%}
+
+<div
+  class="blint-compare spacing-style color-{{ section.settings.color_scheme }}"
+  style="{% render 'spacing-style', settings: section.settings %} --heading-size: {{ section.settings.heading_font_size }}px;"
+  {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
+>
+  <div class="blint-compare__inner">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="blint-compare__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    {%- if rows.size > 0 -%}
+      <div class="blint-compare__grid" style="grid-template-columns: {{ grid_cols }};">
+        {%- comment -%} Header row {%- endcomment -%}
+        <div class="blint-compare__cell blint-compare__cell--head"></div>
+        <div class="blint-compare__cell blint-compare__cell--head blint-compare__cell--ours blint-compare__cell--ours-top">
+          {%- if section.settings.our_logo != blank -%}
+            {{ section.settings.our_logo | image_url: height: 80 | image_tag: loading: 'lazy', widths: '120, 200', alt: our_alt, class: 'blint-compare__logo' }}
+          {%- else -%}
+            <span class="blint-compare__col-name blint-compare__col-name--ours">{{ section.settings.our_name }}</span>
+          {%- endif -%}
+        </div>
+        <div class="blint-compare__cell blint-compare__cell--head">
+          <span class="blint-compare__col-name">{{ section.settings.competitor_1 }}</span>
+        </div>
+        {%- if has_c2 -%}
+          <div class="blint-compare__cell blint-compare__cell--head">
+            <span class="blint-compare__col-name">{{ section.settings.competitor_2 }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Data rows {%- endcomment -%}
+        {%- for block in rows -%}
+          {%- assign is_last = forloop.last -%}
+          <div class="blint-compare__cell blint-compare__cell--label blint-compare__cell--bordered" {{ block.shopify_attributes }}>
+            {{ block.settings.label }}
+          </div>
+          <div class="blint-compare__cell blint-compare__cell--ours{% if is_last %} blint-compare__cell--ours-bottom{% endif %}">
+            {% if block.settings.ours %}{{ yes_mark }}{% else %}{{ no_mark }}{% endif %}
+          </div>
+          <div class="blint-compare__cell blint-compare__cell--bordered">
+            {% if block.settings.comp_1 %}{{ yes_mark }}{% else %}{{ no_mark }}{% endif %}
+          </div>
+          {%- if has_c2 -%}
+            <div class="blint-compare__cell blint-compare__cell--bordered">
+              {% if block.settings.comp_2 %}{{ yes_mark }}{% else %}{{ no_mark }}{% endif %}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .blint-compare__inner {
+    max-width: 960px;
+    margin-inline: auto;
+    padding-inline: clamp(1.5rem, 5vw, 3rem);
+  }
+
+  .blint-compare__heading {
+    margin: 0 0 2.5rem;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: min(var(--heading-size, 60px), 14vw);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+
+  .blint-compare__grid {
+    display: grid;
+    align-items: center;
+  }
+
+  .blint-compare__cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.1rem 0.75rem;
+    min-height: 3.5rem;
+  }
+
+  .blint-compare__cell--head {
+    padding-block: 1.25rem;
+    min-height: 4.5rem;
+  }
+
+  .blint-compare__cell--label {
+    justify-content: flex-start;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .blint-compare__cell--bordered {
+    border-top: 1.5px dotted rgb(var(--color-foreground-rgb, 0 0 0) / 0.2);
+  }
+
+  /* Highlighted "ours" column */
+  .blint-compare__cell--ours {
+    background: rgb(var(--color-foreground-rgb, 0 0 0) / 0.04);
+  }
+
+  .blint-compare__cell--ours-top {
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+  }
+
+  .blint-compare__cell--ours-bottom {
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+  }
+
+  .blint-compare__col-name {
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: clamp(0.85rem, 1.4vw, 1.15rem);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.15;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  .blint-compare__col-name--ours { color: var(--color-foreground, #111); }
+
+  .blint-compare__logo {
+    max-height: 2.5rem;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .blint-compare__check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .blint-compare__check--yes {
+    background: var(--color-foreground, #111);
+    color: var(--color-background, #fff);
+  }
+
+  .blint-compare__check--no {
+    border: 2px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.2);
+  }
+
+  @media screen and (max-width: 600px) {
+    .blint-compare__cell { padding: 0.9rem 0.4rem; }
+    .blint-compare__cell--label { font-size: 0.78rem; }
+    .blint-compare__check { width: 1.5rem; height: 1.5rem; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Blint compare",
+  "tag": "section",
+  "class": "blint-compare-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "How Blint compares"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "Heading font size",
+      "min": 20,
+      "max": 120,
+      "step": 1,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "header",
+      "content": "Columns"
+    },
+    {
+      "type": "text",
+      "id": "our_name",
+      "label": "Your column name",
+      "default": "Blint"
+    },
+    {
+      "type": "image_picker",
+      "id": "our_logo",
+      "label": "Your column logo",
+      "info": "Optional. Shown instead of the name."
+    },
+    {
+      "type": "text",
+      "id": "competitor_1",
+      "label": "Competitor 1 name",
+      "default": "Melatonin gummies"
+    },
+    {
+      "type": "text",
+      "id": "competitor_2",
+      "label": "Competitor 2 name",
+      "info": "Optional. Leave blank to hide this column."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "row",
+      "name": "Row",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Feature",
+          "default": "Feature"
+        },
+        {
+          "type": "checkbox",
+          "id": "ours",
+          "label": "Your column",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "comp_1",
+          "label": "Competitor 1",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "comp_2",
+          "label": "Competitor 2",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blint compare",
+      "blocks": [
+        { "type": "row", "settings": { "label": "Non-addictive", "ours": true, "comp_1": false } },
+        { "type": "row", "settings": { "label": "Better recovery", "ours": true, "comp_1": false } },
+        { "type": "row", "settings": { "label": "More deep sleep", "ours": true, "comp_1": false } },
+        { "type": "row", "settings": { "label": "Neuroprotective", "ours": true, "comp_1": true } },
+        { "type": "row", "settings": { "label": "Natural ingredients", "ours": true, "comp_1": false } },
+        { "type": "row", "settings": { "label": "No liquids", "ours": true, "comp_1": true } }
+      ]
+    }
+  ]
+}
+{% endschema %}

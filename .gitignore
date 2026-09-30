@@ -1,0 +1,18 @@
+# Local tooling
+.claude/
+.design-sync/
+.ds-sync/
+ds-bundle/
+.shopify/
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Env
+.env
+.env.*

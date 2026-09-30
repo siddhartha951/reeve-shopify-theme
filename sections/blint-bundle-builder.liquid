@@ -1,0 +1,507 @@
+{%- liquid
+  assign bp = product | default: section.settings.selected_product
+  assign linked_flavors = bp.metafields.custom.custom_flavor_products.value
+
+  assign count_option = nil
+  assign count_idx = -1
+  for option in bp.options_with_values
+    assign name_down = option.name | downcase
+    if name_down contains 'count' or name_down contains 'can' or name_down contains 'pack' or name_down contains 'size' or name_down contains 'quantity' or name_down contains 'qty'
+      assign count_option = option
+      assign count_idx = forloop.index0
+      break
+    endif
+  endfor
+-%}
+
+<div class="blint-bundle" data-bundle-root hidden aria-hidden="true">
+  <div class="blint-bundle__overlay" data-bundle-close></div>
+  <div class="blint-bundle__panel" role="dialog" aria-modal="true" aria-label="{{ section.settings.heading | escape }}">
+    <div class="blint-bundle__head">
+      <h2 class="blint-bundle__heading">{{ section.settings.heading }}</h2>
+      <button type="button" class="blint-bundle__close" data-bundle-close aria-label="Close">&times;</button>
+    </div>
+
+    {%- if count_option -%}
+      <div class="blint-bundle__tiers" data-bundle-tiers>
+        {%- for val in count_option.values -%}
+          {%- assign rep = nil -%}
+          {%- for variant in bp.variants -%}
+            {%- if variant.options[count_idx] == val -%}
+              {%- assign rep = variant -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- assign pct = 0 -%}
+          {%- if rep and rep.compare_at_price > rep.price -%}
+            {%- assign diff = rep.compare_at_price | minus: rep.price -%}
+            {%- assign pct = diff | times: 100.0 | divided_by: rep.compare_at_price | round -%}
+          {%- endif -%}
+          <button type="button" class="blint-bundle__tier{% if forloop.first %} is-active{% endif %}" data-bundle-tier data-box-value="{{ val | escape }}">
+            {%- if pct > 0 -%}<span class="blint-bundle__tier-pct">{{ pct }}% off</span>{%- endif -%}
+            <span class="blint-bundle__tier-label">{{ val }}</span>
+          </button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <div class="blint-bundle__grid" data-bundle-grid>
+      {%- if bp != blank -%}
+        {%- render 'blint-bundle-card', product: bp -%}
+      {%- endif -%}
+      {%- for flavor in linked_flavors -%}
+        {%- unless flavor.id == bp.id -%}
+          {%- render 'blint-bundle-card', product: flavor -%}
+        {%- endunless -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="blint-bundle__footer">
+      <div class="blint-bundle__delivery">{{ section.settings.frequency_note }}</div>
+      <div class="blint-bundle__subtotal">
+        <span class="blint-bundle__subtotal-remaining" data-bundle-remaining></span>
+        <span class="blint-bundle__subtotal-value" data-bundle-subtotal>$0.00</span>
+      </div>
+      <button
+        type="button"
+        class="blint-bundle__checkout"
+        data-bundle-checkout
+        disabled
+        style="--bundle-cta: {{ section.settings.checkout_color }}; --bundle-cta-text: {{ section.settings.checkout_text_color }};"
+      >
+        <span data-bundle-checkout-label>{{ section.settings.checkout_label }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" data-bundle-data>
+  {
+    "moneyFormat": {{ shop.money_format | json }},
+    "products": [
+      {%- if bp != blank -%}{%- render 'blint-bundle-product-data', product: bp -%}{%- endif -%}
+      {%- for flavor in linked_flavors -%}{%- unless flavor.id == bp.id -%},{%- render 'blint-bundle-product-data', product: flavor -%}{%- endunless -%}{%- endfor -%}
+    ]
+  }
+</script>
+
+{% stylesheet %}
+  .blint-bundle {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .blint-bundle[hidden] { display: none; }
+
+  .blint-bundle__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 0.5);
+  }
+
+  .blint-bundle__panel {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .blint-bundle__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .blint-bundle__heading {
+    margin: 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-size: 1.35rem;
+  }
+
+  .blint-bundle__close {
+    border: none;
+    background: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--color-foreground, #111);
+  }
+
+  .blint-bundle__tiers {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .blint-bundle__tier {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.6rem;
+    border-radius: 12px;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    background: none;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  .blint-bundle__tier.is-active {
+    border-color: var(--blint-ink, #3529E6);
+    background: color-mix(in srgb, var(--blint-ink, #3529E6) 6%, #fff);
+  }
+
+  .blint-bundle__tier-pct {
+    font-size: 0.68rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: #c0392b;
+    color: #fff;
+  }
+
+  .blint-bundle__tier-label { font-size: 0.85rem; }
+
+  .blint-bundle__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+
+  .blint-bundle__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.1);
+    border-radius: 14px;
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  .blint-bundle__card-media {
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    background: #f1f1f3;
+  }
+
+  .blint-bundle__card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .blint-bundle__card-title { margin: 0; font-weight: 700; font-size: 0.85rem; }
+
+  .blint-bundle__card-desc {
+    margin: 0;
+    font-size: 0.72rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  .blint-bundle__stepper {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    border-radius: 999px;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .blint-bundle__step-btn {
+    border: none;
+    background: none;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  .blint-bundle__step-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .blint-bundle__step-value { font-weight: 700; min-width: 1rem; text-align: center; }
+
+  .blint-bundle__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+  }
+
+  .blint-bundle__delivery {
+    font-size: 0.8rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  .blint-bundle__subtotal {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+  }
+
+  .blint-bundle__subtotal-remaining {
+    font-size: 0.72rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  .blint-bundle__subtotal-value { font-weight: 800; font-size: 1.2rem; }
+
+  .blint-bundle__checkout {
+    border: none;
+    border-radius: 16px;
+    padding: 0.85rem 2rem;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background: var(--bundle-cta, #111);
+    color: var(--bundle-cta-text, #fff);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .blint-bundle__checkout:hover:not(:disabled) { transform: translateY(-2px); }
+  .blint-bundle__checkout:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  body:has(.blint-bundle:not([hidden])) { overflow: hidden; }
+{% endstylesheet %}
+
+{% raw %}
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('[data-bundle-root]');
+    if (!root) return;
+    const dataEl = scope.querySelector('[data-bundle-data]');
+    if (!dataEl) return;
+
+    const payload = JSON.parse(dataEl.textContent || '{}');
+    const products = payload.products || [];
+    const moneyFormat = payload.moneyFormat || '${{amount}}';
+
+    function formatMoney(cents) {
+      cents = parseInt(cents, 10) || 0;
+      const value = (cents / 100).toFixed(2);
+      const withCommas = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return moneyFormat.replace(/\{\{\s*amount\s*\}\}/g, withCommas);
+    }
+
+    function parseLeadingNumber(str) {
+      const m = String(str).match(/\d+/);
+      return m ? parseInt(m[0], 10) : 1;
+    }
+
+    // Prefer an exact string match, but fall back to matching by the leading
+    // number (e.g. "1 Box" vs "1 BOX") since each flavor product defines its
+    // own option value strings independently and casing can drift between them
+    function variantFor(product, boxValue) {
+      if (!product || !boxValue) return null;
+      const exact = (product.variants || []).find(function (v) { return v.boxValue === boxValue; });
+      if (exact) return exact;
+      const targetNum = parseLeadingNumber(boxValue);
+      return (product.variants || []).find(function (v) { return parseLeadingNumber(v.boxValue) === targetNum; }) || null;
+    }
+
+    // The smallest tier (e.g. "1 Box") — this is what actually gets added to the cart,
+    // one unit per box allocated, since a single order can only carry one flavor per line item
+    function baseVariant(product) {
+      return product && product.variants && product.variants[0];
+    }
+
+    const overlay = root.querySelector('[data-bundle-close]');
+    const closeBtns = root.querySelectorAll('[data-bundle-close]');
+    const tierBtns = Array.from(root.querySelectorAll('[data-bundle-tier]'));
+    const cards = Array.from(root.querySelectorAll('[data-bundle-card]'));
+    const remainingEl = root.querySelector('[data-bundle-remaining]');
+    const subtotalEl = root.querySelector('[data-bundle-subtotal]');
+    const checkoutBtn = root.querySelector('[data-bundle-checkout]');
+
+    let currentBoxValue = tierBtns.length ? tierBtns[0].getAttribute('data-box-value') : null;
+    let quantities = {};
+
+    function target() {
+      return currentBoxValue ? parseLeadingNumber(currentBoxValue) : 1;
+    }
+
+    function totalQty() {
+      return Object.keys(quantities).reduce(function (sum, id) { return sum + (quantities[id] || 0); }, 0);
+    }
+
+    function productById(id) {
+      return products.find(function (p) { return String(p.id) === String(id); });
+    }
+
+    function render() {
+      const goal = target();
+      const used = totalQty();
+      let subtotal = 0;
+
+      cards.forEach(function (card) {
+        const id = card.getAttribute('data-product-id');
+        const product = productById(id);
+        const variant = variantFor(product, currentBoxValue);
+        const qtyEl = card.querySelector('[data-bundle-qty]');
+        const minus = card.querySelector('[data-bundle-minus]');
+        const plus = card.querySelector('[data-bundle-plus]');
+        const qty = quantities[id] || 0;
+        const stepper = card.querySelector('[data-bundle-stepper]');
+
+        if (!variant) {
+          if (stepper) stepper.hidden = true;
+          return;
+        }
+        if (stepper) stepper.hidden = false;
+
+        if (qtyEl) qtyEl.textContent = qty;
+        if (minus) minus.disabled = qty <= 0;
+        if (plus) plus.disabled = used >= goal;
+
+        // variant.price is the tier's total bundle price (e.g. $60.50 for "2 Boxes"),
+        // so divide by the tier size to get this flavor's effective per-box rate
+        subtotal += qty * (variant.price / goal);
+      });
+
+      if (remainingEl) remainingEl.textContent = used + ' of ' + goal + ' selected';
+      if (subtotalEl) subtotalEl.textContent = formatMoney(subtotal);
+      if (checkoutBtn) checkoutBtn.disabled = used !== goal || used === 0;
+    }
+
+    function open(boxValue) {
+      currentBoxValue = boxValue || currentBoxValue;
+      quantities = {};
+      tierBtns.forEach(function (btn) {
+        btn.classList.toggle('is-active', btn.getAttribute('data-box-value') === currentBoxValue);
+      });
+      root.hidden = false;
+      root.setAttribute('aria-hidden', 'false');
+      render();
+    }
+
+    function close() {
+      root.hidden = true;
+      root.setAttribute('aria-hidden', 'true');
+    }
+
+    document.addEventListener('blint:open-bundle', function (e) {
+      open(e.detail && e.detail.boxValue);
+    });
+
+    closeBtns.forEach(function (btn) { btn.addEventListener('click', close); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !root.hidden) close();
+    });
+
+    tierBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        currentBoxValue = btn.getAttribute('data-box-value');
+        quantities = {};
+        tierBtns.forEach(function (b) { b.classList.toggle('is-active', b === btn); });
+        render();
+      });
+    });
+
+    cards.forEach(function (card) {
+      const id = card.getAttribute('data-product-id');
+      const minus = card.querySelector('[data-bundle-minus]');
+      const plus = card.querySelector('[data-bundle-plus]');
+      if (minus) minus.addEventListener('click', function () {
+        quantities[id] = Math.max(0, (quantities[id] || 0) - 1);
+        render();
+      });
+      if (plus) plus.addEventListener('click', function () {
+        if (totalQty() >= target()) return;
+        quantities[id] = (quantities[id] || 0) + 1;
+        render();
+      });
+    });
+
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', function () {
+        const items = Object.keys(quantities)
+          .filter(function (id) { return quantities[id] > 0; })
+          .map(function (id) {
+            const variant = baseVariant(productById(id));
+            return { id: variant.id, quantity: quantities[id] };
+          });
+        if (!items.length) return;
+        checkoutBtn.disabled = true;
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ items: items }),
+        })
+          .then(function () { window.location.href = '/checkout'; })
+          .catch(function () { checkoutBtn.disabled = false; });
+      });
+    }
+  })();
+</script>
+{% endraw %}
+
+{% schema %}
+{
+  "name": "Blint bundle builder",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "product",
+      "id": "selected_product",
+      "label": "Select product",
+      "info": "Should match the product selected in the main Blint product section — this reads its linked flavors metafield."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Build your box"
+    },
+    {
+      "type": "text",
+      "id": "frequency_note",
+      "label": "Delivery frequency note",
+      "default": "Delivery: Every 30 days"
+    },
+    {
+      "type": "text",
+      "id": "checkout_label",
+      "label": "Checkout button label",
+      "default": "Start secure checkout"
+    },
+    {
+      "type": "color",
+      "id": "checkout_color",
+      "label": "Checkout button color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "checkout_text_color",
+      "label": "Checkout button text color",
+      "default": "#ffffff"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["page", "product"]
+  },
+  "presets": [
+    {
+      "name": "Blint bundle builder"
+    }
+  ]
+}
+{% endschema %}

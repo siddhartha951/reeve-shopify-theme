@@ -1,0 +1,344 @@
+{%- liquid
+  assign rows = section.blocks | where: 'type', 'row'
+  assign has_c2 = false
+  if section.settings.comp2_name != blank or section.settings.comp2_image != blank
+    assign has_c2 = true
+  endif
+  assign grid_cols = 'minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr)'
+  if has_c2
+    assign grid_cols = grid_cols | append: ' minmax(0, 1fr)'
+  endif
+  assign our_alt = section.settings.our_name | escape
+  assign c1_alt = section.settings.comp1_name | escape
+  assign c2_alt = section.settings.comp2_name | escape
+-%}
+
+<div
+  class="blint-ct spacing-style color-{{ section.settings.color_scheme }}"
+  style="{% render 'spacing-style', settings: section.settings %} --heading-size: {{ section.settings.heading_font_size }}px; --ct-highlight: {{ section.settings.highlight_color }};"
+  {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
+>
+  <div class="blint-ct__inner">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="blint-ct__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    {%- if rows.size > 0 -%}
+      <div class="blint-ct__grid" style="grid-template-columns: {{ grid_cols }};">
+        {%- comment -%} Header row {%- endcomment -%}
+        <div class="blint-ct__cell blint-ct__cell--head"></div>
+
+        <div class="blint-ct__cell blint-ct__cell--head blint-ct__cell--ours blint-ct__cell--ours-top">
+          {%- if section.settings.our_image != blank -%}
+            {{ section.settings.our_image | image_url: width: 200 | image_tag: loading: 'lazy', widths: '100, 200', alt: our_alt, class: 'blint-ct__img' }}
+          {%- endif -%}
+          <span class="blint-ct__col-name">{{ section.settings.our_name }}</span>
+          {%- if section.settings.our_subtitle != blank -%}<span class="blint-ct__col-sub">{{ section.settings.our_subtitle }}</span>{%- endif -%}
+        </div>
+
+        <div class="blint-ct__cell blint-ct__cell--head">
+          {%- if section.settings.comp1_image != blank -%}
+            {{ section.settings.comp1_image | image_url: width: 200 | image_tag: loading: 'lazy', widths: '100, 200', alt: c1_alt, class: 'blint-ct__img' }}
+          {%- endif -%}
+          <span class="blint-ct__col-name">{{ section.settings.comp1_name }}</span>
+          {%- if section.settings.comp1_subtitle != blank -%}<span class="blint-ct__col-sub">{{ section.settings.comp1_subtitle }}</span>{%- endif -%}
+        </div>
+
+        {%- if has_c2 -%}
+          <div class="blint-ct__cell blint-ct__cell--head">
+            {%- if section.settings.comp2_image != blank -%}
+              {{ section.settings.comp2_image | image_url: width: 200 | image_tag: loading: 'lazy', widths: '100, 200', alt: c2_alt, class: 'blint-ct__img' }}
+            {%- endif -%}
+            <span class="blint-ct__col-name">{{ section.settings.comp2_name }}</span>
+            {%- if section.settings.comp2_subtitle != blank -%}<span class="blint-ct__col-sub">{{ section.settings.comp2_subtitle }}</span>{%- endif -%}
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} Data rows {%- endcomment -%}
+        {%- for block in rows -%}
+          {%- assign is_last = forloop.last -%}
+          <div class="blint-ct__cell blint-ct__cell--label blint-ct__cell--bordered" {{ block.shopify_attributes }}>
+            {{ block.settings.label }}
+          </div>
+          <div class="blint-ct__cell blint-ct__cell--ours blint-ct__cell--value{% if is_last %} blint-ct__cell--ours-bottom{% endif %}">
+            {%- render 'blint-ct-value', value: block.settings.our_value -%}
+          </div>
+          <div class="blint-ct__cell blint-ct__cell--bordered blint-ct__cell--value">
+            {%- render 'blint-ct-value', value: block.settings.comp1_value -%}
+          </div>
+          {%- if has_c2 -%}
+            <div class="blint-ct__cell blint-ct__cell--bordered blint-ct__cell--value">
+              {%- render 'blint-ct-value', value: block.settings.comp2_value -%}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .blint-ct__inner {
+    max-width: 900px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .blint-ct__heading {
+    margin: 0 0 2.5rem;
+    text-align: left;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: min(var(--heading-size, 64px), 11vw);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .blint-ct__grid {
+    display: grid;
+    align-items: stretch;
+  }
+
+  .blint-ct__cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.9rem 0.6rem;
+    text-align: center;
+    font-size: clamp(0.8rem, 1.6vw, 1rem);
+  }
+
+  .blint-ct__cell--head {
+    gap: 0.35rem;
+    padding-block: 1.25rem 1.5rem;
+  }
+
+  .blint-ct__cell--label {
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+    font-weight: 700;
+    font-size: clamp(0.85rem, 1.6vw, 1rem);
+  }
+
+  .blint-ct__cell--bordered {
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+  }
+
+  .blint-ct__img {
+    height: 4.5rem;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 0.25rem;
+  }
+
+  .blint-ct__col-name {
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 700;
+    font-size: clamp(1rem, 1.8vw, 1.4rem);
+    line-height: 1.1;
+  }
+
+  .blint-ct__col-sub {
+    font-size: 0.8rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  /* Highlighted "ours" column */
+  .blint-ct__cell--ours {
+    background: var(--ct-highlight, #eaff3a);
+    font-weight: 700;
+  }
+
+  .blint-ct__cell--ours-top {
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+
+  .blint-ct__cell--ours-bottom {
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+  }
+
+  .blint-ct__mark {
+    display: inline-flex;
+    color: var(--color-foreground, #111);
+  }
+
+  @media screen and (max-width: 600px) {
+    .blint-ct__cell { padding: 0.7rem 0.35rem; font-size: 0.78rem; }
+    .blint-ct__img { height: 3.25rem; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Blint cost compare",
+  "tag": "section",
+  "class": "blint-cost-compare-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Same energy. Fraction of the cost."
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "Heading font size",
+      "min": 20,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "header",
+      "content": "Your column"
+    },
+    {
+      "type": "image_picker",
+      "id": "our_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "our_name",
+      "label": "Name",
+      "default": "Blint"
+    },
+    {
+      "type": "text",
+      "id": "our_subtitle",
+      "label": "Subtitle",
+      "default": "One pouch"
+    },
+    {
+      "type": "color",
+      "id": "highlight_color",
+      "label": "Highlight color",
+      "default": "#eaff3a"
+    },
+    {
+      "type": "header",
+      "content": "Competitor 1"
+    },
+    {
+      "type": "image_picker",
+      "id": "comp1_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "comp1_name",
+      "label": "Name",
+      "default": "Energy drink"
+    },
+    {
+      "type": "text",
+      "id": "comp1_subtitle",
+      "label": "Subtitle",
+      "default": "8.4 fl oz can"
+    },
+    {
+      "type": "header",
+      "content": "Competitor 2 (optional)"
+    },
+    {
+      "type": "image_picker",
+      "id": "comp2_image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "comp2_name",
+      "label": "Name",
+      "default": "Coffee"
+    },
+    {
+      "type": "text",
+      "id": "comp2_subtitle",
+      "label": "Subtitle",
+      "default": "8 fl oz"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "row",
+      "name": "Row",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Feature"
+        },
+        {
+          "type": "text",
+          "id": "our_value",
+          "label": "Your value",
+          "info": "Use a value, or yes / no for a check / cross."
+        },
+        {
+          "type": "text",
+          "id": "comp1_value",
+          "label": "Competitor 1 value"
+        },
+        {
+          "type": "text",
+          "id": "comp2_value",
+          "label": "Competitor 2 value"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blint cost compare",
+      "blocks": [
+        { "type": "row", "settings": { "label": "Cost per serving", "our_value": "$0.53", "comp1_value": "$2.49", "comp2_value": "$3.00" } },
+        { "type": "row", "settings": { "label": "Calories", "our_value": "0", "comp1_value": "110", "comp2_value": "5" } },
+        { "type": "row", "settings": { "label": "Sugar", "our_value": "0", "comp1_value": "26g", "comp2_value": "0" } },
+        { "type": "row", "settings": { "label": "Caffeine", "our_value": "100mg natural caffeine", "comp1_value": "80mg synthetic caffeine", "comp2_value": "155-195mg natural caffeine" } },
+        { "type": "row", "settings": { "label": "Vitamins & minerals", "our_value": "B Vitamins + Chromium", "comp1_value": "B Vitamins", "comp2_value": "no" } },
+        { "type": "row", "settings": { "label": "No mess", "our_value": "yes", "comp1_value": "no", "comp2_value": "no" } },
+        { "type": "row", "settings": { "label": "Ultra portable", "our_value": "yes", "comp1_value": "no", "comp2_value": "no" } },
+        { "type": "row", "settings": { "label": "No carbonation", "our_value": "yes", "comp1_value": "no", "comp2_value": "yes" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,30 @@
+{% doc %}
+  Renders a single Blint showcase feature (icon, eyebrow, title, description).
+
+  @param {object} block - The feature block.
+{% enddoc %}
+
+{%- assign icon_alt = block.settings.title | escape -%}
+<div class="blint-showcase__feature" {{ block.shopify_attributes }}>
+  {%- if block.settings.icon != blank -%}
+    <div class="blint-showcase__feature-icon">
+      {{
+        block.settings.icon
+        | image_url: height: 96
+        | image_tag: loading: 'lazy', widths: '48, 96, 144', alt: icon_alt
+      }}
+    </div>
+  {%- endif -%}
+
+  {%- if block.settings.eyebrow != blank -%}
+    <span class="blint-showcase__feature-eyebrow">{{ block.settings.eyebrow }}</span>
+  {%- endif -%}
+
+  {%- if block.settings.title != blank -%}
+    <h3 class="blint-showcase__feature-title">{{ block.settings.title }}</h3>
+  {%- endif -%}
+
+  {%- if block.settings.description != blank -%}
+    <p class="blint-showcase__feature-desc">{{ block.settings.description }}</p>
+  {%- endif -%}
+</div>

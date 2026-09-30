@@ -1,0 +1,1808 @@
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign sp_group = product.selling_plan_groups | first
+  assign sp = nil
+  if sp_group
+    assign sp = sp_group.selling_plans | first
+    if section.settings.default_frequency_name != blank
+      for plan in sp_group.selling_plans
+        if plan.name == section.settings.default_frequency_name
+          assign sp = plan
+          break
+        endif
+      endfor
+    endif
+  endif
+  assign default_subscribe = false
+  if sp and section.settings.default_to_subscription
+    assign default_subscribe = true
+  endif
+  assign quantity_tiers = section.blocks | where: 'type', 'quantity_tier'
+  assign flavor_page_size = 4
+  assign flavor_count = product.variants.size
+  assign flavor_page_count = flavor_count | plus: flavor_page_size | minus: 1 | divided_by: flavor_page_size
+-%}
+
+<section
+  class="blint-product spacing-style color-{{ section.settings.color_scheme }}"
+  style="{% render 'spacing-style', settings: section.settings %} --blint-cta: {{ section.settings.cta_color }}; --blint-cta-text: {{ section.settings.cta_text_color }}; --blint-product-title-size: {{ section.settings.title_font_size }}px; --blint-product-desc-size: {{ section.settings.description_font_size }}px;{% if section.settings.urgency_background != blank %} --blint-urgency-bg: {{ section.settings.urgency_background }};{% endif %}"
+  data-blint-product
+  data-money-format="{{ shop.money_format | escape }}"
+  {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
+>
+  <div class="blint-product__inner">
+    {%- comment -%} ---------- Gallery ---------- {%- endcomment -%}
+    <div class="blint-product__gallery">
+      <div class="blint-product__main">
+        {%- if current_variant.featured_media != blank -%}
+          {%- assign main_media = current_variant.featured_media -%}
+        {%- else -%}
+          {%- assign main_media = product.featured_media -%}
+        {%- endif -%}
+        {%- if main_media != blank -%}
+          {{
+            main_media
+            | image_url: width: 1200
+            | image_tag: loading: 'eager', fetchpriority: 'high', sizes: '(min-width: 990px) 50vw, 100vw', widths: '500, 750, 1000, 1200', class: 'blint-product__main-image'
+          }}
+        {%- else -%}
+          {{ 'product-1' | placeholder_svg_tag: 'blint-product__main-image' }}
+        {%- endif -%}
+      </div>
+
+      {%- if product.media.size > 1 -%}
+        <div class="blint-product__thumbs" role="list">
+          {%- for media in product.media -%}
+            <button
+              type="button"
+              class="blint-product__thumb{% if forloop.first %} is-active{% endif %}"
+              data-thumb
+              data-media-id="{{ media.id }}"
+              data-full="{{ media | image_url: width: 1200 }}"
+              aria-label="View image {{ forloop.index }}"
+            >
+              {{ media | image_url: width: 160 | image_tag: loading: 'lazy', widths: '80, 160', alt: media.alt | default: product.title | escape }}
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} ---------- Buy box ---------- {%- endcomment -%}
+    <div class="blint-product__info">
+      <h1 class="blint-product__title">{{ product.title }}</h1>
+
+      {%- if section.settings.show_rating and section.settings.rating_value != blank -%}
+        <div class="blint-product__rating">
+          <span class="blint-product__rating-stars" aria-hidden="true">
+            {%- for i in (1..5) -%}<span>&#9733;</span>{%- endfor -%}
+          </span>
+          <span class="blint-product__rating-value">{{ section.settings.rating_value }}</span>
+          {%- if section.settings.rating_count != blank -%}
+            <span class="blint-product__rating-count">{{ section.settings.rating_count }}</span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.description != blank -%}
+        <div class="blint-product__desc">{{ section.settings.description }}</div>
+      {%- elsif product.description != blank -%}
+        <div class="blint-product__desc">{{ product.description }}</div>
+      {%- endif -%}
+
+      {%- assign bullets = section.settings.bullets | newline_to_br | split: '<br />' -%}
+      {%- if section.settings.bullets != blank -%}
+        <ul class="blint-product__benefits" role="list">
+          {%- for bullet in bullets -%}
+            {%- assign clean = bullet | strip -%}
+            {%- if clean != blank -%}
+              <li class="blint-product__benefit"><span class="blint-product__benefit-mark" aria-hidden="true">&#10037;</span><span>{{ clean }}</span></li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- assign chips = section.settings.chips | split: ',' -%}
+      {%- if section.settings.chips != blank -%}
+        <ul class="blint-product__chips" role="list">
+          {%- for chip in chips -%}
+            {%- assign chip_clean = chip | strip -%}
+            {%- if chip_clean != blank -%}<li class="blint-product__chip">{{ chip_clean }}</li>{%- endif -%}
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      {%- comment -%} ---------- Form ---------- {%- endcomment -%}
+      <div class="blint-product__form">
+        {%- comment -%} ---------- Flavor builder: one row per flavor variant, each with its own qty stepper ---------- {%- endcomment -%}
+        <div class="blint-product__flavors" data-flavor-list>
+          <p class="blint-product__flavors-heading">{{ section.settings.flavors_heading }}</p>
+          <div class="blint-product__flavor-carousel">
+            <button type="button" class="blint-product__flavor-arrow blint-product__flavor-arrow--prev" data-flavor-prev aria-label="Previous flavours" disabled>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="blint-product__flavor-track" data-flavor-track>
+              {%- for p in (1..flavor_page_count) -%}
+                {%- assign page_offset = forloop.index0 | times: flavor_page_size -%}
+                <div class="blint-product__flavor-page" data-flavor-page role="list">
+                  {%- for variant in product.variants limit: flavor_page_size offset: page_offset -%}
+                    {%- if variant.featured_media != blank -%}
+                      {%- assign variant_full_media = variant.featured_media -%}
+                    {%- else -%}
+                      {%- assign variant_full_media = product.featured_media -%}
+                    {%- endif -%}
+                    <div
+                      class="blint-product__flavor-row{% unless variant.available %} is-soldout{% endunless %}"
+                      data-flavor-row
+                      data-variant-id="{{ variant.id }}"
+                      data-full-image="{{ variant_full_media | image_url: width: 1200 }}"
+                      role="listitem"
+                    >
+                      {%- assign variant_alt = variant.title | escape -%}
+                      <span class="blint-product__flavor-thumb">
+                        {%- if variant.featured_media != blank -%}
+                          {{ variant.featured_media | image_url: width: 80 | image_tag: loading: 'lazy', widths: '40, 80', alt: variant_alt, class: 'blint-product__flavor-img' }}
+                        {%- elsif product.featured_image != blank -%}
+                          {{ product.featured_image | image_url: width: 80 | image_tag: loading: 'lazy', widths: '40, 80', alt: variant_alt, class: 'blint-product__flavor-img' }}
+                        {%- else -%}
+                          {{ 'product-1' | placeholder_svg_tag: 'blint-product__flavor-img' }}
+                        {%- endif -%}
+                      </span>
+                      <span class="blint-product__flavor-name">{{ variant.title }}</span>
+                      {%- if variant.available -%}
+                        <div class="blint-product__flavor-stepper">
+                          <button type="button" class="blint-product__flavor-btn" data-flavor-minus aria-label="Decrease {{ variant.title | escape }} quantity">&#8722;</button>
+                          <span class="blint-product__flavor-qty" data-flavor-qty aria-live="polite">0</span>
+                          <button type="button" class="blint-product__flavor-btn" data-flavor-plus aria-label="Increase {{ variant.title | escape }} quantity">&#43;</button>
+                        </div>
+                      {%- else -%}
+                        <span class="blint-product__flavor-soldout">Sold out</span>
+                      {%- endif -%}
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- endfor -%}
+            </div>
+            <button type="button" class="blint-product__flavor-arrow blint-product__flavor-arrow--next" data-flavor-next aria-label="Next flavours">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4 13.5 10l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          {%- if flavor_page_count > 1 -%}
+            <div class="blint-product__flavor-dots" data-flavor-dots aria-hidden="true">
+              {%- for p in (1..flavor_page_count) -%}
+                <span class="blint-product__flavor-progress-dot{% if forloop.first %} is-active{% endif %}"></span>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+          <p
+            class="blint-product__upgrade-hint"
+            data-upgrade-hint
+            data-template="{{ section.settings.upgrade_text | escape }}"
+            data-best-text="{{ section.settings.best_value_text | escape }}"
+            hidden
+          ></p>
+        </div>
+
+        {%- if sp -%}
+          <div class="blint-product__purchase" data-purchase-group>
+            <div class="blint-product__purchase-option blint-product__purchase-option--subscribe">
+              <label class="blint-product__purchase-head">
+                <input type="radio" name="blint-purchase" value="subscribe" data-purchase-input data-plan="{{ sp.id }}" {% if default_subscribe %}checked{% endif %}>
+                <span class="blint-product__purchase-row">
+                  <span class="blint-product__purchase-main">
+                    <span class="blint-product__purchase-radio" aria-hidden="true"></span>
+                    <span>{{ section.settings.subscribe_label }}</span>
+                  </span>
+                  <span class="blint-product__purchase-save" data-sub-save></span>
+                </span>
+              </label>
+
+              <div class="blint-product__frequency" data-frequency-wrap{% unless default_subscribe %} hidden{% endunless %}>
+                <label class="blint-product__frequency-label" for="blint-frequency-{{ section.id }}">{{ section.settings.frequency_label }}</label>
+                <div class="blint-product__frequency-control">
+                  <select id="blint-frequency-{{ section.id }}" class="blint-product__frequency-select" data-frequency aria-label="{{ section.settings.frequency_label | escape }}">
+                    {%- for plan in sp_group.selling_plans -%}
+                      <option value="{{ plan.id }}"{% if plan.id == sp.id %} selected{% endif %}>{{ plan.name }}</option>
+                    {%- endfor -%}
+                  </select>
+                  <span class="blint-product__frequency-caret" aria-hidden="true">&#9662;</span>
+                </div>
+              </div>
+
+              {%- if section.settings.sub_note_right != blank -%}
+                <span class="blint-product__sub-note-single">{{ section.settings.sub_note_right }}</span>
+              {%- endif -%}
+            </div>
+            <label class="blint-product__purchase-option">
+              <input type="radio" name="blint-purchase" value="onetime" data-purchase-input {% unless default_subscribe %}checked{% endunless %}>
+              <span class="blint-product__purchase-main">
+                <span class="blint-product__purchase-radio" aria-hidden="true"></span>
+                <span>{{ section.settings.onetime_label }}</span>
+              </span>
+            </label>
+          </div>
+        {%- endif -%}
+
+        <div class="blint-product__pricebox">
+          <div class="blint-product__pricebox-main">
+            <p class="blint-product__totals" data-totals hidden></p>
+            {%- if section.settings.offer_label != blank -%}
+              <div class="blint-product__offer">
+                <span class="blint-product__offer-label">{{ section.settings.offer_label }}</span>
+                <span class="blint-product__offer-badge" data-offer-badge hidden></span>
+              </div>
+            {%- endif -%}
+            <div class="blint-product__price-row">
+              <span class="blint-product__price-compare" data-price-compare hidden></span>
+              <span class="blint-product__price" data-price>{{ 0 | money }}</span>
+            </div>
+          </div>
+          <span class="blint-product__savings" data-savings-wrap hidden>
+            <span class="blint-product__savings-label">{{ section.settings.savings_label }}</span>
+            <span class="blint-product__savings-value" data-savings></span>
+          </span>
+        </div>
+
+        <div class="blint-product__buy-row">
+          <button type="button" class="blint-product__atc" data-atc disabled>
+            <span data-atc-label>{{ section.settings.atc_label }}</span>
+            <span class="blint-product__atc-arrow" aria-hidden="true">&#8594;</span>
+            <span data-atc-price></span>
+          </button>
+        </div>
+
+        {%- assign guarantees = section.settings.guarantees | split: ',' -%}
+        {%- if section.settings.guarantees != blank -%}
+          <ul class="blint-product__guarantees" role="list">
+            {%- for g in guarantees -%}
+              {%- assign g_clean = g | strip -%}
+              {%- if g_clean != blank -%}
+                <li class="blint-product__guarantee">
+                  <svg class="blint-product__guarantee-check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span>{{ g_clean }}</span>
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.countdown_enable or section.settings.urgency_value != blank -%}
+        <div class="blint-product__urgency">
+          <p class="blint-product__urgency-head">{{ section.settings.urgency_heading }}</p>
+          {%- if section.settings.countdown_enable -%}
+            <div class="blint-product__countdown" data-countdown data-cutoff-hour="{{ section.settings.countdown_cutoff_hour }}" role="timer" aria-label="Time left to order">
+              <span class="blint-product__cd-unit"><b data-cd-h>00</b><small>hrs</small></span>
+              <span class="blint-product__cd-sep" aria-hidden="true">:</span>
+              <span class="blint-product__cd-unit"><b data-cd-m>00</b><small>min</small></span>
+              <span class="blint-product__cd-sep" aria-hidden="true">:</span>
+              <span class="blint-product__cd-unit"><b data-cd-s>00</b><small>sec</small></span>
+            </div>
+          {%- elsif section.settings.urgency_value != blank -%}
+            <p class="blint-product__urgency-value"><strong>{{ section.settings.urgency_value }}</strong></p>
+          {%- endif -%}
+          {%- if section.settings.urgency_text != blank -%}
+            {%- assign urgency_lines = section.settings.urgency_text | newline_to_br | split: '<br />' -%}
+            <div class="blint-product__urgency-text">
+              {%- for line in urgency_lines -%}
+                {%- assign line_clean = line | strip -%}
+                {%- if line_clean != blank -%}<p>{{ line_clean }}</p>{%- endif -%}
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  <div class="blint-product__sticky" data-sticky aria-hidden="true">
+    <div class="blint-product__sticky-inner">
+      <button type="button" class="blint-product__atc blint-product__sticky-btn" data-sticky-atc disabled>
+        <span data-sticky-label>{{ section.settings.atc_label }}</span>
+        <span class="blint-product__atc-arrow" aria-hidden="true">&#8594;</span>
+        <span data-sticky-price></span>
+      </button>
+    </div>
+  </div>
+
+  <script type="application/json" data-blint-variants>
+    {
+      "variants": [
+        {%- for v in product.variants -%}
+          {
+            "id": {{ v.id }},
+            "title": {{ v.title | json }},
+            "available": {{ v.available }},
+            "price": {{ v.price }},
+            "compare_at_price": {{ v.compare_at_price | default: 0 | json }},
+            "plans": [
+              {%- for a in v.selling_plan_allocations -%}
+                { "id": {{ a.selling_plan.id }}, "price": {{ a.price }}, "compare_at_price": {{ a.compare_at_price | default: 0 | json }} }{%- unless forloop.last -%},{%- endunless -%}
+              {%- endfor -%}
+            ]
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ],
+      "tiers": [
+        {%- for block in quantity_tiers -%}
+          { "min_qty": {{ block.settings.min_qty }}, "discount_percent": {{ block.settings.discount_percent }} }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ],
+      "sticksPerPack": {{ section.settings.sticks_per_pack | default: 30 }},
+      "packWord": {{ section.settings.pack_word | default: 'pack' | json }},
+      "packsWord": {{ section.settings.packs_word | default: 'packs' | json }},
+      "unitWord": {{ section.settings.unit_word | default: 'stick' | json }},
+      "unitsWord": {{ section.settings.units_word | default: 'sticks' | json }}
+    }
+  </script>
+</section>
+
+{% stylesheet %}
+  .blint-product__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    max-width: var(--page-width, 1500px);
+    margin-inline: auto;
+    padding-inline: clamp(0.5rem, 4vw, 4rem);
+  }
+
+  .blint-product__gallery,
+  .blint-product__gallery,
+  .blint-product__gallery,
+  .blint-product__info {
+    min-width: 0;
+  }
+
+  /* Buy box as a branded card */
+  .blint-product__info {
+    border: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.08);
+    border-radius: 24px;
+    background: #fff;
+    padding: clamp(0.5rem, 4vw, 2.25rem);
+    box-shadow: 0 24px 50px -32px rgb(53 41 230 / 0.4);
+  }
+
+  @media screen and (min-width: 990px) {
+    .blint-product__gallery {
+      position: sticky;
+      top: 1.5rem;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .blint-product__inner {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 3rem;
+      align-items: start;
+    }
+  }
+
+  /* Gallery */
+  .blint-product__main {
+    border-radius: 24px;
+    overflow: hidden;
+    background: #f1f1f3;
+  }
+
+  .blint-product__main-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+  }
+
+  .blint-product__thumbs {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .blint-product__thumbs::-webkit-scrollbar { display: none; }
+
+  .blint-product__thumb {
+    flex: 0 0 78px;
+    width: 78px;
+    height: 78px;
+    padding: 0;
+    border: none;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f1f1f3;
+    cursor: pointer;
+    opacity: 0.45;
+    transition: opacity 0.2s ease;
+  }
+
+  .blint-product__thumb:hover {
+    opacity: 0.75;
+  }
+
+  .blint-product__thumb.is-active {
+    opacity: 1;
+  }
+
+  .blint-product__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Info */
+  .blint-product__title {
+    margin: 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: min(var(--blint-product-title-size, 56px), 11vw);
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    overflow-wrap: break-word;
+  }
+
+  .blint-product__desc {
+    margin-top: 1.25rem;
+    font-size: var(--blint-product-desc-size, 17px);
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.85);
+  }
+
+  .blint-product__desc > :first-child { margin-top: 0; }
+  .blint-product__desc > :last-child { margin-bottom: 0; }
+
+  .blint-product__desc p { margin: 0 0 0.6rem; }
+
+  .blint-product__desc :is(h1, h2, h3, h4, h5, h6),
+  .blint-product__desc p strong:only-child {
+    margin: 1rem 0 0.4rem;
+  }
+
+  .blint-product__desc ul,
+  .blint-product__desc ol {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+  }
+
+  .blint-product__desc li { margin-bottom: 0.25rem; }
+
+  .blint-product__benefits {
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .blint-product__benefit {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .blint-product__benefit-mark { color: var(--color-foreground, #111); }
+
+  /* Rating row */
+  .blint-product__rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .blint-product__rating-stars { color: #f5b50a; font-size: 1rem; letter-spacing: 0.05em; }
+  .blint-product__rating-value { font-weight: 700; font-size: 0.95rem; }
+  .blint-product__rating-count {
+    font-size: 0.8rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  /* Ingredient chips */
+  .blint-product__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .blint-product__chip {
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--blint-ink, #3529E6) 8%, #fff);
+    border: 1px solid color-mix(in srgb, var(--blint-ink, #3529E6) 18%, transparent);
+    color: var(--blint-ink, #3529E6);
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* Guarantee row */
+  .blint-product__guarantees {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin: 1.1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .blint-product__guarantee {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.7);
+  }
+  .blint-product__guarantee-check {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex-shrink: 0;
+    color: var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__form { margin-top: 2rem; }
+
+  /* Flavor builder */
+  .blint-product__flavors {
+    margin: 0 0 1.5rem;
+  }
+
+  .blint-product__flavors-heading {
+    margin: 0 0 0.85rem;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  /* Carousel shell: arrows either side of a horizontally snapping track */
+  .blint-product__flavor-carousel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .blint-product__flavor-track {
+    flex: 1;
+    display: flex;
+    gap: 0.85rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    border-radius: 16px;
+  }
+
+  .blint-product__flavor-track::-webkit-scrollbar { display: none; }
+
+  /* Slightly narrower than the track so the next page peeks in at the right edge */
+  .blint-product__flavor-page {
+    flex: 0 0 calc(100% - 2.5rem);
+    min-width: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .blint-product__flavor-arrow {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--color-foreground, #111);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s ease;
+  }
+
+  .blint-product__flavor-arrow svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .blint-product__flavor-arrow[disabled] {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Arrows are desktop-only; mobile relies on the native swipe of the track */
+  @media screen and (max-width: 749px) {
+    .blint-product__flavor-arrow { display: none; }
+  }
+
+  .blint-product__flavor-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .blint-product__flavor-progress-dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: rgb(var(--color-foreground-rgb, 0 0 0) / 0.18);
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .blint-product__flavor-progress-dot.is-active {
+    background: var(--blint-ink, #3529E6);
+    transform: scale(1.25);
+  }
+
+  .blint-product__flavor-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+    border-radius: 16px;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .blint-product__flavor-row.is-active {
+    border-color: var(--blint-ink, #3529E6);
+    background: color-mix(in srgb, var(--blint-ink, #3529E6) 6%, #fff);
+    box-shadow: 0 0 0 1px var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__flavor-row.is-soldout {
+    opacity: 0.5;
+  }
+
+  .blint-product__flavor-thumb {
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f1f1f3;
+  }
+
+  .blint-product__flavor-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .blint-product__flavor-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 700;
+    font-size: 0.95rem;
+    overflow-wrap: break-word;
+  }
+
+  .blint-product__flavor-stepper {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0.1rem;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    border-radius: 12px;
+    padding: 0 0.15rem;
+  }
+
+  .blint-product__flavor-btn {
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--color-foreground, #111);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .blint-product__flavor-qty {
+    min-width: 1.6rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .blint-product__flavor-soldout {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.45);
+  }
+
+  .blint-product__upgrade-hint {
+    margin: 0.85rem 0 0;
+    font-size: 1.06rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.75);
+  }
+
+  .blint-product__upgrade-hint[hidden] { display: none; }
+
+  .blint-product__hint-hl { color: #c0392b; }
+
+  .blint-product__totals {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  .blint-product__totals[hidden] { display: none; }
+
+  /* Purchase options */
+  .blint-product__purchase {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 0 0 1.5rem;
+  }
+
+  .blint-product__purchase-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .blint-product__purchase-option input { position: absolute; opacity: 0; pointer-events: none; }
+
+  .blint-product__purchase-option:has(input:checked) {
+    border-color: var(--blint-ink, #3529E6);
+    background: color-mix(in srgb, var(--blint-ink, #3529E6) 5%, #fff);
+  }
+
+  .blint-product__purchase-main { display: inline-flex; align-items: center; gap: 0.75rem; }
+
+  .blint-product__purchase-radio {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.4);
+    display: inline-block;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .blint-product__purchase-option:has(input:checked) .blint-product__purchase-radio {
+    border-color: var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__purchase-option:has(input:checked) .blint-product__purchase-radio::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__purchase-save {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #3529E6;
+  }
+
+  /* Price */
+  .blint-product__pricebox {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+    padding-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .blint-product__pricebox-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .blint-product__offer {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .blint-product__offer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .blint-product__offer-label {
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .blint-product__offer-badge {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: #3529E6;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .blint-product__price-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .blint-product__price-compare {
+    font-size: 1.15rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.45);
+    text-decoration: line-through;
+  }
+
+  .blint-product__price {
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: clamp(1.6rem, 3vw, 2.25rem);
+    line-height: 1;
+  }
+
+  .blint-product__savings {
+    flex-shrink: 0;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
+    background: rgb(var(--color-foreground-rgb, 0 0 0) / 0.04);
+  }
+
+  .blint-product__savings-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  .blint-product__savings-value { font-weight: 800; font-size: 1.1rem; }
+
+  /* CTA */
+  .blint-product__atc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: none;
+    border-radius: 16px;
+    background: var(--blint-cta, #111);
+    color: var(--blint-cta-text, #fff);
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .blint-product__atc:hover { transform: translateY(-2px); }
+  .blint-product__atc[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Mobile sticky add-to-cart */
+  .blint-product__sticky {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: 0.7rem 1rem calc(0.3rem + env(safe-area-inset-bottom, 0px));
+    background: var(--color-background, #fff);
+    box-shadow: 0 -6px 24px rgb(0 0 0 / 0.12);
+    transform: translateY(110%);
+    transition: transform 0.25s ease;
+    display: none;
+  }
+
+  .blint-product__sticky-inner {
+    max-width: var(--page-width, 1500px);
+    margin-inline: auto;
+  }
+
+  .blint-product__sticky-btn {
+    width: 100%;
+    padding-block: 0.95rem;
+  }
+
+  @media screen and (max-width: 749px) {
+    .blint-product__sticky { display: block; }
+    .blint-product__sticky.is-visible { transform: translateY(0); }
+  }
+
+  .blint-product__purchase-option--subscribe,
+  .blint-product__purchase-option--subscribe:has(input:checked) {
+    background: linear-gradient(135deg, #e6e8fd 0%, #f0f1fe 100%);
+  }
+
+  .blint-product__purchase-option--subscribe {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .blint-product__purchase-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .blint-product__sub-notes {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  /* Subscribe card header (clickable) */
+  .blint-product__purchase-head { display: block; cursor: pointer; }
+
+  .blint-product__sub-note-single {
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  /* Delivery frequency selector (inside the subscribe card) */
+  .blint-product__frequency {
+    padding-top: 0.9rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+  }
+
+  .blint-product__frequency[hidden] { display: none; }
+
+  .blint-product__frequency-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  .blint-product__frequency-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .blint-product__frequency-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.7rem 2.25rem 0.7rem 0.9rem;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.18);
+    border-radius: 10px;
+    background: #fff;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-foreground, #111);
+    cursor: pointer;
+  }
+
+  .blint-product__frequency-select:focus-visible {
+    outline: 2px solid var(--blint-ink, #3529E6);
+    outline-offset: 1px;
+    border-color: var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__frequency-caret {
+    position: absolute;
+    right: 0.9rem;
+    pointer-events: none;
+    font-size: 0.7rem;
+    color: var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__urgency {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 20px;
+    background: var(--blint-urgency-bg, linear-gradient(135deg, #e6e8fd 0%, #f0f1fe 100%));
+  }
+
+  .blint-product__urgency-head { margin: 0; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.03em; text-transform: uppercase; }
+  .blint-product__urgency-head strong { color: #3529E6; }
+  .blint-product__urgency-value { margin: 0.4rem 0 0; }
+  .blint-product__urgency-value strong { color: var(--blint-ink, #3529E6); font-size: 1.1rem; }
+
+  /* Live countdown timer */
+  .blint-product__countdown {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.7rem;
+  }
+  .blint-product__cd-unit {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 2.7rem;
+    padding: 0.45rem 0.35rem 0.4rem;
+    border-radius: 12px;
+    background: var(--blint-ink, #3529E6);
+    color: #fff;
+  }
+  .blint-product__cd-unit b {
+    font-family: var(--blint-heading-font, sans-serif);
+    font-weight: 700;
+    font-size: 1.45rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .blint-product__cd-unit small {
+    margin-top: 0.25rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .blint-product__cd-sep {
+    font-weight: 700;
+    font-size: 1.45rem;
+    line-height: 2.4rem;
+    color: var(--blint-ink, #3529E6);
+  }
+  .blint-product__urgency-text { margin: 0.5rem 0 0; font-size: 0.9rem; color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.75); }
+  .blint-product__urgency-text p { margin: 0; }
+  .blint-product__urgency-text p + p { margin-top: 0.15rem; }
+
+  /* Buy row */
+  .blint-product__buy-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .blint-product__buy-row .blint-product__atc {
+    flex: 1;
+    margin: 0;
+  }
+
+  /* Keep the CTA on one line on small screens (price is already shown above) */
+  @media screen and (max-width: 749px) {
+    .blint-product__atc [data-atc-price] { display: none; }
+  }
+{% endstylesheet %}
+
+{% raw %}
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('[data-blint-product]') || (script && script.previousElementSibling);
+    if (!root) return;
+    const dataEl = root.querySelector('[data-blint-variants]');
+    if (!dataEl) return;
+    const data = JSON.parse(dataEl.textContent) || {};
+    const variants = data.variants || [];
+    const tiers = data.tiers || [];
+    const sticksPerPack = parseInt(data.sticksPerPack, 10) || 30;
+    const packWord = data.packWord || 'pack';
+    const packsWord = data.packsWord || 'packs';
+    const unitWord = data.unitWord || 'stick';
+    const unitsWord = data.unitsWord || 'sticks';
+    const variantsById = {};
+    variants.forEach(function (v) { variantsById[String(v.id)] = v; });
+    const moneyFormat = root.getAttribute('data-money-format') || '${{amount}}';
+
+    function formatMoney(cents) {
+      cents = parseInt(cents, 10) || 0;
+      const value = cents / 100;
+      const fixed = value.toFixed(2);
+      const withCommas = fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const noDecimals = withCommas.split('.')[0];
+      return moneyFormat
+        .replace(/\{\{\s*amount\s*\}\}/g, withCommas)
+        .replace(/\{\{\s*amount_no_decimals\s*\}\}/g, noDecimals)
+        .replace(/\{\{\s*amount_with_comma_separator\s*\}\}/g, fixed.replace('.', ','));
+    }
+
+    const flavorRows = Array.from(root.querySelectorAll('[data-flavor-row]'));
+    const purchaseInputs = Array.from(root.querySelectorAll('[data-purchase-input]'));
+    const priceEl = root.querySelector('[data-price]');
+    const compareEl = root.querySelector('[data-price-compare]');
+    const savingsWrap = root.querySelector('[data-savings-wrap]');
+    const savingsEl = root.querySelector('[data-savings]');
+    const totalsEl = root.querySelector('[data-totals]');
+    const atc = root.querySelector('[data-atc]');
+    const atcPrice = root.querySelector('[data-atc-price]');
+    const offerBadge = root.querySelector('[data-offer-badge]');
+    const subSave = root.querySelector('[data-sub-save]');
+    const freqSelect = root.querySelector('[data-frequency]');
+    const freqWrap = root.querySelector('[data-frequency-wrap]');
+    const upgradeHint = root.querySelector('[data-upgrade-hint]');
+    const sticky = root.querySelector('[data-sticky]');
+    const stickyAtc = root.querySelector('[data-sticky-atc]');
+    const stickyPrice = root.querySelector('[data-sticky-price]');
+
+    function isSubscribe() {
+      return purchaseInputs.some(function (i) { return i.checked && i.value === 'subscribe'; });
+    }
+
+    function currentPlanId() {
+      if (!isSubscribe()) return null;
+      if (freqSelect && freqSelect.value) return freqSelect.value;
+      const checked = purchaseInputs.find(function (i) { return i.checked; });
+      return checked ? checked.getAttribute('data-plan') : null;
+    }
+
+    function planFor(variant, planId) {
+      if (!variant || !planId) return null;
+      return (variant.plans || []).find(function (p) { return String(p.id) === String(planId); }) || null;
+    }
+
+    function discountPct(price, compare) {
+      if (!compare || compare <= price) return 0;
+      return Math.round((1 - price / compare) * 100);
+    }
+
+    // Highest tier whose threshold the current total quantity has reached
+    function tierForQty(qty) {
+      const applicable = tiers.filter(function (t) { return qty >= t.min_qty; });
+      if (!applicable.length) return null;
+      applicable.sort(function (a, b) { return b.min_qty - a.min_qty; });
+      return applicable[0];
+    }
+
+    // Nearest tier still ahead, for the "add N more & save" hint
+    function nextTier(qty) {
+      const upcoming = tiers.filter(function (t) { return t.min_qty > qty; });
+      if (!upcoming.length) return null;
+      upcoming.sort(function (a, b) { return a.min_qty - b.min_qty; });
+      return upcoming[0];
+    }
+
+    function readRows() {
+      return flavorRows.map(function (row) {
+        const qtyEl = row.querySelector('[data-flavor-qty]');
+        return {
+          row: row,
+          qtyEl: qtyEl,
+          variant: variantsById[row.getAttribute('data-variant-id')],
+          qty: qtyEl ? parseInt(qtyEl.textContent, 10) || 0 : 0,
+        };
+      });
+    }
+
+    function setQty(entry, qty) {
+      qty = Math.max(0, qty);
+      entry.qtyEl.textContent = String(qty);
+      entry.row.classList.toggle('is-active', qty > 0);
+      update();
+    }
+
+    flavorRows.forEach(function (row) {
+      const qtyEl = row.querySelector('[data-flavor-qty]');
+      const minus = row.querySelector('[data-flavor-minus]');
+      const plus = row.querySelector('[data-flavor-plus]');
+      if (!qtyEl) return;
+      const variant = variantsById[row.getAttribute('data-variant-id')];
+      const entry = { row: row, qtyEl: qtyEl, variant: variant };
+      if (minus) minus.addEventListener('click', function () { setQty(entry, (parseInt(qtyEl.textContent, 10) || 0) - 1); });
+      if (plus) plus.addEventListener('click', function () { setQty(entry, (parseInt(qtyEl.textContent, 10) || 0) + 1); });
+    });
+
+    function updateUpgradeHint(totalQty, currentPct) {
+      if (!upgradeHint) return;
+      const next = nextTier(totalQty);
+      if (next) {
+        const remaining = next.min_qty - totalQty;
+        const template = upgradeHint.getAttribute('data-template') || 'Add [count] more & save [percent]!';
+        upgradeHint.innerHTML = template
+          .replace(/\[\s*count\s*\]/g, '<span class="blint-product__hint-hl">' + remaining + '</span>')
+          .replace(/\[\s*percent\s*\]/g, '<span class="blint-product__hint-hl">' + next.discount_percent + '%</span>');
+        upgradeHint.hidden = false;
+        return;
+      }
+      const bestText = upgradeHint.getAttribute('data-best-text');
+      if (currentPct > 0 && bestText) {
+        upgradeHint.textContent = bestText;
+        upgradeHint.hidden = false;
+      } else {
+        upgradeHint.hidden = true;
+      }
+    }
+
+    function update() {
+      if (freqWrap) freqWrap.hidden = !isSubscribe();
+      const planId = currentPlanId();
+
+      const selected = readRows().filter(function (r) { return r.variant && r.qty > 0; });
+      const totalQty = selected.reduce(function (sum, r) { return sum + r.qty; }, 0);
+
+      // subscribe savings label (first flavor's frequency price vs its compare-at, as a representative rate)
+      if (subSave) {
+        const repVariant = variants[0];
+        const subPlanInput = purchaseInputs.find(function (i) { return i.value === 'subscribe'; });
+        const subPlanId = (freqSelect && freqSelect.value) || (subPlanInput ? subPlanInput.getAttribute('data-plan') : null);
+        const subPlan = repVariant ? planFor(repVariant, subPlanId) : null;
+        const subBase = repVariant ? (repVariant.compare_at_price || repVariant.price) : 0;
+        subSave.textContent = subPlan && subPlan.price < subBase ? 'Save ' + discountPct(subPlan.price, subBase) + '%' : '';
+      }
+
+      if (!totalQty) {
+        if (totalsEl) totalsEl.hidden = true;
+        priceEl.textContent = formatMoney(0);
+        compareEl.hidden = true;
+        if (savingsWrap) savingsWrap.hidden = true;
+        if (offerBadge) offerBadge.hidden = true;
+        if (upgradeHint) upgradeHint.hidden = true;
+        atc.disabled = true;
+        if (atcPrice) atcPrice.textContent = '';
+        if (stickyAtc) stickyAtc.disabled = true;
+        if (stickyPrice) stickyPrice.textContent = '';
+        return;
+      }
+
+      const tier = tierForQty(totalQty);
+      const tierPct = tier ? tier.discount_percent : 0;
+
+      let unitTotal = 0;
+      let baseTotal = 0;
+      selected.forEach(function (r) {
+        const plan = planFor(r.variant, planId);
+        const unitPrice = plan ? plan.price : r.variant.price;
+        const fullPrice = r.variant.compare_at_price && r.variant.compare_at_price > unitPrice ? r.variant.compare_at_price : unitPrice;
+        unitTotal += unitPrice * r.qty;
+        baseTotal += fullPrice * r.qty;
+      });
+
+      const finalTotal = Math.round(unitTotal * (1 - tierPct / 100));
+      const savings = baseTotal - finalTotal;
+
+      if (totalsEl) {
+        const totalUnits = totalQty * sticksPerPack;
+        totalsEl.textContent = totalQty + ' ' + (totalQty === 1 ? packWord : packsWord) + ' · ' + totalUnits + ' ' + (totalUnits === 1 ? unitWord : unitsWord);
+        totalsEl.hidden = false;
+      }
+
+      priceEl.textContent = formatMoney(finalTotal);
+
+      if (savings > 0) {
+        compareEl.textContent = formatMoney(baseTotal);
+        compareEl.hidden = false;
+        savingsEl.textContent = formatMoney(savings);
+        if (savingsWrap) savingsWrap.hidden = false;
+        if (offerBadge) { offerBadge.textContent = tierPct + '% off'; offerBadge.hidden = tierPct <= 0; }
+      } else {
+        compareEl.hidden = true;
+        if (savingsWrap) savingsWrap.hidden = true;
+        if (offerBadge) offerBadge.hidden = true;
+      }
+
+      updateUpgradeHint(totalQty, tierPct);
+
+      atc.disabled = false;
+      if (atcPrice) atcPrice.textContent = formatMoney(finalTotal);
+      if (stickyAtc) stickyAtc.disabled = false;
+      if (stickyPrice) stickyPrice.textContent = formatMoney(finalTotal);
+    }
+
+    // Thumbnail gallery
+    const mainImage = root.querySelector('.blint-product__main-image');
+    root.querySelectorAll('[data-thumb]').forEach(function (thumb) {
+      thumb.addEventListener('click', function () {
+        const full = thumb.getAttribute('data-full');
+        if (mainImage && full) { mainImage.src = full; mainImage.removeAttribute('srcset'); }
+        root.querySelectorAll('[data-thumb]').forEach(function (t) { t.classList.remove('is-active'); });
+        thumb.classList.add('is-active');
+      });
+    });
+
+    // Flavor row -> swap the gallery to that flavor's photo (tapping the row or its qty stepper both trigger this).
+    // Also highlight the tapped row for viewing, without disturbing rows already highlighted by a chosen quantity.
+    flavorRows.forEach(function (row) {
+      row.addEventListener('click', function () {
+        const full = row.getAttribute('data-full-image');
+        if (mainImage && full) { mainImage.src = full; mainImage.removeAttribute('srcset'); }
+        flavorRows.forEach(function (r) {
+          const qtyEl = r.querySelector('[data-flavor-qty]');
+          const qty = qtyEl ? parseInt(qtyEl.textContent, 10) || 0 : 0;
+          if (qty === 0) r.classList.remove('is-active');
+        });
+        row.classList.add('is-active');
+      });
+    });
+
+    // Flavor carousel — 4-per-page track, arrow buttons on desktop, native touch swipe on mobile
+    const flavorTrack = root.querySelector('[data-flavor-track]');
+    const flavorPages = Array.from(root.querySelectorAll('[data-flavor-page]'));
+    const flavorPrev = root.querySelector('[data-flavor-prev]');
+    const flavorNext = root.querySelector('[data-flavor-next]');
+    const flavorDots = Array.from(root.querySelectorAll('[data-flavor-dots] > *'));
+
+    if (flavorTrack && flavorPages.length > 1) {
+      let currentPage = 0;
+
+      // Pages are narrower than the track (peek effect), so use each page's real
+      // offset rather than a fixed width when figuring out where we scrolled to.
+      function syncCarousel() {
+        let closest = 0;
+        let minDiff = Infinity;
+        flavorPages.forEach(function (page, i) {
+          const diff = Math.abs(page.offsetLeft - flavorTrack.scrollLeft);
+          if (diff < minDiff) { minDiff = diff; closest = i; }
+        });
+        currentPage = closest;
+        if (flavorPrev) flavorPrev.disabled = currentPage <= 0;
+        if (flavorNext) flavorNext.disabled = currentPage >= flavorPages.length - 1;
+        flavorDots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === currentPage); });
+      }
+
+      function goToPage(index) {
+        index = Math.max(0, Math.min(flavorPages.length - 1, index));
+        flavorTrack.scrollTo({ left: flavorPages[index].offsetLeft, behavior: 'smooth' });
+      }
+
+      if (flavorPrev) flavorPrev.addEventListener('click', function () { goToPage(currentPage - 1); });
+      if (flavorNext) flavorNext.addEventListener('click', function () { goToPage(currentPage + 1); });
+
+      let scrollTimer;
+      flavorTrack.addEventListener('scroll', function () {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(syncCarousel, 80);
+      });
+      window.addEventListener('resize', syncCarousel);
+      syncCarousel();
+    } else if (flavorPrev) {
+      flavorPrev.style.display = 'none';
+      if (flavorNext) flavorNext.style.display = 'none';
+    }
+
+    purchaseInputs.forEach(function (input) { input.addEventListener('change', update); });
+    if (freqSelect) freqSelect.addEventListener('change', update);
+
+    function buildCartItems() {
+      const planId = currentPlanId();
+      return readRows()
+        .filter(function (r) { return r.variant && r.qty > 0; })
+        .map(function (r) {
+          const item = { id: r.variant.id, quantity: r.qty };
+          if (planId) item.selling_plan = planId;
+          return item;
+        });
+    }
+
+    // Add every selected flavor to the cart in one request, then go straight to checkout
+    function addToCart() {
+      const items = buildCartItems();
+      if (!items.length) return;
+      atc.disabled = true;
+      if (stickyAtc) stickyAtc.disabled = true;
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ items: items }),
+      })
+        .then(function (res) {
+          if (!res.ok) return res.json().then(function (data) { throw new Error(data.description || 'Cart error'); });
+          window.location.href = '/checkout';
+        })
+        .catch(function () {
+          atc.disabled = false;
+          if (stickyAtc) stickyAtc.disabled = false;
+        });
+    }
+
+    if (atc) atc.addEventListener('click', addToCart);
+    if (stickyAtc) {
+      stickyAtc.addEventListener('click', function () {
+        if (stickyAtc.disabled) return;
+        addToCart();
+      });
+    }
+
+    // Reveal the sticky bar once the main button scrolls out of view
+    if (sticky && atc && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          sticky.classList.toggle('is-visible', !entry.isIntersecting);
+          sticky.setAttribute('aria-hidden', entry.isIntersecting ? 'true' : 'false');
+        });
+      }, { rootMargin: '0px 0px -10% 0px' });
+      observer.observe(atc);
+    }
+
+    // Live countdown timer (hardcoded: counts to the daily cutoff hour; wire to a real cutoff later)
+    var cd = root.querySelector('[data-countdown]');
+    if (cd) {
+      var cutoffHour = parseInt(cd.getAttribute('data-cutoff-hour'), 10) || 0;
+      var hEl = cd.querySelector('[data-cd-h]');
+      var mEl = cd.querySelector('[data-cd-m]');
+      var sEl = cd.querySelector('[data-cd-s]');
+      var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+      var tick = function () {
+        var now = new Date();
+        var target = new Date(now);
+        target.setHours(cutoffHour, 0, 0, 0);
+        if (target <= now) target.setDate(target.getDate() + 1);
+        var diff = Math.max(0, Math.floor((target - now) / 1000));
+        var h = Math.floor(diff / 3600); diff -= h * 3600;
+        var m = Math.floor(diff / 60); var s = diff - m * 60;
+        if (hEl) hEl.textContent = pad(h);
+        if (mEl) mEl.textContent = pad(m);
+        if (sEl) sEl.textContent = pad(s);
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    update();
+  })();
+</script>
+{% endraw %}
+
+{% schema %}
+{
+  "name": "Blint product",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "title_font_size",
+      "label": "Title font size",
+      "min": 24,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description override",
+      "info": "Leave blank to use the product description."
+    },
+    {
+      "type": "range",
+      "id": "description_font_size",
+      "label": "Description font size",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 17
+    },
+    {
+      "type": "textarea",
+      "id": "bullets",
+      "label": "Benefit bullets",
+      "info": "One per line.",
+      "default": "Free shipping over $50\nLimited-time savings\nDelivered monthly"
+    },
+    {
+      "type": "header",
+      "content": "Trust & ingredients"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show rating",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "rating_value",
+      "label": "Rating value",
+      "default": "4.9"
+    },
+    {
+      "type": "text",
+      "id": "rating_count",
+      "label": "Rating count",
+      "default": "500+ reviews"
+    },
+    {
+      "type": "text",
+      "id": "chips",
+      "label": "Ingredient chips",
+      "info": "Comma-separated, shown under the description.",
+      "default": "Natural nootropics, B6 & B12, Zero nicotine"
+    },
+    {
+      "type": "text",
+      "id": "guarantees",
+      "label": "Guarantee row",
+      "info": "Comma-separated, shown under the button.",
+      "default": "Free shipping over $60, 30-day guarantee, Ships in 1 day"
+    },
+    {
+      "type": "header",
+      "content": "Flavour builder"
+    },
+    {
+      "type": "text",
+      "id": "flavors_heading",
+      "label": "Flavours heading",
+      "default": "Choose your flavours — mix as many as you like"
+    },
+    {
+      "type": "number",
+      "id": "sticks_per_pack",
+      "label": "Units per pack",
+      "info": "Used only to display totals, e.g. \"3 packs · 90 sticks\".",
+      "default": 30
+    },
+    {
+      "type": "text",
+      "id": "pack_word",
+      "label": "\"Pack\" (singular)",
+      "default": "pack"
+    },
+    {
+      "type": "text",
+      "id": "packs_word",
+      "label": "\"Packs\" (plural)",
+      "default": "packs"
+    },
+    {
+      "type": "text",
+      "id": "unit_word",
+      "label": "Unit label, singular",
+      "default": "stick"
+    },
+    {
+      "type": "text",
+      "id": "units_word",
+      "label": "Unit label, plural",
+      "default": "sticks"
+    },
+    {
+      "type": "text",
+      "id": "upgrade_text",
+      "label": "Next-tier hint text",
+      "info": "Shown below the flavours when the total pack count hasn't reached the next discount tier yet. Placeholders: [count] = packs still needed, [percent] = that tier's discount.",
+      "default": "Add [count] more & save [percent] on every pack!"
+    },
+    {
+      "type": "text",
+      "id": "best_value_text",
+      "label": "Best value hint text",
+      "info": "Shown once the highest discount tier is reached.",
+      "default": "You've unlocked the best value 🔥"
+    },
+    {
+      "type": "paragraph",
+      "content": "Add \"Quantity discount tier\" blocks below to define the discount ladder (e.g. 3 packs = 10% off, 6 packs = 15% off). The discount shown here is for merchandising only — create a matching automatic discount in Shopify Admin (Discounts → Volume discount, minimum quantity) so checkout applies the same percentage."
+    },
+    {
+      "type": "header",
+      "content": "Purchase options"
+    },
+    {
+      "type": "checkbox",
+      "id": "default_to_subscription",
+      "label": "Default to subscription",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "subscribe_label",
+      "label": "Subscribe label",
+      "default": "Subscribe & save"
+    },
+    {
+      "type": "text",
+      "id": "onetime_label",
+      "label": "One-time label",
+      "default": "One-time purchase"
+    },
+    {
+      "type": "text",
+      "id": "frequency_label",
+      "label": "Delivery frequency label",
+      "default": "Delivery frequency"
+    },
+    {
+      "type": "text",
+      "id": "default_frequency_name",
+      "label": "Default delivery frequency",
+      "info": "Exact selling plan name to pre-select, case-sensitive — must match the plan name shown in the dropdown exactly. Leave blank to use the first plan.",
+      "default": "Deliver every month"
+    },
+    {
+      "type": "text",
+      "id": "sub_note_right",
+      "label": "Subscription note (right)",
+      "default": "Cancel anytime"
+    },
+    {
+      "type": "header",
+      "content": "Pricing & CTA"
+    },
+    {
+      "type": "text",
+      "id": "offer_label",
+      "label": "Offer label",
+      "default": "Limited time offer:"
+    },
+    {
+      "type": "text",
+      "id": "savings_label",
+      "label": "Savings label",
+      "default": "Your savings:"
+    },
+    {
+      "type": "text",
+      "id": "atc_label",
+      "label": "Add to cart label",
+      "default": "Try it now"
+    },
+    {
+      "type": "color",
+      "id": "cta_color",
+      "label": "Button color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "cta_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Urgency"
+    },
+    {
+      "type": "text",
+      "id": "urgency_heading",
+      "label": "Urgency heading",
+      "default": "Order within:"
+    },
+    {
+      "type": "checkbox",
+      "id": "countdown_enable",
+      "label": "Show live countdown timer",
+      "info": "Hardcoded to count down to the daily cutoff hour for now.",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "countdown_cutoff_hour",
+      "label": "Daily cutoff hour (24h)",
+      "info": "Timer counts down to this hour each day. 0 = midnight.",
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "default": 0
+    },
+    {
+      "type": "text",
+      "id": "urgency_value",
+      "label": "Urgency value (fallback)",
+      "info": "Shown only when the countdown is off.",
+      "default": "1 day"
+    },
+    {
+      "type": "textarea",
+      "id": "urgency_text",
+      "label": "Urgency text",
+      "info": "One line per paragraph.",
+      "default": "Reserve yours before we sell out again!\nSave up to 45% today!"
+    },
+    {
+      "type": "color_background",
+      "id": "urgency_background",
+      "label": "Urgency background",
+      "default": "linear-gradient(135deg, #e6e8fd 0%, #f0f1fe 100%)"
+    },
+    {
+      "type": "header",
+      "content": "t:content.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "quantity_tier",
+      "name": "Quantity discount tier",
+      "settings": [
+        {
+          "type": "number",
+          "id": "min_qty",
+          "label": "Minimum total packs",
+          "default": 1
+        },
+        {
+          "type": "number",
+          "id": "discount_percent",
+          "label": "Discount percent",
+          "default": 0
+        }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

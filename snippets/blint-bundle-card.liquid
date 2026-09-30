@@ -1,0 +1,21 @@
+{%- comment -%}
+  Params: product
+{%- endcomment -%}
+<div class="blint-bundle__card" data-bundle-card data-product-id="{{ product.id }}">
+  <div class="blint-bundle__card-media">
+    {%- if product.featured_image != blank -%}
+      {{ product.featured_image | image_url: width: 300 | image_tag: loading: 'lazy', widths: '150, 300', alt: product.title | escape }}
+    {%- else -%}
+      {{ 'product-1' | placeholder_svg_tag }}
+    {%- endif -%}
+  </div>
+  <p class="blint-bundle__card-title">{{ product.title }}</p>
+  {%- if product.description != blank -%}
+    <p class="blint-bundle__card-desc">{{ product.description | strip_html | truncate: 70 }}</p>
+  {%- endif -%}
+  <div class="blint-bundle__stepper" data-bundle-stepper>
+    <button type="button" class="blint-bundle__step-btn" data-bundle-minus aria-label="Decrease quantity">&#8722;</button>
+    <span class="blint-bundle__step-value" data-bundle-qty>0</span>
+    <button type="button" class="blint-bundle__step-btn" data-bundle-plus aria-label="Increase quantity">&#43;</button>
+  </div>
+</div>

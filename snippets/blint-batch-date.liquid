@@ -1,0 +1,21 @@
+{%- comment -%}
+  Renders a date like "June 12th" from a unix timestamp.
+  Usage: {% render 'blint-batch-date', timestamp: ts %}
+{%- endcomment -%}
+{%- liquid
+  assign d = timestamp | date: '%-d' | plus: 0
+  assign mod100 = d | modulo: 100
+  assign mod10 = d | modulo: 10
+  assign suffix = 'th'
+  if mod100 < 11 or mod100 > 13
+    case mod10
+      when 1
+        assign suffix = 'st'
+      when 2
+        assign suffix = 'nd'
+      when 3
+        assign suffix = 'rd'
+    endcase
+  endif
+-%}
+{{- timestamp | date: '%B' }} {{ d }}{{ suffix -}}

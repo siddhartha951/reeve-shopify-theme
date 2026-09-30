@@ -1,0 +1,245 @@
+{% comment %}
+  Reeve custom product section for Horizon theme
+  Section handle: reeve-custom-product
+{% endcomment %}
+
+{{ 'section-reeve-custom-product.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'section-reeve-custom-product.js' | asset_url }}"
+  type="module"
+  defer
+></script>
+
+<section
+  class="reeve-custom-product-section"
+  style="
+    --reeve-section-bg: {{ section.settings.section_background }};
+    --reeve-card-bg: {{ section.settings.card_background }};
+  "
+>
+  <div class="page-width">
+    <!-- Top header strip -->
+    <div class="reeve-header">
+      <div class="reeve-header__left h6">
+        {{ section.settings.small_text }}
+      </div>
+      <div class="reeve-header__center">
+        <h2 class="reeve-header__heading">
+          {{ section.settings.heading }}
+        </h2>
+      </div>
+    </div>
+
+    <!-- Product cards -->
+    {% if section.settings.collection != blank %}
+      {% assign coll = section.settings.collection %}
+      {% if coll.products_count > 0 %}
+        <div class="reeve-product-grid">
+          {% for product in coll.products limit: section.settings.product_limit %}
+            {% assign badge_label = product.metafields.reeve.badge_label %}
+            {% assign badge_color = product.metafields.reeve.badge_color | default: section.settings.default_badge_color %}
+            {% assign benefit_subtitle = product.metafields.reeve.benefit_subtitle %}
+            {% assign quantity_label = product.metafields.reeve.quantity_label %}
+            {% assign keypoints = product.metafields.reeve.keypoints %}
+            {% assign scrolling_benefits = product.metafields.reeve.scrolling_benefits %}
+            {% assign hover_background = product.metafields.reeve.hover_background %}
+
+            {% assign card_ratio_class = '' %}
+            {% if section.settings.card_image_ratio == 'square' %}
+              {% assign card_ratio_class = ' reeve-card-image-wrap--square' %}
+            {% elsif section.settings.card_image_ratio == 'portrait' %}
+              {% assign card_ratio_class = ' reeve-card-image-wrap--portrait' %}
+            {% endif %}
+
+            <article
+              class="reeve-product-card"
+              data-reeve-card
+              data-hover-style="{{ section.settings.hover_reveal_style }}"
+            >
+              <div class="reeve-product-card__inner">
+                {%- if hover_background != blank -%}
+                  <div class="reeve-card-hover-bg" data-reeve-hover-bg>
+                    {{ hover_background | image_url: width: 1200 | image_tag: loading: 'lazy' }}
+                  </div>
+                {%- endif -%}
+
+                {%- if badge_label != blank -%}
+                  <div class="reeve-card-badge" style="background-color: {{ badge_color }}">
+                    {{ badge_label }}
+                  </div>
+                {%- endif -%}
+
+                <a href="{{ product.url }}" class="reeve-card-image-wrap{{ card_ratio_class }}">
+                  {% if product.featured_image %}
+                    {{ product.featured_image | image_url: width: 800 | image_tag: loading: 'lazy', class: 'reeve-card-image' }}
+                  {% endif %}
+                </a>
+
+                <div class="reeve-card-content">
+                  <div class="reeve-card-main" data-reeve-card-main>
+                    <div class="reeve-card-title-row">
+                      <h3 class="reeve-card-title">
+                        {{ product.title }}
+                      </h3>
+                      {% if quantity_label != blank %}
+                        <span class="reeve-card-quantity">
+                          {{ quantity_label }}
+                        </span>
+                      {% endif %}
+                    </div>
+
+                    {% if benefit_subtitle != blank %}
+                      <p class="reeve-card-subtitle">
+                        {{ benefit_subtitle }}
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Extra content (keypoints/ticker/add-to-cart): resting
+                     card height stops at the main content above; this
+                     block is what the "grow" / "overlay" hover style
+                     brings in — see section-reeve-custom-product.js -->
+                <div class="reeve-card-extra" data-reeve-card-extra>
+                  {% if keypoints != blank or scrolling_benefits != blank %}
+                    <div class="reeve-card-extra__inner">
+                      {% if keypoints != blank %}
+                        <div class="reeve-card-keypoints" data-reeve-reveal>
+                          {% for point in keypoints.value %}
+                            <span class="reeve-keypoint-pill">
+                              {{ point }}
+                            </span>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+
+                      {% if scrolling_benefits != blank %}
+                        <div class="reeve-card-ticker" data-reeve-ticker data-reeve-reveal>
+                          <div class="reeve-card-ticker__inner">
+                            {{ scrolling_benefits | newline_to_br }}
+                          </div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+
+                  <div class="reeve-card-footer" data-reeve-reveal>
+                    {% assign reeve_form_id = 'ReeveProductForm-' | append: product.id %}
+                    {% form 'product', product, id: reeve_form_id %}
+                      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                      <button type="submit" class="reeve-add-to-cart-btn">
+                        {{ section.settings.add_to_cart_label }}
+                      </button>
+                    {% endform %}
+                  </div>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Reeve custom product",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "small_text",
+      "label": "Small text (left)",
+      "default": "01 / OUR FORMULAS"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop by solution"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "product_limit",
+      "label": "Products per row",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Card layout"
+    },
+    {
+      "type": "select",
+      "id": "card_image_ratio",
+      "label": "Card image shape",
+      "options": [
+        { "value": "natural", "label": "Natural" },
+        { "value": "square", "label": "Square" },
+        { "value": "portrait", "label": "Portrait" }
+      ],
+      "default": "natural"
+    },
+    {
+      "type": "select",
+      "id": "hover_reveal_style",
+      "label": "Hover reveal style",
+      "options": [
+        { "value": "grow", "label": "Card grows in place" },
+        { "value": "overlay", "label": "Floating overlay (no layout shift)" }
+      ],
+      "default": "grow",
+      "info": "Grow: the card itself gets taller on hover, pushing the row down. Overlay: card height stays fixed, extra content floats below it instead."
+    },
+    {
+      "type": "color",
+      "id": "section_background",
+      "label": "Section background",
+      "default": "#f5f2ea"
+    },
+    {
+      "type": "color",
+      "id": "card_background",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "default_badge_color",
+      "label": "Default badge color",
+      "default": "#ffd58b"
+    },
+    {
+      "type": "text",
+      "id": "add_to_cart_label",
+      "label": "Add to cart label",
+      "default": "ADD TO CART"
+    },
+    {
+      "type": "color",
+      "id": "add_to_cart_background",
+      "label": "Add to cart button background",
+      "default": "#0044ff"
+    },
+    {
+      "type": "color",
+      "id": "add_to_cart_text_color",
+      "label": "Add to cart button text color",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve custom product"
+    }
+  ]
+}
+{% endschema %}

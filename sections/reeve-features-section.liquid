@@ -1,0 +1,496 @@
+{{ 'section-reeve-features.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign rf_style = '--rf-bg: ' | append: section.settings.bg_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-text: ' | append: section.settings.text_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-muted: ' | append: section.settings.muted_text_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-accent: ' | append: section.settings.accent_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-tag-color: ' | append: section.settings.tag_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-icon-bg: ' | append: section.settings.icon_bg_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-card-bg: ' | append: section.settings.card_bg_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-border: ' | append: section.settings.border_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-minerals-bg: ' | append: section.settings.minerals_bg_color | append: ';'
+  assign rf_style = rf_style | append: ' --rf-padding-top: ' | append: section.settings.padding_top | append: 'px;'
+  assign rf_style = rf_style | append: ' --rf-padding-bottom: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+{%- if section.settings.background_image != blank -%}
+  {%- assign rf_bg_image_url = section.settings.background_image | image_url: width: 2000 -%}
+  {%- assign rf_style = rf_style | append: " --rf-bg-image: url('" | append: rf_bg_image_url | append: "');" -%}
+{%- endif -%}
+
+<section class="rf-section" style="{{ rf_style }}">
+  <div class="rf-inner">
+
+    <div class="rf-header">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="rf-eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+
+      <h2 class="rf-heading">{{ section.settings.heading }}</h2>
+
+      {%- if section.settings.paragraph != blank -%}
+        <div class="rf-paragraph">{{ section.settings.paragraph }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- liquid
+      assign feature_count = 0
+      for block in section.blocks
+        if block.type == 'feature'
+          assign feature_count = feature_count | plus: 1
+        endif
+      endfor
+      assign row_count = feature_count | plus: 1 | divided_by: 2
+    -%}
+
+    <div class="rf-layout" style="--rf-row-count: {{ row_count }};">
+      <div class="rf-col rf-col--left">
+        {%- liquid assign feature_index = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'feature' -%}
+            {%- assign feature_index = feature_index | plus: 1 -%}
+            {%- assign side = feature_index | modulo: 2 -%}
+            {%- if side == 1 -%}
+              {%- assign row = feature_index | plus: 1 | divided_by: 2 -%}
+              <div
+                class="rf-card rf-card--left"
+                {{ block.shopify_attributes }}
+                style="--rf-row: {{ row }}; --rf-order: {{ feature_index }};"
+                data-rf-card
+                data-rf-order="{{ feature_index }}"
+              >
+                <div class="rf-card__icon">
+                  {%- render 'reeve-feature-icon', icon_key: block.settings.icon_key, icon_image: block.settings.icon_image -%}
+                </div>
+                <div class="rf-card__body">
+                  <p class="rf-card__number">{{ block.settings.number_label }}</p>
+                  <h3 class="rf-card__title">{{ block.settings.title }}</h3>
+                  {%- if block.settings.description != blank -%}
+                    <p class="rf-card__desc">{{ block.settings.description }}</p>
+                  {%- endif -%}
+                  {%- if block.settings.tag_text != blank -%}
+                    <p class="rf-card__tag">{{ block.settings.tag_text }}</p>
+                  {%- endif -%}
+                </div>
+                <svg class="rf-connector rf-connector--desktop" viewBox="0 0 64 12" aria-hidden="true">
+                  <path d="M0 6 H50" pathLength="1"></path>
+                  <circle cx="58" cy="6" r="4"></circle>
+                </svg>
+                {%- if feature_index != feature_count -%}
+                  <svg class="rf-connector rf-connector--mobile" viewBox="0 0 100 60" aria-hidden="true">
+                    <path d="M10 4 C 60 4, 40 50, 92 54" pathLength="1"></path>
+                    <circle cx="92" cy="54" r="4"></circle>
+                  </svg>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      <div class="rf-center">
+        {%- if section.settings.center_image != blank -%}
+          {{ section.settings.center_image | image_url: width: 900 | image_tag: loading: 'lazy', class: 'rf-center__image', alt: section.settings.center_image.alt }}
+        {%- endif -%}
+      </div>
+
+      <div class="rf-col rf-col--right">
+        {%- liquid assign feature_index = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'feature' -%}
+            {%- assign feature_index = feature_index | plus: 1 -%}
+            {%- assign side = feature_index | modulo: 2 -%}
+            {%- if side == 0 -%}
+              {%- assign row = feature_index | plus: 1 | divided_by: 2 -%}
+              <div
+                class="rf-card rf-card--right"
+                {{ block.shopify_attributes }}
+                style="--rf-row: {{ row }}; --rf-order: {{ feature_index }};"
+                data-rf-card
+                data-rf-order="{{ feature_index }}"
+              >
+                <div class="rf-card__icon">
+                  {%- render 'reeve-feature-icon', icon_key: block.settings.icon_key, icon_image: block.settings.icon_image -%}
+                </div>
+                <div class="rf-card__body">
+                  <p class="rf-card__number">{{ block.settings.number_label }}</p>
+                  <h3 class="rf-card__title">{{ block.settings.title }}</h3>
+                  {%- if block.settings.description != blank -%}
+                    <p class="rf-card__desc">{{ block.settings.description }}</p>
+                  {%- endif -%}
+                  {%- if block.settings.tag_text != blank -%}
+                    <p class="rf-card__tag">{{ block.settings.tag_text }}</p>
+                  {%- endif -%}
+                </div>
+                <svg class="rf-connector rf-connector--desktop" viewBox="0 0 64 12" aria-hidden="true">
+                  <path d="M0 6 H50" pathLength="1"></path>
+                  <circle cx="58" cy="6" r="4"></circle>
+                </svg>
+                {%- if feature_index != feature_count -%}
+                  <svg class="rf-connector rf-connector--mobile" viewBox="0 0 100 60" aria-hidden="true">
+                    <path d="M10 4 C 60 4, 40 50, 92 54" pathLength="1"></path>
+                    <circle cx="92" cy="54" r="4"></circle>
+                  </svg>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+
+    {%- liquid
+      assign mineral_count = 0
+      for block in section.blocks
+        if block.type == 'mineral'
+          assign mineral_count = mineral_count | plus: 1
+        endif
+      endfor
+    -%}
+
+    {%- if mineral_count > 0 -%}
+      <div class="rf-minerals">
+        {%- if section.settings.minerals_heading != blank -%}
+          <p class="rf-minerals__title">{{ section.settings.minerals_heading }}</p>
+        {%- endif -%}
+        <div class="rf-minerals__grid">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'mineral' -%}
+              <div class="rf-mineral" {{ block.shopify_attributes }}>
+                <div class="rf-mineral__symbol">{{ block.settings.symbol }}</div>
+                <p class="rf-mineral__name">{{ block.settings.name }}</p>
+                <p class="rf-mineral__desc">{{ block.settings.description }}</p>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('.rf-section');
+    if (!root) return;
+
+    Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(([{ gsap, ScrollTrigger, prefersReducedMotion }, { getScrollContainer }]) => {
+      const layout = root.querySelector('.rf-layout');
+      const cards = Array.from(root.querySelectorAll('.rf-card')).sort(
+        (a, b) => Number(a.dataset.rfOrder) - Number(b.dataset.rfOrder)
+      );
+      const image = root.querySelector('.rf-center__image');
+      const reduced = prefersReducedMotion();
+
+      if (cards.length) {
+        if (reduced) {
+          gsap.set(cards, { opacity: 1, y: 0 });
+          gsap.set(root.querySelectorAll('.rf-connector path'), { strokeDashoffset: 0 });
+          gsap.set(root.querySelectorAll('.rf-connector circle'), { opacity: 1, scale: 1 });
+        } else {
+          gsap.set(cards, { opacity: 0, y: 20 });
+
+          ScrollTrigger.create({
+            scroller: getScrollContainer(),
+            trigger: layout,
+            start: 'top 82%',
+            once: true,
+            onEnter: () => {
+              const tl = gsap.timeline();
+              cards.forEach((card, index) => {
+                const paths = card.querySelectorAll('.rf-connector path');
+                const dots = card.querySelectorAll('.rf-connector circle');
+                tl.to(card, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, index === 0 ? 0 : '-=0.2');
+                if (paths.length) {
+                  tl.to(paths, { strokeDashoffset: 0, duration: 0.4, ease: 'power1.inOut' }, '<0.1');
+                }
+                if (dots.length) {
+                  tl.to(dots, { opacity: 1, scale: 1.4, duration: 0.15, ease: 'power1.out' }, '>-0.1').to(dots, {
+                    scale: 1,
+                    duration: 0.2,
+                    ease: 'power1.inOut',
+                  });
+                }
+              });
+            },
+          });
+        }
+      }
+
+      if (image) {
+        if (reduced) {
+          gsap.set(image, { opacity: 1, scale: 1, y: 0, rotate: 0 });
+        } else {
+          gsap.set(image, { opacity: 0, scale: 0.85, y: 24 });
+
+          ScrollTrigger.create({
+            scroller: getScrollContainer(),
+            trigger: image,
+            start: 'top 85%',
+            once: true,
+            onEnter: () => {
+              gsap.to(image, {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                duration: 0.8,
+                ease: 'power3.out',
+                onComplete: () => {
+                  gsap.to(image, {
+                    y: '+=14',
+                    rotate: 1.5,
+                    duration: 2.6,
+                    ease: 'sine.inOut',
+                    yoyo: true,
+                    repeat: -1,
+                  });
+                },
+              });
+            },
+          });
+        }
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Reeve Features Grid",
+  "tag": "section",
+  "class": "section-reeve-features-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "SIX REASONS REEVÉ WORKS"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Built around what your body actually loses</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "<p>Reevé replaces what sweat, stress, and daily grind take out.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Center image"
+    },
+    {
+      "type": "image_picker",
+      "id": "center_image",
+      "label": "Product image"
+    },
+    {
+      "type": "header",
+      "content": "Minerals strip"
+    },
+    {
+      "type": "text",
+      "id": "minerals_heading",
+      "label": "Minerals strip heading",
+      "default": "SIX ELECTROLYTES. ONE SMARTER FORMULA."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#f7f3ec"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image (optional, overrides color)"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading / primary text",
+      "default": "#1b2420"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted / body text",
+      "default": "#6b6f68"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#1c5c4d"
+    },
+    {
+      "type": "color",
+      "id": "tag_color",
+      "label": "Small caps tag line color",
+      "info": "Color of each card's small caps tag line (e.g. \"ELECTROLYTE POWDER FOR HYDRATION\"). Defaults to the accent color if left as-is.",
+      "default": "#1c5c4d"
+    },
+    {
+      "type": "color",
+      "id": "icon_bg_color",
+      "label": "Icon circle background (desktop)",
+      "default": "#eaf1ee"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background (mobile cards)",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "minerals_bg_color",
+      "label": "Minerals strip background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border / divider color",
+      "default": "#e2ddd2"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Feature",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number_label",
+          "label": "Number label",
+          "default": "01"
+        },
+        {
+          "type": "select",
+          "id": "icon_key",
+          "label": "Icon",
+          "options": [
+            { "value": "water_drop", "label": "Water drop" },
+            { "value": "lightning", "label": "Lightning bolt" },
+            { "value": "brain", "label": "Brain" },
+            { "value": "skin", "label": "Skin / layers" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "leaf", "label": "Leaf" },
+            { "value": "none", "label": "None (use custom image)" }
+          ],
+          "default": "water_drop"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Custom icon image (optional, overrides icon above)"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Feature title"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Describe this reason in a sentence or two."
+        },
+        {
+          "type": "text",
+          "id": "tag_text",
+          "label": "Small caps tag line",
+          "default": "ELECTROLYTE POWDER"
+        }
+      ]
+    },
+    {
+      "type": "mineral",
+      "name": "Mineral item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "symbol",
+          "label": "Chemical symbol",
+          "default": "Na"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Name",
+          "default": "Sodium"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Short description",
+          "default": "Fluid balance"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve Features Grid",
+      "blocks": [
+        { "type": "feature", "settings": { "number_label": "01", "icon_key": "water_drop", "title": "Balanced hydration", "description": "Six essential minerals in the ratio your body actually loses: sodium, potassium, magnesium, calcium, chloride, phosphorus.", "tag_text": "ELECTROLYTE POWDER FOR HYDRATION" } },
+        { "type": "feature", "settings": { "number_label": "02", "icon_key": "lightning", "title": "Electrolyte replacement", "description": "Replaces what sweat, heat, caffeine, and travel drain out of you every single day. Each stick pack is built for rapid hydration and steady energy.", "tag_text": "ELECTROLYTE POWDER FOR ENERGY" } },
+        { "type": "feature", "settings": { "number_label": "03", "icon_key": "brain", "title": "Mental clarity & focus", "description": "Steady sodium and magnesium help keep the 3pm fog, headaches, and heaviness away—so you stay locked in all day.", "tag_text": "ELECTROLYTE POWDER FOR FOCUS" } },
+        { "type": "feature", "settings": { "number_label": "04", "icon_key": "skin", "title": "Skin barrier reinforcement", "description": "Collagen peptides plus coconut water support skin hydration from the inside out. A collagen hydration powder that does more.", "tag_text": "ELECTROLYTE POWDER FOR SKIN" } },
+        { "type": "feature", "settings": { "number_label": "05", "icon_key": "shield", "title": "Recovery acceleration", "description": "Rehydrate faster after training, heat, travel, or late nights. Clean hydration for real recovery—no sugar crash, no crash later.", "tag_text": "ELECTROLYTE POWDER FOR RECOVERY" } },
+        { "type": "feature", "settings": { "number_label": "06", "icon_key": "leaf", "title": "Zero fake stuff", "description": "No artificial flavors, no added sugar, no dyes, no artificial sweeteners. Monk fruit sweetened, third-party tested, clean label.", "tag_text": "SUGAR-FREE, CLEAN & TRANSPARENT" } },
+        { "type": "mineral", "settings": { "symbol": "Na", "name": "Sodium", "description": "Fluid balance" } },
+        { "type": "mineral", "settings": { "symbol": "K", "name": "Potassium", "description": "Muscle function" } },
+        { "type": "mineral", "settings": { "symbol": "Mg", "name": "Magnesium", "description": "Energy support" } },
+        { "type": "mineral", "settings": { "symbol": "Ca", "name": "Calcium", "description": "Bone & muscle" } },
+        { "type": "mineral", "settings": { "symbol": "Cl", "name": "Chloride", "description": "Hydration support" } },
+        { "type": "mineral", "settings": { "symbol": "P", "name": "Phosphorus", "description": "Cellular energy" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,306 @@
+{% comment %}
+  Reeve "Why We Exist" section for Horizon theme
+  Section handle: reeve-why-we-exist
+{% endcomment %}
+
+<script
+  src="{{ 'reeve-why-we-exist.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+<reeve-why-we-exist-section
+  class="reeve-why-section"
+  style="
+    --reeve-why-bg: {{ section.settings.section_background }};
+    --reeve-why-text-color: {{ section.settings.text_color }};
+    --reeve-why-muted-text-color: {{ section.settings.muted_text_color }};
+    --reeve-why-image-height: {{ section.settings.image_height }}px;
+    --reeve-why-image-radius: {{ section.settings.image_border_radius }}px;
+  "
+>
+  <div class="reeve-why-page-width">
+    {%- if section.settings.small_text != blank -%}
+      <p class="reeve-why-eyebrow" data-reeve-why-eyebrow>{{ section.settings.small_text }}</p>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <p class="reeve-why-heading" data-reeve-why-heading>
+        {% for block in section.blocks %}
+          {% case block.type %}
+            {% when 'text' %}
+              <span
+                class="reeve-why-heading__text{% if block.settings.muted %} reeve-why-heading__text--muted{% endif %}"
+                {{ block.shopify_attributes }}
+              >{{ block.settings.text }}</span>
+            {% when 'image' %}
+              <span class="reeve-why-heading__image" data-reeve-why-image {{ block.shopify_attributes }}>
+                {% if block.settings.image != blank %}
+                  {{
+                    block.settings.image
+                    | image_url: width: 400
+                    | image_tag: loading: 'lazy', alt: block.settings.alt, class: 'reeve-why-heading__image-el'
+                  }}
+                {% else %}
+                  {{ 'lifestyle-1' | placeholder_svg_tag: 'reeve-why-heading__image-el reeve-why-heading__image-el--placeholder' }}
+                {% endif %}
+              </span>
+          {% endcase %}
+        {% endfor %}
+      </p>
+    {%- endif -%}
+
+    {%- if section.settings.trailing_paragraph != blank or section.settings.button_label != blank -%}
+      <div class="reeve-why-footer" data-reeve-why-footer>
+        {%- if section.settings.trailing_paragraph != blank -%}
+          <div class="reeve-why-footer__text">{{ section.settings.trailing_paragraph }}</div>
+        {%- endif -%}
+        {%- if section.settings.button_label != blank -%}
+          <a
+            {% if section.settings.button_link != blank %}
+              href="{{ section.settings.button_link }}"
+            {% else %}
+              role="link" aria-disabled="true"
+            {% endif %}
+            class="button reeve-why-footer__button"
+          >
+            {{ section.settings.button_label }}
+            <span class="reeve-why-footer__button-icon" aria-hidden="true">↗</span>
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</reeve-why-we-exist-section>
+
+{% stylesheet %}
+  .reeve-why-section {
+    display: block;
+    background-color: var(--reeve-why-bg, transparent);
+    padding-block: clamp(1rem, 6vw, 0.5rem);
+  }
+
+  .reeve-why-page-width {
+    max-width: 1420px;
+    margin-inline: auto;
+    /*padding-inline: var(--page-margin, 24px);  */
+  }
+
+  .reeve-why-eyebrow {
+    margin: 0 0 1.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--reeve-why-text-color, inherit);
+  }
+
+  .reeve-why-heading {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-style: var(--font-heading--style);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(2rem, 4vw, 3.75rem);
+    line-height: 1.00;
+  }
+
+  .reeve-why-heading__text {
+    color: var(--reeve-why-text-color, inherit);
+  }
+
+  .reeve-why-heading__text--muted {
+    color: var(--reeve-why-muted-text-color, var(--reeve-why-text-color, inherit));
+  }
+
+  .reeve-why-heading__image {
+    display: inline-block;
+    vertical-align: middle;
+    height: var(--reeve-why-image-height, 100px);
+    aspect-ratio: 1 / 1;
+    margin-inline: 0.25em;
+    overflow: hidden;
+    border-radius: var(--reeve-why-image-radius, 12px);
+  }
+
+  .reeve-why-heading__image-el {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .reeve-why-heading__image-el--placeholder svg {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-background);
+  }
+
+  .reeve-why-footer {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    max-width: 28rem;
+  }
+
+  .reeve-why-footer__text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--reeve-why-text-color, inherit);
+  }
+
+  .reeve-why-footer__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--gap-2xs, 8px);
+  }
+
+  .reeve-why-footer__button-icon {
+    line-height: 1;
+  }
+
+  @media screen and (max-width: 749px) {
+    .reeve-why-heading {
+      font-size: clamp(1.75rem, 7vw, 2.5rem);
+    }
+
+    .reeve-why-heading__image {
+      height: calc(var(--reeve-why-image-height, 100px) * 0.6);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve why we exist",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "small_text",
+      "label": "Small text (eyebrow)",
+      "default": "02 / WHY WE EXIST"
+    },
+    {
+      "type": "header",
+      "content": "Heading text colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Primary text color",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted text color",
+      "info": "Used by text blocks with \"Muted\" checked",
+      "default": "#9fb1c9"
+    },
+    {
+      "type": "header",
+      "content": "Inline images"
+    },
+    {
+      "type": "range",
+      "id": "image_height",
+      "label": "Inline image height",
+      "min": 40,
+      "max": 160,
+      "step": 10,
+      "unit": "px",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "label": "Inline image corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Closing text"
+    },
+    {
+      "type": "richtext",
+      "id": "trailing_paragraph",
+      "label": "Paragraph",
+      "default": "<p>Science-backed fluids. Real-world performance.<br>Find out how we keep you operating at your peak.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Discover our approach"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Section style"
+    },
+    {
+      "type": "color",
+      "id": "section_background",
+      "label": "Section background",
+      "default": "#f5f2ea"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text",
+          "default": "We exist to keep you at your peak,"
+        },
+        {
+          "type": "checkbox",
+          "id": "muted",
+          "label": "Muted (secondary color)",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "name": "Inline image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image or GIF"
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "Alt text",
+          "info": "Leave blank if purely decorative"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve why we exist",
+      "blocks": [
+        { "type": "text", "settings": { "text": "We exist to keep you at your peak, reimagining IV therapy" } },
+        { "type": "image" },
+        { "type": "text", "settings": { "text": "into a portable drink" } },
+        { "type": "text", "settings": { "text": "that fuels performance, supports recovery, and keeps you sharp. Every day.", "muted": true } }
+      ]
+    }
+  ]
+}
+{% endschema %}

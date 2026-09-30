@@ -1,0 +1,331 @@
+{%- liquid
+  assign steps = section.blocks | where: 'type', 'step'
+  assign notes = section.blocks | where: 'type', 'note'
+  assign img_alt = section.settings.heading | escape
+-%}
+
+<div
+  class="blint-timeline spacing-style color-{{ section.settings.color_scheme }}"
+  style="{% render 'spacing-style', settings: section.settings %} --heading-size: {{ section.settings.heading_font_size }}px;"
+  {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
+>
+  <div class="blint-timeline__inner">
+    <div class="blint-timeline__card" style="--timeline-bg: {{ section.settings.bg_color }};">
+      <div class="blint-timeline__top">
+        <div class="blint-timeline__intro">
+          {%- if section.settings.heading != blank -%}
+            <h2 class="blint-timeline__heading">{{ section.settings.heading }}</h2>
+          {%- endif -%}
+          {%- if section.settings.body != blank -%}
+            <div class="blint-timeline__body">{{ section.settings.body }}</div>
+          {%- endif -%}
+        </div>
+
+        <div class="blint-timeline__media">
+          {%- if section.settings.image != blank -%}
+            {{ section.settings.image | image_url: width: 800 | image_tag: loading: 'lazy', sizes: '(min-width: 1000px) 28vw, 60vw', widths: '300, 500, 700, 800', alt: img_alt, class: 'blint-timeline__image' }}
+          {%- else -%}
+            {{ 'product-1' | placeholder_svg_tag: 'blint-timeline__image' }}
+          {%- endif -%}
+        </div>
+
+        {%- if steps.size > 0 -%}
+          <ol class="blint-timeline__steps" role="list">
+            {%- for block in steps -%}
+              <li class="blint-timeline__step" {{ block.shopify_attributes }}>
+                <span class="blint-timeline__step-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"><path d="M12 3v18M3 12h18M5.5 5.5l13 13M18.5 5.5l-13 13"/></svg>
+                </span>
+                <div class="blint-timeline__step-content">
+                  {%- if block.settings.title != blank -%}<h3 class="blint-timeline__step-title">{{ block.settings.title }}</h3>{%- endif -%}
+                  {%- if block.settings.text != blank -%}<p class="blint-timeline__step-text">{{ block.settings.text }}</p>{%- endif -%}
+                </div>
+              </li>
+            {%- endfor -%}
+          </ol>
+        {%- endif -%}
+      </div>
+
+      {%- if notes.size > 0 -%}
+        <div class="blint-timeline__notes">
+          {%- for block in notes -%}
+            <div class="blint-timeline__note" {{ block.shopify_attributes }}>
+              {%- if block.settings.label != blank -%}<span class="blint-timeline__note-label">{{ block.settings.label }}</span>{%- endif -%}
+              {%- if block.settings.text != blank -%}<p class="blint-timeline__note-text">{{ block.settings.text }}</p>{%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .blint-timeline__inner {
+    max-width: var(--page-width, 1500px);
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 4vw, 3rem);
+  }
+
+  .blint-timeline__card {
+    background: var(--timeline-bg, #d9f5df);
+    border-radius: 28px;
+    padding: clamp(1.75rem, 4vw, 4rem);
+  }
+
+  .blint-timeline__top {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    align-items: center;
+  }
+
+  @media screen and (min-width: 1000px) {
+    .blint-timeline__top {
+      grid-template-columns: 1.05fr 0.9fr 1.15fr;
+      gap: 3rem;
+    }
+  }
+
+  .blint-timeline__heading {
+    margin: 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: min(var(--heading-size, 52px), 14vw);
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+  }
+
+  .blint-timeline__body {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.85);
+  }
+
+  .blint-timeline__body > :first-child { margin-top: 0; }
+  .blint-timeline__body > :last-child { margin-bottom: 0; }
+
+  .blint-timeline__media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .blint-timeline__image {
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    object-fit: contain;
+  }
+
+  /* Timeline */
+  .blint-timeline__steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .blint-timeline__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 1rem;
+    padding-bottom: 2.25rem;
+  }
+
+  .blint-timeline__step:last-child { padding-bottom: 0; }
+
+  .blint-timeline__step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    transform: translateX(-50%);
+    top: 0.2rem;
+    bottom: -0.2rem;
+    width: 1.5px;
+    background: rgb(var(--color-foreground-rgb, 0 0 0) / 0.5);
+  }
+
+  .blint-timeline__step-icon {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    color: var(--color-foreground, #111);
+    background: var(--timeline-bg, #d9f5df);
+  }
+
+  .blint-timeline__step-title {
+    margin: 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 600;
+    font-size: 1.4rem;
+    line-height: 1.1;
+  }
+
+  .blint-timeline__step-text {
+    margin: 0.5rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.8);
+  }
+
+  /* Notes */
+  .blint-timeline__notes {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-top: 3rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.25);
+  }
+
+  @media screen and (min-width: 750px) {
+    .blint-timeline__notes {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .blint-timeline__note-label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .blint-timeline__note-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.8);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Blint timeline",
+  "tag": "section",
+  "class": "blint-timeline-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What's happening in your body?"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size",
+      "label": "Heading font size",
+      "min": 20,
+      "max": 120,
+      "step": 1,
+      "unit": "px",
+      "default": 52
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body text",
+      "default": "<p>As Blint's nootropics and adaptogens build up, your brain and body gain steadier access to the support they need. Over time this can show up as calmer focus, smoother energy, and better resilience to daily demands — effects that grow as levels reach a steady state.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Center image"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Card background",
+      "default": "#d9f5df"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Timeline step",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Week 1"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text"
+        }
+      ]
+    },
+    {
+      "type": "note",
+      "name": "Footer note",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Label"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blint timeline",
+      "blocks": [
+        { "type": "step", "settings": { "title": "Week 1", "text": "Active ingredients begin to accumulate, laying the groundwork for steadier focus and calm." } },
+        { "type": "step", "settings": { "title": "Week 2", "text": "Levels continue to build, improving the consistency of your energy and recovery between demands." } },
+        { "type": "step", "settings": { "title": "Week 3", "text": "Approaching a steady state, you may notice sharper focus and more reliable, lasting calm." } },
+        { "type": "step", "settings": { "title": "Week 4", "text": "Levels stabilize, helping sustain consistent focus, energy, and recovery day to day." } },
+        { "type": "note", "settings": { "label": "Timing", "text": "Take Blint at a consistent time each day — many customers use it in the morning or before focused work." } },
+        { "type": "note", "settings": { "label": "Results", "text": "Most people notice the difference within 2-3 weeks." } },
+        { "type": "note", "settings": { "label": "Loading", "text": "No loading phase needed." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

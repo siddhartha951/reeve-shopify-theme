@@ -1,0 +1,1214 @@
+{% comment %}
+  Reeve FAQ — editorial two-column FAQ section for Horizon theme
+  Section handle: reeve-faq
+{% endcomment %}
+
+{%- liquid
+  assign s = section.settings
+  assign trust_items = section.blocks | where: 'type', 'trust_item'
+  assign faqs = section.blocks | where: 'type', 'faq'
+  assign section_id = section.id
+  assign accordion_name = 'rfaq-group-' | append: section_id
+-%}
+
+{%- capture icon_flask -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.5 3h5M10 3v6.2L4.8 18a1.6 1.6 0 0 0 1.4 2.4h11.6a1.6 1.6 0 0 0 1.4-2.4L14 9.2V3" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 14.5h9" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_leaf -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 4S8.5 3.5 5 9s-1 11-1 11 6.5 2.5 11-1 5-15 5-15z" stroke-linejoin="round"/><path d="M4.5 19.5L12 12" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_droplet -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3s6.5 7.2 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10.2 12 3 12 3z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_heart -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 5c-2.3 4.6-9.3 9-9.3 9z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_shield -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l7 3v5.2c0 4.7-3 7.9-7 9.8-4-1.9-7-5.1-7-9.8V6l7-3z" stroke-linejoin="round"/><path d="M8.7 12.2l2.2 2.2 4.4-4.6" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_sparkle -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_chat -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16v11H9l-4 3.5V16H4V5z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_clock -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+
+<section
+  class="reeve-faq"
+  data-section-id="{{ section_id }}"
+  style="
+    --rfaq-bg: {{ s.background_color }};
+    --rfaq-heading: {{ s.heading_color }};
+    --rfaq-text: {{ s.text_color }};
+    --rfaq-eyebrow: {{ s.eyebrow_color }};
+    --rfaq-accent: {{ s.accent_color }};
+    --rfaq-highlight: {{ s.highlight_color }};
+    --rfaq-card-bg: {{ s.card_bg_color }};
+    --rfaq-card-border: {{ s.card_border_color }};
+    --rfaq-active-bg: {{ s.active_bg_color }};
+    --rfaq-active-text: {{ s.active_text_color }};
+    --rfaq-mobile-active-bg: {{ s.mobile_active_bg_color }};
+    --rfaq-radius: {{ s.border_radius }}px;
+    --rfaq-image-radius: {{ s.image_border_radius }}px;
+    --rfaq-max-width: {{ s.max_width }}px;
+    --rfaq-column-gap: {{ s.column_gap }}px;
+    --rfaq-padding-top-desktop: {{ s.padding_top_desktop }}px;
+    --rfaq-padding-bottom-desktop: {{ s.padding_bottom_desktop }}px;
+    --rfaq-padding-top-mobile: {{ s.padding_top_mobile }}px;
+    --rfaq-padding-bottom-mobile: {{ s.padding_bottom_mobile }}px;
+  "
+>
+  <div class="reeve-faq__inner">
+
+    {%- comment -%}
+      On mobile this whole block is a side-by-side row (text left, image
+      right, matching row 1 of the mobile design); on desktop it becomes a
+      simple centered header and the mobile-only image is hidden — the
+      desktop image lives in the left column below instead.
+    {%- endcomment -%}
+    <div class="reeve-faq__top">
+      <header class="reeve-faq__header">
+        {%- if s.eyebrow != blank -%}
+          <p class="reeve-faq__eyebrow">{{ s.eyebrow }}</p>
+        {%- endif -%}
+
+        {%- if s.heading != blank -%}
+          <h2 class="reeve-faq__heading">
+            {{ s.heading }}{% if s.highlight_text != blank %} <span class="reeve-faq__highlight">{{ s.highlight_text }}</span>{% endif %}
+          </h2>
+        {%- endif -%}
+
+        {%- if s.paragraph != blank -%}
+          <p class="reeve-faq__paragraph">{{ s.paragraph }}</p>
+        {%- endif -%}
+      </header>
+
+      {%- if s.mobile_image != blank -%}
+        <div class="reeve-faq__mobile-hero">
+          <div class="reeve-faq__mobile-image-wrap">
+            {{
+              s.mobile_image
+              | image_url: width: 900
+              | image_tag: loading: 'lazy', sizes: '(min-width: 990px) 0px, 45vw', widths: '300, 450, 600, 900', class: 'reeve-faq__mobile-image'
+            }}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="reeve-faq__body">
+
+      {%- comment -%} ================= LEFT COLUMN: trust markers + desktop image ================= {%- endcomment -%}
+      <div class="reeve-faq__left">
+        {%- if s.show_trust_markers and trust_items.size > 0 -%}
+          <div class="reeve-faq__trust" style="--rfaq-trust-columns: {{ s.trust_columns }};">
+            {%- for block in trust_items -%}
+              {%- liquid
+                assign icon_key = block.settings.icon
+                assign icon_markup = icon_leaf
+                case icon_key
+                  when 'flask'
+                    assign icon_markup = icon_flask
+                  when 'leaf'
+                    assign icon_markup = icon_leaf
+                  when 'droplet'
+                    assign icon_markup = icon_droplet
+                  when 'heart'
+                    assign icon_markup = icon_heart
+                  when 'shield'
+                    assign icon_markup = icon_shield
+                  when 'sparkle'
+                    assign icon_markup = icon_sparkle
+                endcase
+              -%}
+              <div class="reeve-faq__trust-item" {{ block.shopify_attributes }}>
+                <span class="reeve-faq__trust-icon" aria-hidden="true">{{ icon_markup }}</span>
+                <span class="reeve-faq__trust-copy">
+                  {%- if block.settings.title != blank -%}
+                    <span class="reeve-faq__trust-title">{{ block.settings.title }}</span>
+                  {%- endif -%}
+                  {%- if block.settings.subtitle != blank -%}
+                    <span class="reeve-faq__trust-subtitle">{{ block.settings.subtitle }}</span>
+                  {%- endif -%}
+                </span>
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if s.desktop_image != blank -%}
+          <div class="reeve-faq__image-wrap">
+            {{
+              s.desktop_image
+              | image_url: width: 1200
+              | image_tag: loading: 'lazy', sizes: '(min-width: 990px) 40vw, 0px', widths: '400, 600, 900, 1200', class: 'reeve-faq__image'
+            }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ================= RIGHT COLUMN: FAQ accordion + contact block ================= {%- endcomment -%}
+      <div class="reeve-faq__right">
+        {%- if faqs.size > 0 -%}
+          <div class="reeve-faq__list">
+            {%- for block in faqs -%}
+              <details
+                class="reeve-faq__item"
+                {% if block.settings.open_by_default %}open{% endif %}
+                {% if s.exclusive_accordion %}name="{{ accordion_name }}"{% endif %}
+                {{ block.shopify_attributes }}
+              >
+                <summary class="reeve-faq__question">
+                  <span class="reeve-faq__badge" aria-hidden="true">
+                    <span class="reeve-faq__badge-mark reeve-faq__badge-mark--q">?</span>
+                    <span class="reeve-faq__badge-mark reeve-faq__badge-mark--pm"></span>
+                  </span>
+                  <span class="reeve-faq__question-text">{{ block.settings.question }}</span>
+                  <svg class="reeve-faq__chevron" viewBox="0 0 12 8" aria-hidden="true" focusable="false">
+                    <path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </summary>
+                <div class="reeve-faq__answer">
+                  {{ block.settings.answer }}
+                </div>
+              </details>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {%- if s.show_contact_block -%}
+          <div class="reeve-faq__contact">
+            <div class="reeve-faq__contact-main">
+              <span class="reeve-faq__contact-icon" aria-hidden="true">{{ icon_chat }}</span>
+              <div class="reeve-faq__contact-copy">
+                {%- if s.contact_heading != blank -%}
+                  <p class="reeve-faq__contact-heading">{{ s.contact_heading }}</p>
+                {%- endif -%}
+                {%- if s.contact_subheading != blank -%}
+                  <p class="reeve-faq__contact-subheading">{{ s.contact_subheading }}</p>
+                {%- endif -%}
+                {%- if s.contact_email != blank -%}
+                  <a href="mailto:{{ s.contact_email }}" class="reeve-faq__contact-email">{{ s.contact_email }}</a>
+                {%- endif -%}
+              </div>
+            </div>
+
+            {%- if s.reply_time_value != blank -%}
+              <div class="reeve-faq__contact-divider" aria-hidden="true"></div>
+              <div class="reeve-faq__contact-reply">
+                <span class="reeve-faq__contact-icon reeve-faq__contact-icon--clock" aria-hidden="true">{{ icon_clock }}</span>
+                <p class="reeve-faq__contact-reply-text">
+                  {{ s.reply_time_prefix }} <span class="reeve-faq__contact-reply-value">{{ s.reply_time_value }}</span>
+                </p>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        {%- if s.more_doubts_link != blank -%}
+          <a href="{{ s.more_doubts_link }}" class="reeve-faq__more-doubts">
+            {{ s.more_doubts_label | default: 'More doubts? Click here' }}
+            <span class="reeve-faq__more-doubts-arrow" aria-hidden="true">&#8594;</span>
+          </a>
+        {%- endif -%}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .reeve-faq {
+    position: relative;
+    background: var(--rfaq-bg, #fbf3e9);
+    color: var(--rfaq-text, #10192b);
+    padding-top: var(--rfaq-padding-top-mobile, 48px);
+    padding-bottom: var(--rfaq-padding-bottom-mobile, 48px);
+    overflow: hidden;
+  }
+
+  .reeve-faq__inner {
+    max-width: var(--rfaq-max-width, 1400px);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  /* ---------- Top row: header text + mobile-only image side by side ---------- */
+  .reeve-faq__top {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1rem, 4vw, 2rem);
+    margin-bottom: 2rem;
+  }
+
+  .reeve-faq__header {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .reeve-faq__eyebrow {
+    margin: 0 0 0.6rem;
+    font-family: var(--font-body--family);
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rfaq-eyebrow, var(--rfaq-accent, #d6316f));
+  }
+
+  .reeve-faq__heading {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    color: var(--rfaq-heading, #10192b);
+    font-size: clamp(1.9rem, 6vw, 3.1rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  .reeve-faq__highlight {
+    font-style: italic;
+    color: var(--rfaq-highlight, var(--rfaq-accent, #d6316f));
+  }
+
+  .reeve-faq__paragraph {
+    margin: 0;
+    max-width: 46rem;
+    font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+    line-height: 1.55;
+    opacity: 0.75;
+  }
+
+  /* ---------- Mobile hero image (row 1, beside the header text) ---------- */
+  .reeve-faq__mobile-hero {
+    position: relative;
+    flex: 0 0 auto;
+    width: clamp(6.5rem, 32vw, 10rem);
+  }
+
+  .reeve-faq__mobile-image-wrap {
+    position: relative;
+    border-radius: var(--rfaq-image-radius, 24px);
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+  }
+
+  .reeve-faq__mobile-image-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    background: radial-gradient(circle, color-mix(in srgb, var(--rfaq-accent, #d6316f) 14%, transparent) 0%, transparent 70%);
+  }
+
+  .reeve-faq__mobile-image {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ---------- Body layout (mobile-first: single column) ---------- */
+  .reeve-faq__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .reeve-faq__left {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .reeve-faq__image-wrap {
+    display: none;
+  }
+
+  /* ---------- Trust markers: compact row on mobile ---------- */
+  .reeve-faq__trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 1rem;
+  }
+
+  .reeve-faq__trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex: 1 1 40%;
+    min-width: 0;
+  }
+
+  .reeve-faq__trust-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    padding: 0.5rem;
+    background: color-mix(in srgb, var(--rfaq-accent, #d6316f) 12%, #fff);
+    color: var(--rfaq-accent, #d6316f);
+  }
+
+  .reeve-faq__trust-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .reeve-faq__trust-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .reeve-faq__trust-title {
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+
+  .reeve-faq__trust-subtitle {
+    display: none;
+    font-size: 0.82rem;
+    opacity: 0.65;
+    line-height: 1.3;
+  }
+
+  /* ---------- FAQ list ---------- */
+  .reeve-faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .reeve-faq__item {
+    border: 1px solid var(--rfaq-card-border, #ecdfe9);
+    background: var(--rfaq-card-bg, #fff);
+    border-radius: var(--rfaq-radius, 16px);
+    overflow: hidden;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .reeve-faq__item[open] {
+    background: var(--rfaq-mobile-active-bg, #fdeef3);
+    border-color: transparent;
+  }
+
+  .reeve-faq__question {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.1rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-heading--family);
+    font-weight: 600;
+    font-size: 0.98rem;
+    line-height: 1.35;
+  }
+
+  .reeve-faq__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .reeve-faq__question-text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .reeve-faq__badge {
+    position: relative;
+    flex-shrink: 0;
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+
+  .reeve-faq__badge-mark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--rfaq-accent, #d6316f);
+    color: #fff;
+  }
+
+  .reeve-faq__badge-mark--q {
+    display: none;
+  }
+
+  .reeve-faq__badge-mark--pm {
+    display: flex;
+  }
+
+  .reeve-faq__badge-mark--pm::before,
+  .reeve-faq__badge-mark--pm::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.7rem;
+    height: 2px;
+    background: currentColor;
+    border-radius: 1px;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .reeve-faq__badge-mark--pm::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
+  .reeve-faq__item[open] .reeve-faq__badge-mark--pm::after {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  .reeve-faq__chevron {
+    flex-shrink: 0;
+    width: 0.7rem;
+    color: var(--rfaq-heading, #10192b);
+    opacity: 0.6;
+    transition: transform 0.25s ease, color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .reeve-faq__item[open] .reeve-faq__chevron {
+    transform: rotate(180deg);
+    color: var(--rfaq-accent, #d6316f);
+    opacity: 1;
+  }
+
+  .reeve-faq__answer {
+    padding: 0 1.1rem 1.1rem 3.55rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    opacity: 0.75;
+  }
+
+  .reeve-faq__answer > :first-child {
+    margin-top: 0;
+  }
+
+  .reeve-faq__answer > :last-child {
+    margin-bottom: 0;
+  }
+
+  /* ---------- Contact / "still have questions" block ---------- */
+  .reeve-faq__contact {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-top: 1.5rem;
+    padding: 1.35rem 1.5rem;
+    border-radius: var(--rfaq-radius, 16px);
+    background: color-mix(in srgb, var(--rfaq-accent, #d6316f) 8%, #fff);
+  }
+
+  .reeve-faq__contact-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+  }
+
+  .reeve-faq__contact-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    padding: 0.65rem;
+    background: color-mix(in srgb, var(--rfaq-accent, #d6316f) 16%, #fff);
+    color: var(--rfaq-accent, #d6316f);
+  }
+
+  .reeve-faq__contact-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .reeve-faq__contact-icon--clock {
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0.5rem;
+    background: transparent;
+  }
+
+  .reeve-faq__contact-copy {
+    min-width: 0;
+  }
+
+  .reeve-faq__contact-heading {
+    margin: 0 0 0.2rem;
+    font-family: var(--font-heading--family);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .reeve-faq__contact-subheading {
+    margin: 0 0 0.35rem;
+    font-size: 0.88rem;
+    opacity: 0.65;
+  }
+
+  .reeve-faq__contact-email {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--rfaq-accent, #d6316f);
+    text-decoration: none;
+  }
+
+  .reeve-faq__contact-email:hover {
+    text-decoration: underline;
+  }
+
+  .reeve-faq__contact-divider {
+    height: 1px;
+    background: color-mix(in srgb, var(--rfaq-accent, #d6316f) 18%, transparent);
+  }
+
+  .reeve-faq__contact-reply {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .reeve-faq__contact-reply-text {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.75;
+  }
+
+  .reeve-faq__contact-reply-value {
+    font-weight: 700;
+    color: var(--rfaq-accent, #d6316f);
+    opacity: 1;
+  }
+
+  /* ---------- "More doubts" link button ---------- */
+  .reeve-faq__more-doubts {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding: 0.9rem 1.5rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--rfaq-accent, #d6316f);
+    color: var(--rfaq-accent, #d6316f);
+    font-family: var(--font-heading--family);
+    font-weight: 700;
+    font-size: 0.92rem;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .reeve-faq__more-doubts:hover {
+    background: var(--rfaq-accent, #d6316f);
+    color: #fff;
+  }
+
+  .reeve-faq__more-doubts-arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .reeve-faq__more-doubts:hover .reeve-faq__more-doubts-arrow {
+    transform: translateX(3px);
+  }
+
+  /* ---------- Desktop: two-column layout ---------- */
+  @media screen and (min-width: 990px) {
+    .reeve-faq {
+      padding-top: var(--rfaq-padding-top-desktop, 96px);
+      padding-bottom: var(--rfaq-padding-bottom-desktop, 96px);
+    }
+
+    .reeve-faq__top {
+      display: block;
+      margin-bottom: 3.5rem;
+    }
+
+    .reeve-faq__header {
+      text-align: center;
+    }
+
+    .reeve-faq__eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .reeve-faq__eyebrow::after {
+      content: '';
+      width: 2.75rem;
+      height: 2px;
+      background: var(--rfaq-accent, #d6316f);
+    }
+
+    .reeve-faq__paragraph {
+      margin-inline: auto;
+      text-align: center;
+    }
+
+    /* Mobile-only hero row is hidden entirely on desktop; the desktop image
+       (left column) takes over instead. */
+    .reeve-faq__mobile-hero {
+      display: none;
+    }
+
+    .reeve-faq__body {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: var(--rfaq-column-gap, 64px);
+    }
+
+    .reeve-faq__left {
+      flex: 0 0 auto;
+      width: 38%;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .reeve-faq__right {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    .reeve-faq__trust {
+      display: grid;
+      grid-template-columns: repeat(var(--rfaq-trust-columns, 2), minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .reeve-faq__trust-item {
+      flex: none;
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.85rem;
+      padding: 1.35rem 1.25rem;
+      border-radius: var(--rfaq-radius, 16px);
+      background: var(--rfaq-card-bg, #fff);
+    }
+
+    .reeve-faq__trust-subtitle {
+      display: block;
+    }
+
+    .reeve-faq__image-wrap {
+      display: block;
+      border-radius: var(--rfaq-image-radius, 24px);
+      overflow: hidden;
+      aspect-ratio: 3 / 4;
+    }
+
+    .reeve-faq__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Desktop question rows: bigger, "?" badge instead of +/-, dark active bar */
+    .reeve-faq__question {
+      padding: 1.35rem 1.5rem;
+      font-size: 1.08rem;
+    }
+
+    .reeve-faq__badge-mark--q {
+      display: flex;
+      background: color-mix(in srgb, var(--rfaq-accent, #d6316f) 12%, #fff);
+      color: var(--rfaq-accent, #d6316f);
+      font-family: var(--font-heading--family);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .reeve-faq__badge-mark--pm {
+      display: none;
+    }
+
+    .reeve-faq__item {
+      border-radius: var(--rfaq-radius, 16px);
+    }
+
+    .reeve-faq__item[open] {
+      background: var(--rfaq-active-bg, #10192b);
+      border-color: transparent;
+    }
+
+    .reeve-faq__item[open] .reeve-faq__question {
+      color: var(--rfaq-active-text, #fff);
+    }
+
+    .reeve-faq__item[open] .reeve-faq__badge-mark--q {
+      background: var(--rfaq-active-text, #fff);
+      color: var(--rfaq-accent, #d6316f);
+    }
+
+    .reeve-faq__item[open] .reeve-faq__chevron {
+      color: var(--rfaq-active-text, #fff);
+    }
+
+    .reeve-faq__answer {
+      padding-left: 4.15rem;
+    }
+
+    .reeve-faq__item[open] .reeve-faq__answer {
+      color: var(--rfaq-active-text, #fff);
+      opacity: 0.85;
+    }
+
+    .reeve-faq__contact {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .reeve-faq__contact-divider {
+      width: 1px;
+      height: 2.75rem;
+      align-self: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reeve-faq * {
+      transition: none !important;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve FAQ",
+  "tag": "section",
+  "class": "reeve-faq-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Header content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Frequently Asked Questions"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Your questions,"
+    },
+    {
+      "type": "text",
+      "id": "highlight_text",
+      "label": "Highlighted heading text",
+      "info": "Appended after the heading above, shown in italic and the accent color.",
+      "default": "answered."
+    },
+    {
+      "type": "textarea",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "Everything you need to know about Reevé and how it fits into your daily routine."
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "desktop_image",
+      "label": "Left column image (desktop)"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Top image (mobile)",
+      "info": "Shown only on mobile — can be a different image from the desktop one above."
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "label": "Image corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Trust markers"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_markers",
+      "label": "Show trust markers",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "trust_columns",
+      "label": "Columns (desktop)",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "header",
+      "content": "Accordion behavior"
+    },
+    {
+      "type": "checkbox",
+      "id": "exclusive_accordion",
+      "label": "Only one question open at a time",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "\"Still have questions\" block"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_contact_block",
+      "label": "Show contact block",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "contact_heading",
+      "label": "Heading",
+      "default": "Still have questions?"
+    },
+    {
+      "type": "text",
+      "id": "contact_subheading",
+      "label": "Subheading",
+      "default": "We're here to help."
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "Email address",
+      "default": "hello@reevehydration.com"
+    },
+    {
+      "type": "text",
+      "id": "reply_time_prefix",
+      "label": "Reply time text",
+      "default": "We usually reply within"
+    },
+    {
+      "type": "text",
+      "id": "reply_time_value",
+      "label": "Reply time value",
+      "info": "Shown in the accent color right after the text above.",
+      "default": "12–24 hours"
+    },
+    {
+      "type": "header",
+      "content": "\"More doubts\" button"
+    },
+    {
+      "type": "paragraph",
+      "content": "Optional button shown at the bottom of the FAQ list. Only appears once a link is set below."
+    },
+    {
+      "type": "text",
+      "id": "more_doubts_label",
+      "label": "Button label",
+      "default": "More doubts? Click here"
+    },
+    {
+      "type": "url",
+      "id": "more_doubts_link",
+      "label": "Button link",
+      "info": "Leave blank to hide the button."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#fbf3e9"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "Eyebrow",
+      "default": "#d6316f"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent",
+      "default": "#d6316f"
+    },
+    {
+      "type": "color",
+      "id": "highlight_color",
+      "label": "Highlighted heading text",
+      "default": "#d6316f"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_border_color",
+      "label": "Card border",
+      "default": "#ecdfe9"
+    },
+    {
+      "type": "color",
+      "id": "active_bg_color",
+      "label": "Active question background (desktop)",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "active_text_color",
+      "label": "Active question text (desktop)",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "mobile_active_bg_color",
+      "label": "Active question background (mobile)",
+      "default": "#fdeef3"
+    },
+    {
+      "type": "header",
+      "content": "Layout & spacing"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Max content width",
+      "min": 1000,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 1400
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Column gap (desktop)",
+      "min": 24,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "label": "Padding top (desktop)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "label": "Padding bottom (desktop)",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Padding top (mobile)",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Padding bottom (mobile)",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "trust_item",
+      "name": "Trust marker",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "flask", "label": "Flask (tested)" },
+            { "value": "leaf", "label": "Leaf (clean)" },
+            { "value": "droplet", "label": "Droplet (hydration)" },
+            { "value": "heart", "label": "Heart" },
+            { "value": "shield", "label": "Shield (results)" },
+            { "value": "sparkle", "label": "Sparkle" }
+          ],
+          "default": "leaf"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Clean Ingredients"
+        },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Subtitle",
+          "info": "Shown on desktop cards only; hidden in the compact mobile row.",
+          "default": "No artificial dyes or fillers"
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "name": "Question",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "Frequently asked question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Add your answer here.</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_by_default",
+          "label": "Open by default",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve FAQ",
+      "blocks": [
+        {
+          "type": "trust_item",
+          "settings": { "icon": "flask", "title": "Third-Party Tested", "subtitle": "Purity, potency & safety" }
+        },
+        {
+          "type": "trust_item",
+          "settings": { "icon": "leaf", "title": "Clean Ingredients", "subtitle": "No artificial dyes or fillers" }
+        },
+        {
+          "type": "trust_item",
+          "settings": { "icon": "droplet", "title": "Real Hydration", "subtitle": "6 electrolytes, real results" }
+        },
+        {
+          "type": "trust_item",
+          "settings": { "icon": "shield", "title": "Made for Results", "subtitle": "Feel better, perform better" }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "What is Reevé?",
+            "open_by_default": true,
+            "answer": "<p>Reevé is a collagen peptide electrolyte drink mix designed to hydrate, restore and support your everyday performance. It combines 6 essential electrolytes, real coconut water and clean ingredients with zero added sugar.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "How do I use Reevé?",
+            "answer": "<p>Empty one stick pack into 16–20 oz of water, stir or shake, and drink. Use daily for everyday hydration or around workouts, travel, or whenever you need to bounce back.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "What does Reevé taste like?",
+            "answer": "<p>Light, refreshing, and naturally flavored — never chalky or overly sweet. Each flavor is crafted to taste great without added sugar.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "When is the best time to drink Reevé?",
+            "answer": "<p>Anytime you're running low — morning hydration, before or after a workout, during travel, or whenever you need a reset.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "Is Reevé safe for daily use?",
+            "answer": "<p>Yes. Reevé is formulated with clean, everyday ingredients that are safe to use daily as part of your regular hydration routine.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "Does Reevé contain caffeine?",
+            "answer": "<p>No. Reevé is caffeine-free, so you can drink it any time of day without affecting your sleep.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "Is Reevé suitable for a keto or low-sugar diet?",
+            "answer": "<p>Yes. Reevé has zero added sugar and fits easily into keto, low-sugar, and low-carb lifestyles.</p>"
+          }
+        },
+        {
+          "type": "faq",
+          "settings": {
+            "question": "Where are Reevé products made?",
+            "answer": "<p>Reevé is manufactured in a cGMP-certified facility and third-party tested for purity, potency and safety.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

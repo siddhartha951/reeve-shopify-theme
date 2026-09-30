@@ -1,0 +1,739 @@
+{% comment %}
+  Reeve Trust Markers — icon/label badge row for Horizon theme
+  Section handle: reeve-trust-markers
+{% endcomment %}
+
+{%- liquid
+  assign s = section.settings
+  assign marker_blocks = section.blocks | where: 'type', 'marker'
+  assign section_id = section.id
+-%}
+
+{%- capture icon_shield -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_leaf -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 4S8.5 3.5 5 9s-1 11-1 11 6.5 2.5 11-1 5-15 5-15z" stroke-linejoin="round"/><path d="M4.5 19.5L12 12" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_truck -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7h11v8H2z" stroke-linejoin="round"/><path d="M13 10h4l3 3v2h-7z" stroke-linejoin="round"/><circle cx="6.2" cy="17" r="1.6"/><circle cx="16.8" cy="17" r="1.6"/></svg>{%- endcapture -%}
+{%- capture icon_medal -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="14" r="5.2"/><path d="M9.5 9.2L7 3h3l2 4.4L14 3h3l-2.5 6.2" stroke-linejoin="round"/><path d="M10 14l1.4 1.4L14.5 12" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_refresh -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12a8 8 0 0 1 13.6-5.7L20 8.5" stroke-linecap="round"/><path d="M20 4v4.5h-4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12a8 8 0 0 1-13.6 5.7L4 15.5" stroke-linecap="round"/><path d="M4 20v-4.5h4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_lock -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" stroke-linecap="round"/><circle cx="12" cy="15" r="1.3"/></svg>{%- endcapture -%}
+{%- capture icon_star -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3.5l2.5 5.4 5.9.6-4.4 4 1.2 5.9L12 16.4l-5.2 3 1.2-5.9-4.4-4 5.9-.6z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_heart -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 5c-2.3 4.6-9.3 9-9.3 9z" stroke-linejoin="round"/></svg>{%- endcapture -%}
+
+<section
+  class="reeve-trust-markers"
+  data-section-id="{{ section_id }}"
+  data-animations-enabled="{{ s.enable_animations }}"
+  data-style="{{ s.layout_style }}"
+  data-icon-style="{{ s.icon_style }}"
+  style="
+    --rtm-bg: {{ s.background_color }};
+    --rtm-text: {{ s.text_color }};
+    --rtm-accent: {{ s.accent_color }};
+    --rtm-border: {{ s.divider_color }};
+    --rtm-icon-size: {{ s.icon_size }}px;
+    --rtm-max-width: {{ s.max_width }}px;
+    --rtm-gap: {{ s.gap }}px;
+    --rtm-columns-mobile: {{ s.columns_mobile }};
+    --rtm-padding-inline-mobile: {{ s.mobile_horizontal_padding }}px;
+    --rtm-padding-top-desktop: {{ s.padding_top_desktop }}px;
+    --rtm-padding-bottom-desktop: {{ s.padding_bottom_desktop }}px;
+    --rtm-padding-top-mobile: {{ s.padding_top_mobile }}px;
+    --rtm-padding-bottom-mobile: {{ s.padding_bottom_mobile }}px;
+    --rtm-margin-top-desktop: {{ s.margin_top_desktop }}px;
+    --rtm-margin-bottom-desktop: {{ s.margin_bottom_desktop }}px;
+    --rtm-margin-top-mobile: {{ s.margin_top_mobile }}px;
+    --rtm-margin-bottom-mobile: {{ s.margin_bottom_mobile }}px;
+  "
+>
+  <div class="reeve-trust-markers__inner">
+    {%- if s.eyebrow != blank or s.heading != blank -%}
+      <header class="reeve-trust-markers__header" data-rtm-header>
+        {%- if s.eyebrow != blank -%}
+          <p class="reeve-trust-markers__eyebrow" data-rtm-reveal>{{ s.eyebrow }}</p>
+        {%- endif -%}
+        {%- if s.heading != blank -%}
+          <h2 class="reeve-trust-markers__heading" data-rtm-reveal>{{ s.heading }}</h2>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    {%- if marker_blocks.size > 0 -%}
+      <div class="reeve-trust-markers__row" data-rtm-row>
+        {%- for block in marker_blocks -%}
+          {%- liquid
+            assign bs = block.settings
+            assign item_accent = bs.accent_color | default: s.accent_color
+          -%}
+          <div
+            class="reeve-trust-markers__item"
+            data-rtm-item
+            style="--item-accent: {{ item_accent }};"
+            {{ block.shopify_attributes }}
+          >
+            {%- if bs.show_icon -%}
+              <span class="reeve-trust-markers__icon" data-rtm-icon>
+                {%- if bs.custom_image != blank -%}
+                  {{
+                    bs.custom_image
+                    | image_url: width: 200
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '60, 90, 120, 160, 200',
+                      sizes: '48px',
+                      alt: bs.custom_image.alt | default: bs.label,
+                      class: 'reeve-trust-markers__icon-img'
+                  }}
+                {%- elsif bs.icon != 'none' -%}
+                  {%- case bs.icon -%}
+                    {%- when 'shield' -%}{{ icon_shield }}
+                    {%- when 'leaf' -%}{{ icon_leaf }}
+                    {%- when 'truck' -%}{{ icon_truck }}
+                    {%- when 'medal' -%}{{ icon_medal }}
+                    {%- when 'refresh' -%}{{ icon_refresh }}
+                    {%- when 'lock' -%}{{ icon_lock }}
+                    {%- when 'star' -%}{{ icon_star }}
+                    {%- when 'heart' -%}{{ icon_heart }}
+                  {%- endcase -%}
+                {%- endif -%}
+              </span>
+            {%- endif -%}
+
+            {%- if bs.label != blank or bs.value != blank -%}
+              <span class="reeve-trust-markers__text">
+                {%- if bs.label != blank -%}
+                  <span class="reeve-trust-markers__label">{{ bs.label }}</span>
+                {%- endif -%}
+                {%- if bs.value != blank -%}
+                  <span class="reeve-trust-markers__value">{{ bs.value }}</span>
+                {%- endif -%}
+              </span>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+  (function () {
+    var ROOT_SELECTOR = '.reeve-trust-markers[data-section-id="{{ section_id }}"]';
+    window.__reeveTrustMarkers = window.__reeveTrustMarkers || {};
+
+    function cleanup(sectionId) {
+      var entry = window.__reeveTrustMarkers[sectionId];
+      if (!entry) return;
+      if (entry.triggers) {
+        entry.triggers.forEach(function (t) {
+          try { t.kill(); } catch (e) {}
+        });
+      }
+      if (entry.timelines) {
+        entry.timelines.forEach(function (tl) {
+          try { tl.kill(); } catch (e) {}
+        });
+      }
+      if (entry.listeners) {
+        entry.listeners.forEach(function (l) {
+          try { l.el.removeEventListener(l.type, l.fn); } catch (e) {}
+        });
+      }
+      delete window.__reeveTrustMarkers[sectionId];
+    }
+
+    function init() {
+      var root = document.querySelector(ROOT_SELECTOR);
+      if (!root) return;
+      var sectionId = root.getAttribute('data-section-id');
+
+      cleanup(sectionId);
+
+      var animationsEnabled = root.getAttribute('data-animations-enabled') === 'true';
+
+      Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(function (mods) {
+        var gsap = mods[0].gsap;
+        var ScrollTrigger = mods[0].ScrollTrigger;
+        var prefersReducedMotion = mods[0].prefersReducedMotion;
+        var getScrollContainer = mods[1].getScrollContainer;
+        var scroller = getScrollContainer();
+
+        var reduced = prefersReducedMotion();
+        var triggers = [];
+        var timelines = [];
+        var listeners = [];
+        window.__reeveTrustMarkers[sectionId] = { triggers: triggers, timelines: timelines, listeners: listeners };
+
+        var headerItems = Array.prototype.slice.call(root.querySelectorAll('[data-rtm-reveal]'));
+        var items = Array.prototype.slice.call(root.querySelectorAll('[data-rtm-item]'));
+
+        if (reduced || !animationsEnabled) {
+          gsap.set(headerItems, { opacity: 1, y: 0 });
+          gsap.set(items, { opacity: 1, y: 0, scale: 1 });
+          return;
+        }
+
+        // Header reveal
+        if (headerItems.length) {
+          gsap.set(headerItems, { opacity: 0, y: 18 });
+          var headerTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+          timelines.push(headerTl);
+          headerItems.forEach(function (item, i) {
+            headerTl.to(item, { opacity: 1, y: 0, duration: 0.6 }, i * 0.1);
+          });
+          headerTl.pause();
+
+          var headerTrigger = ScrollTrigger.create({
+            scroller: scroller,
+            trigger: root.querySelector('.reeve-trust-markers__header') || root,
+            start: 'top 88%',
+            once: true,
+            onEnter: function () { headerTl.play(); },
+          });
+          triggers.push(headerTrigger);
+        }
+
+        // Marker stagger reveal
+        if (items.length) {
+          gsap.set(items, { opacity: 0, y: 18, scale: 0.92 });
+
+          var rowTrigger = ScrollTrigger.create({
+            scroller: scroller,
+            trigger: root.querySelector('[data-rtm-row]') || root,
+            start: 'top 90%',
+            once: true,
+            onEnter: function () {
+              var tl = gsap.timeline();
+              timelines.push(tl);
+              tl.to(items, {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 0.55,
+                stagger: 0.08,
+                ease: 'back.out(1.5)',
+              });
+            },
+          });
+          triggers.push(rowTrigger);
+
+          // Hover micro-interaction on the icon (pointer devices only)
+          if (window.matchMedia && window.matchMedia('(hover: hover)').matches) {
+            items.forEach(function (item) {
+              var icon = item.querySelector('[data-rtm-icon]');
+              if (!icon) return;
+
+              var enterFn = function () {
+                gsap.to(icon, { scale: 1.14, rotate: -6, duration: 0.3, ease: 'back.out(2)' });
+              };
+              var leaveFn = function () {
+                gsap.to(icon, { scale: 1, rotate: 0, duration: 0.4, ease: 'power2.out' });
+              };
+
+              item.addEventListener('pointerenter', enterFn);
+              item.addEventListener('pointerleave', leaveFn);
+              listeners.push({ el: item, type: 'pointerenter', fn: enterFn });
+              listeners.push({ el: item, type: 'pointerleave', fn: leaveFn });
+            });
+          }
+        }
+      });
+    }
+
+    init();
+
+    document.addEventListener('shopify:section:load', function (event) {
+      if (event.detail && event.detail.sectionId === '{{ section_id }}') {
+        init();
+      }
+    });
+
+    document.addEventListener('shopify:section:unload', function (event) {
+      if (event.detail && event.detail.sectionId === '{{ section_id }}') {
+        cleanup('{{ section_id }}');
+      }
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .reeve-trust-markers {
+    background: var(--rtm-bg, transparent);
+    color: var(--rtm-text, #10192b);
+    margin-block: var(--rtm-margin-top-mobile, 0px) var(--rtm-margin-bottom-mobile, 0px);
+    padding-block: var(--rtm-padding-top-mobile, 32px) var(--rtm-padding-bottom-mobile, 32px);
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-trust-markers {
+      margin-block: var(--rtm-margin-top-desktop, 0px) var(--rtm-margin-bottom-desktop, 0px);
+      padding-block: var(--rtm-padding-top-desktop, 48px) var(--rtm-padding-bottom-desktop, 48px);
+    }
+  }
+
+  .reeve-trust-markers__inner {
+    max-width: var(--rtm-max-width, 1200px);
+    margin-inline: auto;
+    padding-inline: var(--rtm-padding-inline-mobile, 20px);
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-trust-markers__inner {
+      padding-inline: clamp(1.5rem, 4vw, 3rem);
+    }
+  }
+
+  /* ---------- Header ---------- */
+  .reeve-trust-markers__header {
+    text-align: center;
+    margin: 0 auto clamp(1.5rem, 4vw, 2.5rem);
+    max-width: 42rem;
+  }
+
+  .reeve-trust-markers__eyebrow {
+    margin: 0 0 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rtm-accent, #1c8a7a);
+  }
+
+  .reeve-trust-markers__heading {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-style: var(--font-heading--style);
+    font-weight: var(--font-heading--weight, 600);
+    line-height: 1.2;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+  }
+
+  /* ---------- Row / items ---------- */
+  .reeve-trust-markers__row {
+    display: grid;
+    grid-template-columns: repeat(var(--rtm-columns-mobile, 2), 1fr);
+    gap: var(--rtm-gap, 24px) 1rem;
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-trust-markers__row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+  }
+
+  .reeve-trust-markers__item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+  }
+
+  [data-style='minimal'] .reeve-trust-markers__item {
+    justify-content: flex-start;
+  }
+
+  @media screen and (min-width: 750px) {
+    [data-style='minimal'] .reeve-trust-markers__item {
+      padding-inline: var(--rtm-gap, 24px);
+      border-right: 1px solid var(--rtm-border, #e7ded0);
+    }
+
+    [data-style='minimal'] .reeve-trust-markers__item:last-child {
+      border-right: none;
+    }
+  }
+
+  [data-style='boxed'] .reeve-trust-markers__row {
+    row-gap: var(--rtm-gap, 24px);
+  }
+
+  @media screen and (min-width: 750px) {
+    [data-style='boxed'] .reeve-trust-markers__row {
+      gap: var(--rtm-gap, 24px);
+    }
+  }
+
+  [data-style='boxed'] .reeve-trust-markers__item {
+    background: var(--color-background, #ffffff);
+    border: 1px solid var(--rtm-border, #e7ded0);
+    border-radius: 14px;
+    padding: 1rem 1.15rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  @media (hover: hover) {
+    [data-style='boxed'] .reeve-trust-markers__item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 24px rgb(16 25 43 / 0.1);
+    }
+  }
+
+  /* ---------- Icon ---------- */
+  .reeve-trust-markers__icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--rtm-icon-size, 28px);
+    height: var(--rtm-icon-size, 28px);
+    color: var(--item-accent, var(--rtm-accent, #1c8a7a));
+  }
+
+  [data-icon-style='circle'] .reeve-trust-markers__icon {
+    width: calc(var(--rtm-icon-size, 28px) * 1.9);
+    height: calc(var(--rtm-icon-size, 28px) * 1.9);
+    border-radius: 50%;
+    padding: calc(var(--rtm-icon-size, 28px) * 0.32);
+    background: color-mix(in srgb, var(--item-accent, var(--rtm-accent, #1c8a7a)) 14%, #fff);
+  }
+
+  .reeve-trust-markers__icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .reeve-trust-markers__icon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* ---------- Text ---------- */
+  .reeve-trust-markers__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    min-width: 0;
+  }
+
+  .reeve-trust-markers__label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--rtm-text, #10192b);
+  }
+
+  .reeve-trust-markers__value {
+    font-size: 0.76rem;
+    opacity: 0.65;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reeve-trust-markers * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve trust markers",
+  "tag": "section",
+  "class": "section-reeve-trust-markers-wrapper",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Header content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "select",
+      "id": "layout_style",
+      "label": "Marker style",
+      "options": [
+        { "value": "minimal", "label": "Minimal — divided row" },
+        { "value": "boxed", "label": "Boxed — bordered cards" }
+      ],
+      "default": "minimal"
+    },
+    {
+      "type": "select",
+      "id": "icon_style",
+      "label": "Icon style",
+      "options": [
+        { "value": "circle", "label": "Circle badge" },
+        { "value": "plain", "label": "Plain icon" }
+      ],
+      "default": "circle"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon size",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 26
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "placeholder": "Transparent"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Icon / accent color",
+      "default": "#1c8a7a"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Divider / border color",
+      "default": "#e7ded0"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Section max width",
+      "min": 600,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 1200
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap between markers",
+      "min": 8,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        { "value": "1", "label": "1 column" },
+        { "value": "2", "label": "2 columns" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "mobile_horizontal_padding",
+      "label": "Mobile horizontal padding",
+      "min": 0,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Padding — desktop"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "label": "Padding top",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Padding — mobile"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "header",
+      "content": "Margin — desktop"
+    },
+    {
+      "type": "range",
+      "id": "margin_top_desktop",
+      "label": "Margin top",
+      "min": -80,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom_desktop",
+      "label": "Margin bottom",
+      "min": -80,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Margin — mobile"
+    },
+    {
+      "type": "range",
+      "id": "margin_top_mobile",
+      "label": "Margin top",
+      "min": -80,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom_mobile",
+      "label": "Margin bottom",
+      "min": -80,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_animations",
+      "label": "Enable scroll animations",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "marker",
+      "name": "Trust marker",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Trust marker"
+        },
+        {
+          "type": "text",
+          "id": "value",
+          "label": "Optional secondary text"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_icon",
+          "label": "Show icon / image",
+          "default": true
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Default icon",
+          "info": "Used unless a custom marker image is uploaded below.",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "shield", "label": "Shield check" },
+            { "value": "leaf", "label": "Leaf" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "medal", "label": "Medal" },
+            { "value": "refresh", "label": "Refresh / guarantee" },
+            { "value": "lock", "label": "Lock" },
+            { "value": "star", "label": "Star" },
+            { "value": "heart", "label": "Heart" }
+          ],
+          "default": "shield"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "Custom marker image",
+          "info": "Upload your own badge/logo to override the default icon above."
+        },
+        {
+          "type": "color",
+          "id": "accent_color",
+          "label": "Accent color override"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve trust markers",
+      "settings": {
+        "eyebrow": "WHY TRUST US"
+      },
+      "blocks": [
+        { "type": "marker", "settings": { "label": "Non-GMO", "icon": "leaf" } },
+        { "type": "marker", "settings": { "label": "Third-Party Tested", "icon": "shield" } },
+        { "type": "marker", "settings": { "label": "Free Shipping", "value": "On orders $35+", "icon": "truck" } },
+        { "type": "marker", "settings": { "label": "30-Day Guarantee", "icon": "refresh" } },
+        { "type": "marker", "settings": { "label": "Doctor Formulated", "icon": "medal" } },
+        { "type": "marker", "settings": { "label": "Secure Checkout", "icon": "lock" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

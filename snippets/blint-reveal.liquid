@@ -1,0 +1,66 @@
+{%- comment -%}
+  Blint scroll-reveal motion signature.
+  Progressive enhancement: the hidden initial state only applies once JS adds
+  `.blint-reveal-ready` to <html>, so content is never hidden if JS fails.
+  Fully skipped when the visitor prefers reduced motion.
+  Re-reveals on `shopify:section:load` so theme-editor re-renders (e.g. swapping
+  an image) never leave a freshly injected section stuck at opacity 0.
+{%- endcomment -%}
+<style>
+  @media (prefers-reduced-motion: no-preference) {
+    .blint-reveal-ready .blint-hero__content,
+    .blint-reveal-ready .blint-banner__content,
+    .blint-reveal-ready .blint-science__inner,
+    .blint-reveal-ready .blint-reviews__inner,
+    .blint-reveal-ready .blint-faq__inner {
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+      will-change: opacity, transform;
+    }
+    .blint-reveal-ready .blint-reveal-in {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+</style>
+<script>
+  (function () {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var selector = '.blint-hero__content, .blint-banner__content, .blint-science__inner, .blint-reviews__inner, .blint-faq__inner';
+    document.documentElement.classList.add('blint-reveal-ready');
+
+    var supportsIO = 'IntersectionObserver' in window;
+    var io = supportsIO
+      ? new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('blint-reveal-in');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 })
+      : null;
+
+    function collect(root) {
+      var els = [];
+      if (!root) return els;
+      if (root.matches && root.matches(selector)) els.push(root);
+      if (root.querySelectorAll) {
+        Array.prototype.push.apply(els, root.querySelectorAll(selector));
+      }
+      return els;
+    }
+
+    // Initial load: observe and animate in on scroll.
+    collect(document).forEach(function (el) {
+      if (supportsIO) { io.observe(el); } else { el.classList.add('blint-reveal-in'); }
+    });
+
+    // Theme editor re-renders a section on every setting change. Reveal its
+    // content immediately so the newly injected nodes are never stuck hidden.
+    document.addEventListener('shopify:section:load', function (e) {
+      collect(e.target).forEach(function (el) { el.classList.add('blint-reveal-in'); });
+    });
+  })();
+</script>

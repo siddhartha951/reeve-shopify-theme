@@ -1,0 +1,539 @@
+{{ 'section-hydration-gap.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign hg_style = '--hg-bg: ' | append: section.settings.bg_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-text: ' | append: section.settings.text_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-muted: ' | append: section.settings.muted_text_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-accent: ' | append: section.settings.accent_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-before-bg: ' | append: section.settings.before_bg_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-after-bg: ' | append: section.settings.after_bg_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-before-icon: ' | append: section.settings.before_icon_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-after-icon: ' | append: section.settings.after_icon_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-border: ' | append: section.settings.border_color | append: ';'
+  assign hg_style = hg_style | append: ' --hg-badge-bg: ' | append: section.settings.badge_strip_bg | append: ';'
+  assign hg_style = hg_style | append: ' --hg-badge-text: ' | append: section.settings.badge_strip_text | append: ';'
+  assign hg_style = hg_style | append: ' --hg-padding-top: ' | append: section.settings.padding_top | append: 'px;'
+  assign hg_style = hg_style | append: ' --hg-padding-bottom: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+{%- if section.settings.background_image != blank -%}
+  {%- assign hg_bg_image_url = section.settings.background_image | image_url: width: 2000 -%}
+  {%- assign hg_style = hg_style | append: " --hg-bg-image: url('" | append: hg_bg_image_url | append: "');" -%}
+{%- endif -%}
+
+<section class="hg-section" id="shopify-section-{{ section.id }}" style="{{ hg_style }}">
+  <div class="hg-inner">
+
+    <div class="hg-header">
+      <div class="hg-header__content">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="hg-eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+
+        <h2 class="hg-heading">{{ section.settings.heading }}</h2>
+
+        {%- if section.settings.paragraph != blank -%}
+          <div class="hg-paragraph">{{ section.settings.paragraph }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- liquid
+      assign timeline_count = 0
+      for block in section.blocks
+        if block.type == 'timeline_item'
+          assign timeline_count = timeline_count | plus: 1
+        endif
+      endfor
+    -%}
+
+    {%- if timeline_count > 0 -%}
+      <div class="hg-timeline" style="--hg-timeline-count: {{ timeline_count }};">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'timeline_item' -%}
+            <div class="hg-timeline__item" {{ block.shopify_attributes }}>
+              <span class="hg-timeline__connector"></span>
+              <div class="hg-timeline__icon {% if block.settings.highlight %}hg-timeline__icon--accent{% endif %}" style="{% if block.settings.highlight %}border-color: {{ block.settings.icon_color }};{% endif %}">
+                {%- if block.settings.icon_image != blank -%}
+                  {{ block.settings.icon_image | image_url: width: 64 | image_tag: loading: 'lazy' }}
+                {%- else -%}
+                  {{ block.settings.emoji_icon }}
+                {%- endif -%}
+              </div>
+              <div class="hg-timeline__label">
+                <p class="hg-timeline__time" style="color: {{ block.settings.icon_color }};">{{ block.settings.time_label }}</p>
+                <p class="hg-timeline__title">{{ block.settings.title }}</p>
+              </div>
+              <p class="hg-timeline__desc">{{ block.settings.description }}</p>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- liquid
+      assign before_count = 0
+      assign after_count = 0
+      assign mineral_count = 0
+      for block in section.blocks
+        if block.type == 'before_item'
+          assign before_count = before_count | plus: 1
+        endif
+        if block.type == 'after_item'
+          assign after_count = after_count | plus: 1
+        endif
+        if block.type == 'mineral'
+          assign mineral_count = mineral_count | plus: 1
+        endif
+      endfor
+    -%}
+
+    <div class="hg-compare">
+      <div class="hg-compare__panel hg-compare__panel--before">
+        <p class="hg-compare__label">{{ section.settings.before_label }}</p>
+        <div class="hg-compare__divider"></div>
+        <ul class="hg-compare__list">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'before_item' -%}
+              <li class="hg-compare__list-item" {{ block.shopify_attributes }}>
+                <span class="hg-compare__icon">✕</span>
+                <span>{{ block.settings.text }}</span>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+
+      <div class="hg-compare__panel hg-compare__panel--after">
+        <p class="hg-compare__label">{{ section.settings.after_label }}</p>
+        <div class="hg-compare__divider"></div>
+        <ul class="hg-compare__list">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'after_item' -%}
+              <li class="hg-compare__list-item" {{ block.shopify_attributes }}>
+                <span class="hg-compare__icon">✓</span>
+                <span>{{ block.settings.text }}</span>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+    </div>
+
+    {%- if mineral_count > 0 -%}
+      <div class="hg-minerals {% if section.settings.show_minerals_desktop %}hg-minerals--visible{% endif %}" data-mobile-visible="true">
+        <p class="hg-minerals__label">{{ section.settings.minerals_label }}</p>
+        <div class="hg-minerals__grid">
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'mineral' -%}
+              <div class="hg-mineral" {{ block.shopify_attributes }}>
+                <div class="hg-mineral__symbol">{{ block.settings.symbol }}</div>
+                <p class="hg-mineral__name">{{ block.settings.name }}</p>
+                <p class="hg-mineral__desc">{{ block.settings.description }}</p>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- liquid
+      assign badge_count = 0
+      for block in section.blocks
+        if block.type == 'badge'
+          assign badge_count = badge_count | plus: 1
+        endif
+      endfor
+    -%}
+
+    {%- if badge_count > 0 -%}
+      <div class="hg-badges">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'badge' -%}
+            <span
+              class="hg-badges__item{% if block.settings.background_color != blank %} hg-badges__item--filled{% endif %}"
+              {{ block.shopify_attributes }}
+              {%- if block.settings.background_color != blank %}
+              style="background-color: {{ block.settings.background_color }};"
+              {%- endif %}
+            >
+              {%- if block.settings.show_icon -%}🌿{%- endif -%}
+              {{ block.settings.text }}
+            </span>
+            {%- unless forloop.last -%}<span class="hg-badges__divider"></span>{%- endunless -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const track = scope.querySelector('.hg-timeline');
+    if (!track) return;
+
+    Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(([{ gsap, ScrollTrigger, prefersReducedMotion }, { getScrollContainer }]) => {
+      const items = track.querySelectorAll('.hg-timeline__item');
+      const connectors = track.querySelectorAll('.hg-timeline__connector');
+      const icons = track.querySelectorAll('.hg-timeline__icon');
+      if (!items.length) return;
+
+      if (prefersReducedMotion()) {
+        gsap.set(items, { opacity: 1, y: 0 });
+        gsap.set(connectors, { scaleX: 1 });
+        gsap.set(icons, { scale: 1 });
+        return;
+      }
+
+      gsap.set(items, { opacity: 0, y: 16 });
+      gsap.set(icons, { scale: 0.4 });
+      gsap.set(connectors, { scaleX: 0, transformOrigin: 'left center' });
+
+      ScrollTrigger.create({
+        scroller: getScrollContainer(),
+        trigger: track,
+        start: 'top 85%',
+        once: true,
+        onEnter: () => {
+          const tl = gsap.timeline();
+          items.forEach((item, index) => {
+            const connector = item.querySelector('.hg-timeline__connector');
+            const icon = item.querySelector('.hg-timeline__icon');
+            if (connector && index > 0) {
+              tl.to(connector, { scaleX: 1, duration: 0.25, ease: 'power1.inOut' }, '>-0.05');
+            }
+            tl.to(item, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }, '<');
+            if (icon) {
+              tl.to(icon, { scale: 1, duration: 0.4, ease: 'back.out(2)' }, '<');
+            }
+          });
+        },
+      });
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Hydration Gap Timeline",
+  "tag": "section",
+  "class": "section-hydration-gap-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#f7f3ec"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image (optional, overrides color)"
+    },
+    {
+      "type": "header",
+      "content": "Header content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "THE HYDRATION GAP"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>You don't feel what's leaving. You feel what's <em>missing</em>.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "<p>Thirst shows up late. By then, you've already been low on key electrolytes for hours. Water alone can't replace what's gone.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Before / After labels"
+    },
+    {
+      "type": "text",
+      "id": "before_label",
+      "label": "Before label",
+      "default": "BEFORE"
+    },
+    {
+      "type": "text",
+      "id": "after_label",
+      "label": "After label",
+      "default": "AFTER"
+    },
+    {
+      "type": "header",
+      "content": "Minerals grid"
+    },
+    {
+      "type": "text",
+      "id": "minerals_label",
+      "label": "Minerals section label",
+      "default": "WHAT YOUR BODY ACTUALLY NEEDS"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_minerals_desktop",
+      "label": "Show minerals grid on desktop too",
+      "default": false,
+      "info": "If unchecked, the minerals grid only appears on mobile, matching the reference design."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading / primary text",
+      "default": "#1b2420"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted / body text",
+      "default": "#6b6f68"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#5c7a63"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border / divider color",
+      "default": "#e2ddd2"
+    },
+    {
+      "type": "color",
+      "id": "before_bg_color",
+      "label": "Before panel background",
+      "default": "#f7ece4"
+    },
+    {
+      "type": "color",
+      "id": "before_icon_color",
+      "label": "Before icon color",
+      "default": "#c1673f"
+    },
+    {
+      "type": "color",
+      "id": "after_bg_color",
+      "label": "After panel background",
+      "default": "#eef1ea"
+    },
+    {
+      "type": "color",
+      "id": "after_icon_color",
+      "label": "After icon color",
+      "default": "#5c7a63"
+    },
+    {
+      "type": "color",
+      "id": "badge_strip_bg",
+      "label": "Badge strip background",
+      "default": "#1e2b22"
+    },
+    {
+      "type": "color",
+      "id": "badge_strip_text",
+      "label": "Badge strip text",
+      "default": "#f7f3ec"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "timeline_item",
+      "name": "Timeline step",
+      "settings": [
+        {
+          "type": "text",
+          "id": "time_label",
+          "label": "Time label",
+          "default": "7 AM"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Coffee"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "info": "Keep this short — it sits beside the label on one row on mobile.",
+          "default": "Starts increasing fluid loss."
+        },
+        {
+          "type": "text",
+          "id": "emoji_icon",
+          "label": "Icon (emoji or short symbol)",
+          "default": "☕",
+          "info": "Used if no icon image is uploaded."
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Icon image (optional, overrides emoji)"
+        },
+        {
+          "type": "color",
+          "id": "icon_color",
+          "label": "Time label / icon border color",
+          "default": "#8a8f86"
+        },
+        {
+          "type": "checkbox",
+          "id": "highlight",
+          "label": "Highlight this step (thicker accent ring)",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "before_item",
+      "name": "Before list item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "3pm fog"
+        }
+      ]
+    },
+    {
+      "type": "after_item",
+      "name": "After list item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Clear-headed focus"
+        }
+      ]
+    },
+    {
+      "type": "mineral",
+      "name": "Mineral item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "symbol",
+          "label": "Chemical symbol",
+          "default": "Na"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Name",
+          "default": "Sodium"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Short description",
+          "default": "Fluid balance"
+        }
+      ]
+    },
+    {
+      "type": "badge",
+      "name": "Badge strip item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Badge text",
+          "default": "SIX ELECTROLYTES. REAL COCONUT WATER. NO SUGAR CRASH."
+        },
+        {
+          "type": "checkbox",
+          "id": "show_icon",
+          "label": "Show leaf icon",
+          "default": true
+        },
+        {
+          "type": "color",
+          "id": "background_color",
+          "label": "Background color (optional, individual pill)",
+          "info": "Leave blank to use the shared badge strip background."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hydration Gap Timeline",
+      "blocks": [
+        { "type": "timeline_item", "settings": { "time_label": "7 AM", "title": "Coffee", "description": "Starts increasing fluid loss.", "emoji_icon": "☕", "icon_color": "#8a8f86" } },
+        { "type": "timeline_item", "settings": { "time_label": "10 AM", "title": "Sweat", "description": "Lose sodium, magnesium & potassium.", "emoji_icon": "💧", "icon_color": "#c1673f" } },
+        { "type": "timeline_item", "settings": { "time_label": "1 PM", "title": "Workout", "description": "Electrolyte loss continues with sweat.", "emoji_icon": "🏋", "icon_color": "#c1673f" } },
+        { "type": "timeline_item", "settings": { "time_label": "3 PM", "title": "3PM Fog", "description": "Shows up as brain fog & headache.", "emoji_icon": "🧠", "icon_color": "#c1673f" } },
+        { "type": "timeline_item", "settings": { "time_label": "8 PM", "title": "Cramps", "description": "Cramps and fatigue kick in.", "emoji_icon": "😖", "icon_color": "#8a8f86" } },
+        { "type": "timeline_item", "settings": { "time_label": "ALL DAY", "title": "Reevé", "description": "Replenishes what water can't.", "emoji_icon": "💧", "icon_color": "#5c7a63", "highlight": true } },
+        { "type": "before_item", "settings": { "text": "3pm fog" } },
+        { "type": "before_item", "settings": { "text": "Low-grade headache" } },
+        { "type": "before_item", "settings": { "text": "Heavy legs, tight calves" } },
+        { "type": "before_item", "settings": { "text": "Reaching for more coffee" } },
+        { "type": "before_item", "settings": { "text": "Fewer cramping, slower recovery" } },
+        { "type": "after_item", "settings": { "text": "Clear-headed focus" } },
+        { "type": "after_item", "settings": { "text": "Steady energy, no crash" } },
+        { "type": "after_item", "settings": { "text": "Hydrated, resilient skin" } },
+        { "type": "after_item", "settings": { "text": "Fewer cramps, faster recovery" } },
+        { "type": "after_item", "settings": { "text": "Better performance, everyday" } },
+        { "type": "mineral", "settings": { "symbol": "Na", "name": "Sodium", "description": "Fluid balance" } },
+        { "type": "mineral", "settings": { "symbol": "K", "name": "Potassium", "description": "Muscle function" } },
+        { "type": "mineral", "settings": { "symbol": "Mg", "name": "Magnesium", "description": "Energy support" } },
+        { "type": "mineral", "settings": { "symbol": "Ca", "name": "Calcium", "description": "Bone & muscle" } },
+        { "type": "mineral", "settings": { "symbol": "Cl", "name": "Chloride", "description": "Hydration" } },
+        { "type": "mineral", "settings": { "symbol": "P", "name": "Phosphate", "description": "Cellular energy" } },
+        { "type": "badge", "settings": { "text": "SIX ELECTROLYTES. REAL COCONUT WATER. NO SUGAR CRASH.", "show_icon": true } },
+        { "type": "badge", "settings": { "text": "SMART HYDRATION. REAL RESULTS.", "show_icon": false } }
+      ]
+    }
+  ]
+}
+{% endschema %}

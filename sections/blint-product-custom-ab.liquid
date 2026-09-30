@@ -1,0 +1,3375 @@
+{%- liquid
+  comment
+    On an actual product page, always show that page's own product — never the
+    hardcoded setting. The setting only matters as a fallback when this section
+    is placed somewhere without page context (e.g. a plain "page" template).
+  endcomment
+  assign product = product | default: section.settings.selected_product
+  assign current_variant = product.selected_or_first_available_variant
+
+  comment
+    Pre-fetch the blocks whose settings are needed before (or outside) the
+    point in the blocks loop where they themselves render — cross-cutting
+    logic (selling plan defaulting, flavor-select label) and the sticky
+    add-to-cart bar, which lives outside the block loop entirely.
+  endcomment
+  assign subscription_block = nil
+  assign flavor_block = nil
+  assign price_block = nil
+  assign first_purchase_id = nil
+  assign last_purchase_id = nil
+  for block in section.blocks
+    case block.type
+      when 'subscription'
+        assign subscription_block = block
+      when 'flavor'
+        assign flavor_block = block
+      when 'price_and_buy'
+        assign price_block = block
+    endcase
+    if block.type == 'subscription' or block.type == 'one_time_purchase'
+      if first_purchase_id == nil
+        assign first_purchase_id = block.id
+      endif
+      assign last_purchase_id = block.id
+    endif
+  endfor
+
+  assign sp_group = product.selling_plan_groups | first
+  assign sp = nil
+  if sp_group
+    assign sp = sp_group.selling_plans | first
+    if subscription_block.settings.default_frequency_name != blank
+      for plan in sp_group.selling_plans
+        if plan.name == subscription_block.settings.default_frequency_name
+          assign sp = plan
+          break
+        endif
+      endfor
+    endif
+  endif
+  assign default_subscribe = false
+  if sp and subscription_block.settings.default_to_subscription
+    assign default_subscribe = true
+  endif
+
+  comment
+    The metafield sometimes lists the current product among its own flavors —
+    don't double-count it. Computed once here since both the flavor block and
+    the price/buy block's Add to cart label depend on it.
+  endcomment
+  assign linked_flavors = blank
+  assign select_label = ''
+  if flavor_block.settings.enable_flavor_select
+    assign linked_flavors = product.metafields.custom.custom_flavor_products.value
+  endif
+  if linked_flavors != blank
+    assign self_in_list = false
+    for f in linked_flavors
+      if f.id == product.id
+        assign self_in_list = true
+      endif
+    endfor
+    assign other_flavor_count = linked_flavors.size
+    if self_in_list
+      assign other_flavor_count = other_flavor_count | minus: 1
+    endif
+    assign flavor_count = other_flavor_count | plus: 1
+    assign select_label = flavor_block.settings.select_flavors_label | replace: '[count]', flavor_count
+  endif
+-%}
+
+<section
+  class="blint-product spacing-style color-{{ section.settings.color_scheme }}{% if section.settings.enable_glass_cards %} blint-product--glass{% endif %}{% if section.settings.background_image != blank %} blint-product--has-bg{% endif %}"
+  style="{% render 'spacing-style', settings: section.settings %} --blint-bg-overlay-opacity: {{ section.settings.background_overlay_opacity | default: 45 | times: 1.0 | divided_by: 100 }};"
+  data-blint-product
+  data-money-format="{{ shop.money_format | escape }}"
+  data-direct-checkout="{{ price_block.settings.enable_direct_checkout | default: false }}"
+  {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
+>
+  {%- if section.settings.background_image != blank -%}
+    <div class="blint-product__bg" data-blint-bg-image aria-hidden="true">
+      {{
+        section.settings.background_image
+        | image_url: width: 1920
+        | image_tag: loading: 'lazy', sizes: '100vw', widths: '750, 1100, 1500, 1920', class: 'blint-product__bg-image'
+      }}
+      <div class="blint-product__bg-overlay"></div>
+    </div>
+  {%- endif -%}
+
+  <div class="blint-product__inner">
+    {%- comment -%} ---------- Gallery ---------- {%- endcomment -%}
+    {%- liquid
+      if current_variant.featured_media != blank
+        assign initial_media = current_variant.featured_media
+      else
+        assign initial_media = product.featured_media
+      endif
+      assign initial_media_id = initial_media.id | default: 0
+    -%}
+    <div class="blint-product__gallery">
+      <div class="blint-product__main" data-main-gallery data-initial-media-id="{{ initial_media_id }}">
+        <div class="blint-product__main-track" data-main-track>
+          {%- if product.media.size > 0 -%}
+            {%- for media in product.media -%}
+              {%- if forloop.first -%}
+                {%- assign img_loading = 'eager' -%}
+                {%- assign img_fetchpriority = 'high' -%}
+              {%- else -%}
+                {%- assign img_loading = 'lazy' -%}
+                {%- assign img_fetchpriority = 'auto' -%}
+              {%- endif -%}
+              <div class="blint-product__main-slide" data-main-slide data-media-id="{{ media.id }}">
+                {{
+                  media
+                  | image_url: width: 1200
+                  | image_tag:
+                    loading: img_loading,
+                    fetchpriority: img_fetchpriority,
+                    sizes: '(min-width: 990px) 50vw, 100vw',
+                    widths: '500, 750, 1000, 1200',
+                    class: 'blint-product__main-image',
+                    alt: media.alt | default: product.title | escape
+                }}
+              </div>
+            {%- endfor -%}
+          {%- else -%}
+            <div class="blint-product__main-slide" data-main-slide>
+              {{ 'product-1' | placeholder_svg_tag: 'blint-product__main-image' }}
+            </div>
+          {%- endif -%}
+        </div>
+
+        {%- comment -%}
+          Overlay badge, pinned to a top corner of the main image. Manual text
+          wins; otherwise the live discount fills it in (JS), and it stays
+          hidden while the selected variant has no discount.
+        {%- endcomment -%}
+        {%- if section.settings.gallery_badge_text != blank -%}
+          {%- assign badge_mode = 'static' -%}
+        {%- elsif section.settings.gallery_badge_show_discount -%}
+          {%- assign badge_mode = 'discount' -%}
+        {%- endif -%}
+        {%- if badge_mode -%}
+          {%- assign badge_pos = section.settings.gallery_badge_position | default: 'top_left' | replace: '_', '-' -%}
+          {%- assign badge_style = section.settings.gallery_badge_style | default: 'pill' -%}
+          <span
+            class="blint-product__badge blint-product__badge--{{ badge_style }} blint-product__badge--{{ badge_pos }}"
+            style="--blint-badge-bg: {{ section.settings.gallery_badge_bg }}; --blint-badge-text: {{ section.settings.gallery_badge_text_color }}; --blint-badge-size: {{ section.settings.gallery_badge_size | default: 118 }}px; --blint-badge-size-mobile: {{ section.settings.gallery_badge_size_mobile | default: 70 }}px; --blint-badge-inset: {{ section.settings.gallery_badge_inset | default: 15 }}%; --blint-badge-inset-mobile: {{ section.settings.gallery_badge_inset_mobile | default: 15 }}%;"
+            data-gallery-badge
+            data-badge-mode="{{ badge_mode }}"
+            data-badge-style="{{ badge_style }}"
+            {% if section.settings.gallery_badge_first_only %}data-badge-first-only{% endif %}
+            {% if badge_mode == 'discount' %}hidden{% endif %}
+          >
+            {%- if badge_style == 'wedge' -%}
+              <span class="blint-product__badge-inner">
+                {%- if section.settings.gallery_badge_prefix != blank -%}
+                  <span class="blint-product__badge-affix">{{ section.settings.gallery_badge_prefix }}</span>
+                {%- endif -%}
+                <span class="blint-product__badge-value" data-badge-value>{{ section.settings.gallery_badge_text }}</span>
+                {%- if section.settings.gallery_badge_suffix != blank -%}
+                  <span class="blint-product__badge-affix">{{ section.settings.gallery_badge_suffix }}</span>
+                {%- endif -%}
+              </span>
+            {%- else -%}
+              <span data-badge-value>{{ section.settings.gallery_badge_text }}</span>
+            {%- endif -%}
+          </span>
+        {%- endif -%}
+
+        {%- if product.media.size > 1 -%}
+          <button type="button" class="blint-product__main-nav blint-product__main-nav--prev" data-main-prev aria-label="Previous image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="blint-product__main-nav blint-product__main-nav--next" data-main-next aria-label="Next image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Mobile pagination dots — replaces the thumbnail rail below 990px {%- endcomment -%}
+      {%- if product.media.size > 1 -%}
+        <div class="blint-product__dots" role="list" aria-label="Product image navigation">
+          {%- for media in product.media -%}
+            <button
+              type="button"
+              class="blint-product__dot{% if forloop.first %} is-active{% endif %}"
+              data-dot
+              data-media-id="{{ media.id }}"
+              aria-label="View image {{ forloop.index }}"
+            ></button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if product.media.size > 1 -%}
+        <div class="blint-product__thumbs" role="list">
+          {%- for media in product.media -%}
+            <button
+              type="button"
+              class="blint-product__thumb{% if forloop.first %} is-active{% endif %}"
+              data-thumb
+              data-media-id="{{ media.id }}"
+              aria-label="View image {{ forloop.index }}"
+            >
+              {{ media | image_url: width: 160 | image_tag: loading: 'lazy', widths: '80, 160', alt: media.alt | default: product.title | escape }}
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} ---------- Buy box ---------- {%- endcomment -%}
+    <div class="blint-product__info">
+      {%- form 'product', product, id: 'blint-product-form', class: 'blint-product__form' -%}
+        <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
+        <input type="hidden" name="selling_plan" value="{% if default_subscribe %}{{ sp.id }}{% endif %}" data-selling-plan {% unless default_subscribe %}disabled{% endunless %}>
+        {%- comment -%} return_to=/checkout adds the item, then redirects straight to checkout (fallback for native submit) {%- endcomment -%}
+        <input type="hidden" name="return_to" value="/checkout">
+
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+
+            {%- when 'title' -%}
+              {%- if block.settings.title_override != blank -%}
+                <h1 class="blint-product__title" style="--blint-product-title-size: {{ block.settings.title_font_size }}px;" {{ block.shopify_attributes }}>{{ block.settings.title_override }}</h1>
+              {%- else -%}
+                <h1 class="blint-product__title" style="--blint-product-title-size: {{ block.settings.title_font_size }}px;" {{ block.shopify_attributes }}>{{ product.title }}</h1>
+              {%- endif -%}
+
+            {%- when 'short_description' -%}
+              {%- if block.settings.short_description != blank -%}
+                <div class="blint-product__short-desc" {{ block.shopify_attributes }}>{{ block.settings.short_description }}</div>
+              {%- endif -%}
+
+            {%- when 'rating' -%}
+              {%- if block.settings.show_rating -%}
+                {%- render 'blint-product-rating', rating_product: product, block: block -%}
+              {%- endif -%}
+
+            {%- when 'description' -%}
+              {%- if block.settings.description != blank -%}
+                <div class="blint-product__desc" style="--blint-product-desc-size: {{ block.settings.description_font_size }}px;" {{ block.shopify_attributes }}>{{ block.settings.description }}</div>
+              {%- elsif product.description != blank -%}
+                <div class="blint-product__desc" style="--blint-product-desc-size: {{ block.settings.description_font_size }}px;" {{ block.shopify_attributes }}>{{ product.description }}</div>
+              {%- endif -%}
+
+            {%- when 'key_points' -%}
+              {%- assign bullets = block.settings.bullets | newline_to_br | split: '<br />' -%}
+              {%- if block.settings.bullets != blank -%}
+                <ul class="blint-product__benefits" role="list" {{ block.shopify_attributes }}>
+                  {%- for bullet in bullets -%}
+                    {%- assign clean = bullet | strip -%}
+                    {%- if clean != blank -%}
+                      <li class="blint-product__benefit"><span class="blint-product__benefit-mark" aria-hidden="true">&#10037;</span><span>{{ clean }}</span></li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+
+            {%- when 'chips' -%}
+              {%- assign chips = block.settings.chips | split: ',' -%}
+              {%- if block.settings.chips != blank -%}
+                <ul class="blint-product__chips" role="list" {{ block.shopify_attributes }}>
+                  {%- for chip in chips -%}
+                    {%- assign chip_clean = chip | strip -%}
+                    {%- comment -%} role="listitem" restores the semantics that display:inline-flex strips off an <li>. {%- endcomment -%}
+                    {%- if chip_clean != blank -%}<li class="blint-product__chip" role="listitem">{{ chip_clean }}</li>{%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+
+            {%- when 'boxes' -%}
+              <div {{ block.shopify_attributes }}>
+                {%- render 'blint-product-options', product: product, block: block -%}
+              </div>
+
+            {%- when 'flavor' -%}
+              {%- if linked_flavors != blank -%}
+                <div {{ block.shopify_attributes }}>
+                  <p class="blint-product__option-name">{{ block.settings.flavor_switch_heading }}</p>
+                  <div class="blint-product__flavor-switch" data-flavor-switch role="list">
+                    {%- render 'blint-flavor-card',
+                      flavor_product: product,
+                      is_active: true,
+                      settings: block.settings,
+                      override_blocks: section.blocks
+                    -%}
+                    {%- for flavor in linked_flavors -%}
+                      {%- unless flavor.id == product.id -%}
+                        {%- render 'blint-flavor-card',
+                          flavor_product: flavor,
+                          is_active: false,
+                          settings: block.settings,
+                          override_blocks: section.blocks
+                        -%}
+                      {%- endunless -%}
+                    {%- endfor -%}
+                  </div>
+                </div>
+              {%- endif -%}
+
+            {%- when 'subscription' -%}
+              {%- if sp -%}
+                {%- if block.id == first_purchase_id -%}<div class="blint-product__purchase" data-purchase-group>{%- endif -%}
+                <div class="blint-product__purchase-option blint-product__purchase-option--subscribe" {{ block.shopify_attributes }}>
+                  <label class="blint-product__purchase-head">
+                    <input type="radio" name="blint-purchase" value="subscribe" data-purchase-input data-plan="{{ sp.id }}" {% if default_subscribe %}checked{% endif %}>
+                    <span class="blint-product__purchase-row">
+                      <span class="blint-product__purchase-main">
+                        <span class="blint-product__purchase-radio" aria-hidden="true"></span>
+                        <span class="blint-product__purchase-copy">
+                          <span class="blint-product__purchase-label">{{ block.settings.subscribe_label }}</span>
+                          <span class="blint-product__purchase-price">
+                            <span class="blint-product__purchase-price-now" data-sub-price></span>
+                            <span class="blint-product__purchase-price-was" data-sub-price-compare hidden></span>
+                          </span>
+                        </span>
+                      </span>
+                      <span class="blint-product__purchase-save" data-sub-save hidden></span>
+                    </span>
+                  </label>
+
+                  <div class="blint-product__frequency" data-frequency-wrap{% unless default_subscribe %} hidden{% endunless %}>
+                    <label class="blint-product__frequency-label" for="blint-frequency-{{ section.id }}">{{ block.settings.frequency_label }}</label>
+                    <div class="blint-product__frequency-control">
+                      <select id="blint-frequency-{{ section.id }}" class="blint-product__frequency-select" data-frequency aria-label="{{ block.settings.frequency_label | escape }}">
+                        {%- for plan in sp_group.selling_plans -%}
+                          <option value="{{ plan.id }}"{% if plan.id == sp.id %} selected{% endif %}>{{ plan.name }}</option>
+                        {%- endfor -%}
+                      </select>
+                      <span class="blint-product__frequency-caret" aria-hidden="true">&#9662;</span>
+                    </div>
+                  </div>
+
+                  {%- if block.settings.sub_note_right != blank -%}
+                    <span class="blint-product__sub-note-single">{{ block.settings.sub_note_right }}</span>
+                  {%- endif -%}
+                </div>
+                {%- if block.id == last_purchase_id -%}</div>{%- endif -%}
+              {%- endif -%}
+
+            {%- when 'one_time_purchase' -%}
+              {%- if sp -%}
+                {%- if block.id == first_purchase_id -%}<div class="blint-product__purchase" data-purchase-group>{%- endif -%}
+                <label class="blint-product__purchase-option" {{ block.shopify_attributes }}>
+                  <input type="radio" name="blint-purchase" value="onetime" data-purchase-input {% unless default_subscribe %}checked{% endunless %}>
+                  <span class="blint-product__purchase-main">
+                    <span class="blint-product__purchase-radio" aria-hidden="true"></span>
+                    <span class="blint-product__purchase-copy">
+                      <span class="blint-product__purchase-label">{{ block.settings.onetime_label }}</span>
+                      <span class="blint-product__purchase-price">
+                        <span class="blint-product__purchase-price-now" data-onetime-price></span>
+                        <span class="blint-product__purchase-price-was" data-onetime-price-compare hidden></span>
+                      </span>
+                    </span>
+                  </span>
+                </label>
+                {%- if block.id == last_purchase_id -%}</div>{%- endif -%}
+              {%- endif -%}
+
+            {%- when 'price_and_buy' -%}
+              <div {{ block.shopify_attributes }}>
+                <div class="blint-product__pricebox">
+                  <div class="blint-product__pricebox-main">
+                    {%- if block.settings.offer_label != blank -%}
+                      <div class="blint-product__offer">
+                        <span class="blint-product__offer-label">{{ block.settings.offer_label }}</span>
+                        <span class="blint-product__offer-badge" data-offer-badge hidden></span>
+                      </div>
+                    {%- endif -%}
+                    <div class="blint-product__price-row">
+                      <span class="blint-product__price-compare" data-price-compare hidden></span>
+                      <span class="blint-product__price" data-price></span>
+                    </div>
+                  </div>
+                  <span class="blint-product__savings" data-savings-wrap hidden>
+                    <span class="blint-product__savings-label">{{ block.settings.savings_label }}</span>
+                    <span class="blint-product__savings-value" data-savings></span>
+                  </span>
+                </div>
+
+                <div class="blint-product__buy-row">
+                  {%- if block.settings.show_quantity_selector -%}
+                    <div class="blint-product__qty">
+                      <button type="button" class="blint-product__qty-btn" data-qty-minus aria-label="Decrease quantity">&#8722;</button>
+                      <input type="text" name="quantity" value="1" class="blint-product__qty-input" data-qty-input inputmode="numeric" aria-label="Quantity">
+                      <button type="button" class="blint-product__qty-btn" data-qty-plus aria-label="Increase quantity">&#43;</button>
+                    </div>
+                  {%- else -%}
+                    {%- comment -%}
+                      No visible stepper, but the form still needs to post a
+                      quantity. Deliberately without data-qty-input, so the
+                      script's qty() falls through to its 1 default rather than
+                      tracking a field the shopper can't see. The Add to cart
+                      button is flex:1 and simply takes the full row.
+                    {%- endcomment -%}
+                    <input type="hidden" name="quantity" value="1">
+                  {%- endif -%}
+                  <button
+                    type="submit"
+                    class="blint-product__atc"
+                    data-atc
+                    style="--blint-cta: {{ block.settings.cta_color }}; --blint-cta-text: {{ block.settings.cta_text_color }};"
+                  >
+                    <span class="blint-product__atc-copy">
+                      <span data-atc-label>{{ block.settings.atc_label }}</span>
+                      <span class="blint-product__atc-arrow" aria-hidden="true">&#8594;</span>
+                    </span>
+                    <span class="blint-product__atc-price" data-atc-price></span>
+                  </button>
+                </div>
+              </div>
+
+            {%- when 'guarantees' -%}
+              {%- assign guarantees = block.settings.guarantees | split: ',' -%}
+              {%- if block.settings.guarantees != blank -%}
+                <ul class="blint-product__guarantees" role="list" {{ block.shopify_attributes }}>
+                  {%- for g in guarantees -%}
+                    {%- assign g_clean = g | strip -%}
+                    {%- if g_clean != blank -%}
+                      <li class="blint-product__guarantee">
+                        <svg class="blint-product__guarantee-check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>{{ g_clean }}</span>
+                      </li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+
+            {%- when 'payment_icons' -%}
+              {%- if shop.enabled_payment_types.size > 0 -%}
+                <div
+                  class="blint-product__payment-icons"
+                  style="--blint-payment-icon-size: {{ block.settings.icon_size }}px; --blint-payment-alignment: {{ block.settings.alignment }};"
+                  {{ block.shopify_attributes }}
+                >
+                  {%- if block.settings.label != blank -%}
+                    <p class="blint-product__payment-icons-label">{{ block.settings.label }}</p>
+                  {%- endif -%}
+                  <span class="visually-hidden">{{ 'blocks.payment_methods' | t }}</span>
+                  <ul class="blint-product__payment-icons-list" role="list">
+                    {%- for type in shop.enabled_payment_types -%}
+                      {%- unless type == 'discover' -%}
+                        <li class="blint-product__payment-icons-item">
+                          {{ type | payment_type_svg_tag: class: 'icon icon--full-color' }}
+                        </li>
+                      {%- endunless -%}
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- endif -%}
+
+            {%- when 'timer' -%}
+              {%- if block.settings.countdown_enable or block.settings.urgency_value != blank -%}
+                <div
+                  class="blint-product__urgency"
+                  style="{% if block.settings.urgency_background != blank %}--blint-urgency-bg: {{ block.settings.urgency_background }};{% endif %}"
+                  {{ block.shopify_attributes }}
+                >
+                  <p class="blint-product__urgency-head">{{ block.settings.urgency_heading }}</p>
+                  {%- if block.settings.countdown_enable -%}
+                    <div
+                      class="blint-product__countdown"
+                      data-countdown
+                      data-cutoff-hour="{{ block.settings.countdown_cutoff_hour }}"
+                      role="timer"
+                      aria-label="Time left to order"
+                      style="{% if block.settings.countdown_box_color != blank %}--blint-cd-bg: {{ block.settings.countdown_box_color }};{% endif %}{% if block.settings.countdown_text_color != blank %}--blint-cd-text: {{ block.settings.countdown_text_color }};{% endif %}{% if block.settings.countdown_sep_color != blank %}--blint-cd-sep: {{ block.settings.countdown_sep_color }};{% endif %}"
+                    >
+                      <span class="blint-product__cd-unit"><b data-cd-h>00</b><small>hrs</small></span>
+                      <span class="blint-product__cd-sep" aria-hidden="true">:</span>
+                      <span class="blint-product__cd-unit"><b data-cd-m>00</b><small>min</small></span>
+                      <span class="blint-product__cd-sep" aria-hidden="true">:</span>
+                      <span class="blint-product__cd-unit"><b data-cd-s>00</b><small>sec</small></span>
+                    </div>
+                  {%- elsif block.settings.urgency_value != blank -%}
+                    <p class="blint-product__urgency-value"><strong>{{ block.settings.urgency_value }}</strong></p>
+                  {%- endif -%}
+                  {%- if block.settings.urgency_text != blank -%}
+                    {%- assign urgency_lines = block.settings.urgency_text | newline_to_br | split: '<br />' -%}
+                    <div class="blint-product__urgency-text">
+                      {%- for line in urgency_lines -%}
+                        {%- assign line_clean = line | strip -%}
+                        {%- if line_clean != blank -%}<p>{{ line_clean }}</p>{%- endif -%}
+                      {%- endfor -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+
+            {%- when 'accordion' -%}
+              {%- if product.description != blank or block.settings.ingredients_content != blank or block.settings.benefits_content != blank -%}
+                <div class="blint-product__accordion" {{ block.shopify_attributes }}>
+                  {%- render 'blint-accordion-item', heading: block.settings.accordion_description_label, content: product.description -%}
+                  {%- render 'blint-accordion-item', heading: block.settings.accordion_ingredients_label, content: block.settings.ingredients_content -%}
+                  {%- render 'blint-accordion-item', heading: block.settings.accordion_benefits_label, content: block.settings.benefits_content -%}
+                </div>
+              {%- endif -%}
+
+          {%- endcase -%}
+        {%- endfor -%}
+      {%- endform -%}
+    </div>
+  </div>
+
+  {%- if price_block -%}
+    <div class="blint-product__sticky" data-sticky aria-hidden="true">
+      <div class="blint-product__sticky-inner">
+        <button
+          type="button"
+          class="blint-product__atc blint-product__sticky-btn"
+          data-sticky-atc
+          style="--blint-cta: {{ price_block.settings.cta_color }}; --blint-cta-text: {{ price_block.settings.cta_text_color }};"
+        >
+          <span class="blint-product__atc-copy">
+            <span data-sticky-label>{{ price_block.settings.atc_label }}</span>
+            <span class="blint-product__atc-arrow" aria-hidden="true">&#8594;</span>
+          </span>
+          <span class="blint-product__atc-price" data-sticky-price></span>
+        </button>
+      </div>
+    </div>
+  {%- endif -%}
+
+  <script type="application/json" data-blint-variants>
+    {
+      "variants": [
+        {%- for v in product.variants -%}
+          {
+            "id": {{ v.id }},
+            "available": {{ v.available }},
+            "options": {{ v.options | json }},
+            "price": {{ v.price }},
+            "compare_at_price": {{ v.compare_at_price | default: 0 | json }},
+            "media_id": {{ v.featured_media.id | default: 0 | json }},
+            "plans": [
+              {%- for a in v.selling_plan_allocations -%}
+                { "id": {{ a.selling_plan.id }}, "price": {{ a.price }}, "compare_at_price": {{ a.compare_at_price | default: 0 | json }} }{%- unless forloop.last -%},{%- endunless -%}
+              {%- endfor -%}
+            ]
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ]
+    }
+  </script>
+</section>
+
+{% stylesheet %}
+  .blint-product {
+    position: relative;
+  }
+
+  /* When this is the first section on the page and the theme's header is
+     transparent/overlaid, its own negative margin pulls the header on top of
+     our content. Push the content back down by the header's height so the
+     title/gallery/buy box aren't hidden underneath it — but only in that
+     exact case, so nothing shifts when the header is in normal (opaque) flow.
+     margin (not padding) so it doesn't fight the spacing-style padding vars. */
+  body:has(#header-component[transparent]) .blint-product {
+    margin-top: var(--header-group-height, 0px);
+  }
+
+  /* Section background image */
+  .blint-product__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .blint-product__bg-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transform: scale(1.1);
+    will-change: transform;
+  }
+
+  .blint-product__bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / var(--blint-bg-overlay-opacity, 0.45));
+  }
+
+  .blint-product__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.6rem;
+    max-width: var(--page-width, 1500px);
+    margin-inline: auto;
+    padding-inline: clamp(0.5rem, 4vw, 4rem);
+  }
+
+  .blint-product__gallery,
+  .blint-product__gallery,
+  .blint-product__gallery,
+  .blint-product__info {
+    min-width: 0;
+  }
+
+  /* Buy box as a branded card */
+  .blint-product__info {
+    border: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.08);
+    border-radius: 24px;
+    background: #fff;
+    padding: clamp(0.5rem, 4vw, 2.25rem);
+    box-shadow: 0 24px 50px -32px rgb(53 41 230 / 0.4);
+  }
+
+  /* Glassmorphism variant — both cards float as frosted glass, meant to sit over a background image */
+  .blint-product--glass .blint-product__info,
+  .blint-product--glass .blint-product__gallery {
+    /* border: 1px solid rgb(255 255 255 / 0.35); */
+    border-radius: 24px;
+    /* background: rgb(255 255 255 / 0.14);  */
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 24px 50px -28px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.3);
+  }
+
+  .blint-product--glass .blint-product__info {
+    background: rgb(255 255 255 / 0.6);
+    padding: clamp(0.5rem, 4vw, 2.25rem);
+  }
+
+  .blint-product--glass .blint-product__gallery {
+    padding: clamp(0.5rem, 3vw, 1.5rem);
+  }
+
+  .blint-product--glass .blint-product__main {
+    background: transparent;
+  }
+
+  @media screen and (min-width: 990px) {
+    /* Thumbnails move to a side column next to the main image on desktop */
+    .blint-product__gallery {
+      position: sticky;
+      top: 1.5rem;
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .blint-product__main {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .blint-product__thumbs {
+      grid-column: 1;
+      grid-row: 1;
+      flex-direction: column;
+      margin-top: 0;
+      overflow-x: visible;
+      overflow-y: auto;
+      scroll-snap-type: none;
+      max-height: 100%;
+    }
+
+    .blint-product__thumb {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      flex: 0 0 auto;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .blint-product__inner {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 3rem;
+      align-items: start;
+    }
+  }
+
+  /* Gallery */
+  .blint-product__main {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #f1f1f3;
+  }
+
+  /* Main image: a horizontally-scrollable, swipeable slide track — every
+     product image, not just the active one. Nav arrows (desktop) and the
+     thumbnail rail both scroll it; swiping it directly works everywhere. */
+  .blint-product__main-track {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .blint-product__main-track::-webkit-scrollbar { display: none; }
+
+  .blint-product__main-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .blint-product__main-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Overlay badge on the main image. Sits above the slide track but clear of
+     the centred nav arrows; pointer-events:none so it never blocks a swipe. */
+  .blint-product__badge {
+    position: absolute;
+    top: 1rem;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    max-width: calc(100% - 2rem);
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: var(--blint-badge-bg, #1f252f);
+    color: var(--blint-badge-text, #ffffff);
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  /* Set by the gallery script when "Show on first image only" is on and the
+     carousel has moved off slide 1. Kept separate from [hidden], which the
+     discount logic owns, so the two conditions stack. */
+  .blint-product__badge.is-off-first-slide {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .blint-product__badge--pill.blint-product__badge--top-left { left: 1rem; }
+  .blint-product__badge--pill.blint-product__badge--top-right { right: 1rem; }
+
+  @media screen and (max-width: 749px) {
+    .blint-product__badge--pill {
+      top: 0.75rem;
+      padding: 0.38rem 0.7rem;
+      font-size: 0.66rem;
+      max-width: calc(100% - 1.5rem);
+    }
+
+    .blint-product__badge--pill.blint-product__badge--top-left { left: 0.75rem; }
+    .blint-product__badge--pill.blint-product__badge--top-right { right: 0.75rem; }
+  }
+
+  /* Corner wedge: a quarter-disc sitting flush in the image corner. The
+     straight outer corner is clipped to the gallery's own 24px radius by
+     .blint-product__main's border-radius + overflow:hidden, so the wedge
+     always follows the image's rounding without hardcoding it here. */
+  .blint-product__badge--wedge {
+    top: 0;
+    width: min(var(--blint-badge-size, 118px), 38%);
+    aspect-ratio: 1;
+    max-width: none;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+    white-space: normal;
+    align-items: flex-start;
+  }
+
+  .blint-product__badge--wedge.blint-product__badge--top-left {
+    left: 0;
+    border-bottom-right-radius: 100%;
+  }
+
+  .blint-product__badge--wedge.blint-product__badge--top-right {
+    right: 0;
+    border-bottom-left-radius: 100%;
+  }
+
+  /* Mobile gets its own wedge diameter — the gallery is far narrower there, so
+     a size that reads well on desktop swamps the image on a phone. */
+  @media screen and (max-width: 749px) {
+    .blint-product__badge--wedge {
+      width: min(var(--blint-badge-size-mobile, 70px), 42%);
+    }
+  }
+
+  .blint-product__badge-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    /* Type is nudged toward the corner, inside the solid part of the disc.
+       --blint-badge-inset is a percentage of the wedge, so it holds its
+       position as the wedge resizes. */
+    padding: var(--blint-badge-inset, 15%) 0 0 14%;
+    line-height: 1;
+  }
+
+  .blint-product__badge--top-left .blint-product__badge-inner {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .blint-product__badge--top-right .blint-product__badge-inner {
+    align-items: flex-end;
+    text-align: right;
+    padding: var(--blint-badge-inset, 15%) 14% 0 18px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .blint-product__badge-inner {
+      padding: var(--blint-badge-inset-mobile, 15%) 0 0 14%;
+    }
+
+    .blint-product__badge--top-right .blint-product__badge-inner {
+      padding: var(--blint-badge-inset-mobile, 15%) 14% 0 8px;
+    }
+  }
+
+  /* Sized in absolute units, not em, so the pill's small base font-size does
+     not cascade into the wedge. The vw term keeps the block proportional to
+     the wedge as it caps down on narrow screens. */
+  .blint-product__badge-affix {
+    font-size: clamp(0.62rem, 2.6vw, 0.8rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+  }
+
+  .blint-product__badge-value {
+    font-size: clamp(1.2rem, 5.2vw, 1.65rem);
+    font-weight: 800;
+    letter-spacing: 0.005em;
+    line-height: 1.05;
+  }
+
+  /* Desktop: the wedge stops growing once it reaches --blint-badge-size, but
+     the vw terms above keep climbing to their clamp ceiling, so the
+     FLAT / % / OFF block spilled past the disc's curve on wide screens. Size
+     the type off the wedge itself (cqw) so it stays proportional at any
+     desktop width and at any badge size the merchant picks. */
+  @media screen and (min-width: 990px) {
+    .blint-product__badge--wedge {
+      container-type: inline-size;
+    }
+
+    .blint-product__badge--wedge .blint-product__badge-affix {
+      font-size: 9.6cqw;
+    }
+
+    .blint-product__badge--wedge .blint-product__badge-value {
+      font-size: 20cqw;
+    }
+  }
+
+  /* Prev/next arrows over the main image — vertically centred, both breakpoints */
+  .blint-product__main-nav {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.9);
+    color: #1f252f;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.15);
+    transform: translateY(-50%);
+    transition: background 0.15s ease, opacity 0.15s ease;
+  }
+
+  .blint-product__main-nav svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .blint-product__main-nav:hover { background: #fff; }
+  .blint-product__main-nav[disabled] { opacity: 0.3; cursor: not-allowed; }
+  .blint-product__main-nav--prev { left: 0.6rem; }
+  .blint-product__main-nav--next { right: 0.6rem; }
+
+  @media screen and (min-width: 990px) {
+    .blint-product__main-nav {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .blint-product__main-nav svg {
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .blint-product__main-nav--prev { left: 1rem; }
+    .blint-product__main-nav--next { right: 1rem; }
+  }
+
+  /* Pagination dots — mobile only (the thumbnail rail takes over on desktop) */
+  .blint-product__dots {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+  }
+
+  .blint-product__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.25;
+    cursor: pointer;
+    transition: opacity 0.2s ease, width 0.2s ease;
+  }
+
+  .blint-product__dot.is-active {
+    width: 22px;
+    opacity: 1;
+  }
+
+  /* Thumbnail rail — shown from 990px up; mobile uses the dots + arrows instead */
+  .blint-product__thumbs {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .blint-product__thumbs::-webkit-scrollbar { display: none; }
+
+  .blint-product__thumb {
+    flex: 0 0 78px;
+    width: 78px;
+    height: 78px;
+    padding: 0;
+    border: none;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f1f1f3;
+    cursor: pointer;
+    opacity: 0.45;
+    scroll-snap-align: center;
+    transition: opacity 0.2s ease;
+  }
+
+  .blint-product__thumb:hover {
+    opacity: 0.75;
+  }
+
+  .blint-product__thumb.is-active {
+    opacity: 1;
+  }
+
+  .blint-product__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Below 990px: swap the thumbnail rail out for the pagination dots. This
+     block must stay after the base .blint-product__thumbs/__dots rules —
+     same specificity, so source order decides the winner. */
+  @media screen and (max-width: 989px) {
+    .blint-product__thumbs {
+      display: none;
+    }
+
+    .blint-product__dots {
+      display: flex;
+    }
+  }
+
+  /* Info */
+  .blint-product__title {
+    margin: 0;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: min(var(--blint-product-title-size, 56px), 11vw);
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    overflow-wrap: break-word;
+  }
+
+  .blint-product__short-desc {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.85rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 10px;
+    background: #1F252F;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.3;
+  }
+
+  .blint-product__short-desc p { margin: 0; }
+
+  /* Flavor switch — links to other flavor products, carries the box tier along.
+     Fixed 4-column grid on every breakpoint: 10 flavors lay out as 4 / 4 / 2. */
+  .blint-product__flavor-switch {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.9rem 0.5rem;
+    margin-top: 1.1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Every flavor renders at full strength — the unselected ones used to sit at
+     0.55 opacity, which made the actual product photos look washed out rather
+     than merely unselected. The coloured ring and the bolder name carry the
+     selected state on their own. */
+  .blint-product__flavor-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .blint-product__flavor-card img {
+    width: 100%;
+    max-width: 4.2rem;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    object-fit: cover;
+    /* Hairline on every thumb so the circles read as a deliberate set, and so
+       nothing shifts by 2px when the ring appears on selection. */
+    border: 2px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.08);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  /* --blint-flavor-accent is set per card from the flavor's own colour (see
+     the blint-flavor-card snippet); the indigo is only the fallback for a
+     flavor that hasn't been given one. */
+  .blint-product__flavor-card:hover img {
+    border-color: color-mix(in srgb, var(--blint-flavor-accent, #3529E6) 45%, transparent);
+  }
+
+  .blint-product__flavor-card.is-active img {
+    border-color: var(--blint-flavor-accent, #3529E6);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--blint-flavor-accent, #3529E6) 18%, transparent);
+  }
+
+  /* Short flavor names (see the blint-flavor-card snippet) fit on one or two
+     lines, so this can afford a readable size instead of the old 0.66rem that
+     full product titles forced. */
+  .blint-product__flavor-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .blint-product__flavor-card.is-active .blint-product__flavor-name { font-weight: 700; }
+
+  @media screen and (max-width: 480px) {
+    .blint-product__flavor-switch { gap: 0.6rem 0.35rem; }
+    .blint-product__flavor-card img { max-width: 3.4rem; }
+    .blint-product__flavor-name { font-size: 0.68rem; }
+  }
+
+  .blint-product__desc {
+    margin-top: 1.25rem;
+    font-size: var(--blint-product-desc-size, 17px);
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.85);
+  }
+
+  .blint-product__desc > :first-child { margin-top: 0; }
+  .blint-product__desc > :last-child { margin-bottom: 0; }
+
+  .blint-product__desc p { margin: 0 0 0.6rem; }
+
+  .blint-product__desc :is(h1, h2, h3, h4, h5, h6),
+  .blint-product__desc p strong:only-child {
+    margin: 1rem 0 0.4rem;
+  }
+
+  .blint-product__desc ul,
+  .blint-product__desc ol {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+  }
+
+  .blint-product__desc li { margin-bottom: 0.25rem; }
+
+  .blint-product__benefits {
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .blint-product__benefit {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .blint-product__benefit-mark { color: var(--color-foreground, #111); }
+
+  /* Rating row — fed by Judge.me (see the rating block above). Rendered as a
+     button so it can jump to the review widget; the script downgrades it to
+     .blint-product__rating--static when the page has no reviews section. */
+  .blint-product__rating-wrap { margin-top: 0.75rem; }
+
+  .blint-product__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .blint-product__rating[hidden] { display: none; }
+
+  .blint-product__rating:focus-visible {
+    outline: 2px solid var(--blint-ink, #3529E6);
+    outline-offset: 3px;
+  }
+
+  /* Fractional stars: a muted track with a gold overlay clipped to the score,
+     so 4.9 / 5 reads as 98% filled rather than five identical full stars. */
+  .blint-product__stars {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    font-size: 1rem;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .blint-product__stars-track { color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.18); }
+
+  .blint-product__stars-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--blint-star-fill, 100%);
+    overflow: hidden;
+    color: #f5b50a;
+  }
+
+  .blint-product__rating-value {
+    font-weight: 700;
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .blint-product__rating-count {
+    font-size: 0.82rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  }
+
+  .blint-product__rating:hover .blint-product__rating-count {
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.85);
+    text-decoration-color: currentColor;
+  }
+
+  .blint-product__rating-value[hidden],
+  .blint-product__rating-count[hidden] { display: none; }
+
+  .blint-product__rating--static { cursor: default; }
+
+  .blint-product__rating--static:hover .blint-product__rating-count {
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+    text-decoration-color: transparent;
+  }
+
+  /* Judge.me's own badge is kept in the DOM only as a data source. */
+  .blint-product__jdgm-source { pointer-events: none; }
+
+  /* Ingredient chips — light, hairline-bordered claim pills with a brand check
+     mark. Deliberately the quiet counterpart to the solid dark pills used for
+     price/savings emphasis, so the two never compete for attention. */
+  .blint-product__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .blint-product__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 0.85rem 0.42rem 0.68rem;
+    border-radius: 999px;
+    background: rgb(var(--color-foreground-rgb, 0 0 0) / 0.035);
+    border: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.1);
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.82);
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* Masked SVG so the tick picks up the accent colour and stays crisp at any
+     zoom — no icon font, no extra request. */
+  .blint-product__chip::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 0.95rem;
+    height: 0.95rem;
+    background: var(--blint-chip-accent, var(--blint-ink, #3529E6));
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round' d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 0.72rem 0.72rem no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round' d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 0.72rem 0.72rem no-repeat;
+  }
+
+  @media screen and (max-width: 480px) {
+    .blint-product__chip {
+      font-size: 0.74rem;
+      padding: 0.38rem 0.72rem 0.38rem 0.58rem;
+    }
+  }
+
+  /* Guarantee row */
+  .blint-product__guarantees {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin: 1.1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .blint-product__guarantee {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.7);
+  }
+  .blint-product__guarantee-check {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex-shrink: 0;
+    color: var(--blint-ink, #1f252f);
+  }
+
+  /* Payment method icons — every payment type enabled in Settings > Payments, no cap */
+  .blint-product__payment-icons {
+    margin: 1.1rem 0 0;
+  }
+
+  .blint-product__payment-icons-label {
+    margin: 0 0 0.6rem;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  .blint-product__payment-icons-list {
+    display: flex;
+    align-items: center;
+    justify-content: var(--blint-payment-alignment, flex-start);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .blint-product__payment-icons-item {
+    display: flex;
+    align-items: center;
+  }
+
+  .blint-product__payment-icons-item svg,
+  .blint-product__payment-icons-item img {
+    display: block;
+    height: var(--blint-payment-icon-size, 24px);
+    width: auto;
+  }
+
+  .blint-product__form { margin-top: 0.6rem; }
+
+  .blint-product__option {
+    border: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+  }
+
+  .blint-product__option-name {
+    padding: 0;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  .blint-product__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .blint-product__pills--count {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .blint-product__pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+
+  .blint-product__pill input { position: absolute; opacity: 0; pointer-events: none; }
+
+  .blint-product__pill--image {
+    padding-left: 0.45rem;
+  }
+
+  .blint-product__pill-thumb {
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 1.45rem;
+    height: 1.45rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .blint-product__pill-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .blint-product__pill:has(input:checked) {
+    border-color: #1F252F;
+    background: #1F252F;
+    color: #fff;
+  }
+
+  .blint-product__pill:has(input:focus-visible) { outline: 2px solid var(--blint-ink, #3529E6); outline-offset: 2px; }
+
+  /* Flavor (image) swatches: keep the thumb visible, ring it in brand indigo when selected */
+  .blint-product__pill--image:has(input:checked) {
+    background: #fff;
+    color: var(--color-foreground, #111);
+    border-color: var(--blint-ink, #3529E6);
+    box-shadow: 0 0 0 2px var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__pill-thumb {
+    width: 1.7rem;
+    height: 1.7rem;
+  }
+
+  .blint-product__pill-badge {
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    background: #3529E6;
+    color: #fff;
+    font-size: 0.6rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .blint-product__pill--count {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  /* Box-quantity pricing cards */
+  .blint-product__pills--cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+  }
+
+  .blint-product__box-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.9rem 0.5rem 0.75rem;
+    border-radius: 14px;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .blint-product__box-card input { position: absolute; opacity: 0; pointer-events: none; }
+
+  .blint-product__box-card:has(input:checked) {
+    border-color: var(--blint-ink, #3529E6);
+    border-width: 2px;
+    background: color-mix(in srgb, var(--blint-ink, #3529E6) 5%, #fff);
+  }
+
+  .blint-product__box-card-badge {
+    position: absolute;
+    top: -0.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: #c0392b;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .blint-product__box-card-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .blint-product__box-card-prices {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .blint-product__box-card-compare {
+    font-size: 0.75rem;
+    text-decoration: line-through;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.4);
+  }
+
+  .blint-product__box-card-compare[hidden] { display: none; }
+
+  .blint-product__box-card-price {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #c0392b;
+  }
+
+  .blint-product__box-card-discount {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: #c0392b;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+  }
+
+  .blint-product__box-card-discount[hidden] { display: none; }
+
+  .blint-product__box-card-unit {
+    font-size: 0.68rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  .blint-product__box-card-unit[hidden] { display: none; }
+
+  .blint-product__upgrade-hint {
+    margin: 0.6rem 0 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.75);
+  }
+
+  .blint-product__upgrade-hint[hidden] { display: none; }
+
+  .blint-product__hint-hl { color: #c0392b; }
+
+  /* Purchase options */
+  .blint-product__purchase {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 0 0 1.5rem;
+  }
+
+  .blint-product__purchase-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .blint-product__purchase-option input { position: absolute; opacity: 0; pointer-events: none; }
+
+  .blint-product__purchase-option:has(input:checked) {
+    border-color: var(--blint-ink, #1f252f);
+    background: color-mix(in srgb, var(--blint-ink, #1f252f) 5%, #fff);
+  }
+
+  .blint-product__purchase-main { display: inline-flex; align-items: center; gap: 0.75rem; }
+
+  .blint-product__purchase-radio {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.4);
+    display: inline-block;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .blint-product__purchase-option:has(input:checked) .blint-product__purchase-radio {
+    border-color: var(--blint-ink, #1F252F);
+  }
+
+  .blint-product__purchase-option:has(input:checked) .blint-product__purchase-radio::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--blint-ink, #1F252F);
+  }
+
+  /* Solid "Save x%" pill on the Subscribe & save option. Kept as its own class
+     (rather than reusing .blint-product__chip) because the ingredient chips are
+     a completely different, light treatment — sharing the name meant whichever
+     rule came last silently won. */
+  .blint-product__purchase-save {
+    flex-shrink: 0;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: var(--blint-ink, #1f252f);
+    color: #fff;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  /* Option label + price, stacked at the left edge and vertically centred
+     against the radio. Keeps both options' prices on one left-hand scan line. */
+  .blint-product__purchase-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .blint-product__purchase-label {
+    line-height: 1.2;
+  }
+
+  .blint-product__purchase-price {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .blint-product__purchase-price-now {
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+
+  .blint-product__purchase-price-was {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.45);
+    text-decoration: line-through;
+  }
+
+  /* Price */
+  .blint-product__pricebox {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+    padding-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .blint-product__pricebox-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .blint-product__offer {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .blint-product__offer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .blint-product__offer-label {
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .blint-product__offer-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: var(--blint-ink, #1f252f);
+    color: #fff;
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .blint-product__price-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .blint-product__price-compare {
+    font-size: 1.15rem;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.45);
+    text-decoration: line-through;
+  }
+
+  .blint-product__price {
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: var(--blint-heading-weight, 700);
+    font-size: clamp(1.6rem, 3vw, 2.25rem);
+    line-height: 1;
+  }
+
+  .blint-product__savings {
+    flex-shrink: 0;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 14px;
+    background: rgb(var(--color-foreground-rgb, 0 0 0) / 0.04);
+  }
+
+  .blint-product__savings-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  .blint-product__savings-value {
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  /* CTA */
+  .blint-product__atc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: none;
+    border-radius: 16px;
+    background: var(--blint-cta, #111);
+    color: var(--blint-cta-text, #fff);
+    font-family: var(--blint-heading-font, 'Titillium Web', sans-serif);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .blint-product__atc-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  /* Price on both buy buttons, separated by a hairline so the label and the
+     amount stay independently scannable. Hidden when the variant is sold out
+     (JS empties it), and :empty keeps the divider from showing on its own. */
+  .blint-product__atc-price {
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  .blint-product__atc-price:not(:empty) {
+    margin-inline-start: 0.7rem;
+    padding-inline-start: 0.7rem;
+    /* derived from the button's own text color, so the hairline stays visible
+       whatever CTA/text colors are set in the theme editor */
+    border-inline-start: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  }
+
+  .blint-product__atc:hover { transform: translateY(-2px); }
+  .blint-product__atc[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Mobile sticky add-to-cart */
+  .blint-product__sticky {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: 0.7rem 1rem calc(0.3rem + env(safe-area-inset-bottom, 0px));
+    background: var(--color-background, #fff);
+    box-shadow: 0 -6px 24px rgb(0 0 0 / 0.12);
+    transform: translateY(110%);
+    transition: transform 0.25s ease;
+    display: none;
+  }
+
+  .blint-product__sticky-inner {
+    max-width: var(--page-width, 1500px);
+    margin-inline: auto;
+  }
+
+  .blint-product__sticky-btn {
+    width: 100%;
+    padding-block: 0.95rem;
+    padding-inline: 1.15rem;
+    justify-content: space-between;
+  }
+
+  @media screen and (max-width: 749px) {
+    .blint-product__sticky { display: block; }
+    .blint-product__sticky.is-visible { transform: translateY(0); }
+  }
+
+  .blint-product__purchase-option--subscribe,
+  .blint-product__purchase-option--subscribe:has(input:checked) {
+    background: #F8F6F2;
+  }
+
+  .blint-product__purchase-option--subscribe {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .blint-product__purchase-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .blint-product__sub-notes {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  /* Subscribe card header (clickable) */
+  .blint-product__purchase-head { display: block; cursor: pointer; }
+
+  .blint-product__sub-note-single {
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.55);
+  }
+
+  /* Delivery frequency selector (inside the subscribe card) */
+  .blint-product__frequency {
+    padding-top: 0.9rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+  }
+
+  .blint-product__frequency[hidden] { display: none; }
+
+  .blint-product__frequency-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.6);
+  }
+
+  .blint-product__frequency-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .blint-product__frequency-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.7rem 2.25rem 0.7rem 0.9rem;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.18);
+    border-radius: 10px;
+    background: #fff;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-foreground, #111);
+    cursor: pointer;
+  }
+
+  .blint-product__frequency-select:focus-visible {
+    outline: 2px solid var(--blint-ink, #3529E6);
+    outline-offset: 1px;
+    border-color: var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__frequency-caret {
+    position: absolute;
+    right: 0.9rem;
+    pointer-events: none;
+    font-size: 0.7rem;
+    color: var(--blint-ink, #3529E6);
+  }
+
+  .blint-product__urgency {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 20px;
+    background: var(--blint-urgency-bg, linear-gradient(135deg, #e6e8fd 0%, #f0f1fe 100%));
+  }
+
+  .blint-product__urgency-head { margin: 0; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.03em; text-transform: uppercase; }
+  .blint-product__urgency-head strong { color: #3529E6; }
+  .blint-product__urgency-value { margin: 0.4rem 0 0; }
+  .blint-product__urgency-value strong { color: var(--blint-ink, #3529E6); font-size: 1.1rem; }
+
+  /* Live countdown timer */
+  .blint-product__countdown {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.7rem;
+  }
+  .blint-product__cd-unit {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 2.7rem;
+    padding: 0.45rem 0.35rem 0.4rem;
+    border-radius: 12px;
+    background: var(--blint-cd-bg, var(--blint-ink, #3529E6));
+    color: var(--blint-cd-text, #fff);
+  }
+  .blint-product__cd-unit b {
+    font-family: var(--blint-heading-font, sans-serif);
+    font-weight: 700;
+    font-size: 1.45rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .blint-product__cd-unit small {
+    margin-top: 0.25rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .blint-product__cd-sep {
+    font-weight: 700;
+    font-size: 1.45rem;
+    line-height: 2.4rem;
+    color: var(--blint-cd-sep, var(--blint-ink, #3529E6));
+  }
+  .blint-product__urgency-text { margin: 0.5rem 0 0; font-size: 0.9rem; color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.75); }
+  .blint-product__urgency-text p { margin: 0; }
+  .blint-product__urgency-text p + p { margin-top: 0.15rem; }
+
+  .blint-product__batches {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 1.1rem;
+  }
+
+  .blint-product__batch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1.4rem;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgb(255 255 255 / 0.4);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.4);
+  }
+
+  .blint-product__batch--active {
+    background: #fff;
+    color: var(--color-foreground, #111);
+  }
+
+  .blint-product__batch-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-radius: 999px;
+    background: #b9c1f5;
+  }
+
+  .blint-product__batch-date,
+  .blint-product__batch-status {
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .blint-product__batch-status--strike { text-decoration: line-through; }
+  /* Quantity stepper + ATC row */
+  .blint-product__buy-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .blint-product__buy-row .blint-product__atc {
+    flex: 1;
+    margin: 0;
+  }
+
+  .blint-product__qty {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    border: 1.5px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.15);
+    border-radius: 14px;
+    padding: 0 0.15rem;
+  }
+
+  .blint-product__qty-btn {
+    width: 1.7rem;
+    height: 1.7rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--color-foreground, #111);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .blint-product__qty-input {
+    width: 1.6rem;
+    border: none;
+    background: none;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-foreground, #111);
+    -moz-appearance: textfield;
+  }
+
+  .blint-product__qty-input:focus { outline: none; }
+
+  /* Keep the CTA on one line on small screens (price is already shown above) */
+  @media screen and (max-width: 749px) {
+    .blint-product__atc [data-atc-price] { display: none; }
+  }
+
+  /* Collapsible Description / Ingredients / Benefits */
+  .blint-product__accordion {
+    margin-top: 1.5rem;
+    border-top: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+  }
+
+  .blint-product__accordion-item {
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+  }
+
+  .blint-product__accordion-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .blint-product__accordion-summary::-webkit-details-marker { display: none; }
+  .blint-product__accordion-summary::marker { content: ''; }
+
+  .blint-product__accordion-icon {
+    position: relative;
+    width: 0.8rem;
+    height: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .blint-product__accordion-icon::before,
+  .blint-product__accordion-icon::after {
+    content: '';
+    position: absolute;
+    background: var(--color-foreground, #111);
+    border-radius: 2px;
+  }
+
+  .blint-product__accordion-icon::before { top: 50%; left: 0; width: 100%; height: 2px; transform: translateY(-50%); }
+  .blint-product__accordion-icon::after { left: 50%; top: 0; height: 100%; width: 2px; transform: translateX(-50%); transition: opacity 0.15s ease; }
+  .blint-product__accordion-item[open] .blint-product__accordion-icon::after { opacity: 0; }
+
+  .blint-product__accordion-content {
+    padding: 0 0 1.1rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: rgb(var(--color-foreground-rgb, 0 0 0) / 0.8);
+  }
+
+  .blint-product__accordion-content > :first-child { margin-top: 0; }
+  .blint-product__accordion-content > :last-child { margin-bottom: 0; }
+{% endstylesheet %}
+
+{% raw %}
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('[data-blint-product]') || (script && script.previousElementSibling);
+    if (!root) return;
+    const dataEl = root.querySelector('[data-blint-variants]');
+    if (!dataEl) return;
+    const variants = (JSON.parse(dataEl.textContent) || {}).variants || [];
+    const moneyFormat = root.getAttribute('data-money-format') || '${{amount}}';
+
+    function formatMoney(cents) {
+      cents = parseInt(cents, 10) || 0;
+      const value = cents / 100;
+      const fixed = value.toFixed(2);
+      const withCommas = fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const noDecimals = withCommas.split('.')[0];
+      return moneyFormat
+        .replace(/\{\{\s*amount\s*\}\}/g, withCommas)
+        .replace(/\{\{\s*amount_no_decimals\s*\}\}/g, noDecimals)
+        .replace(/\{\{\s*amount_with_comma_separator\s*\}\}/g, fixed.replace('.', ','));
+    }
+
+    const variantInput = root.querySelector('[data-variant-id]');
+    const sellingPlanInput = root.querySelector('[data-selling-plan]');
+    const optionInputs = Array.from(root.querySelectorAll('[data-option-input]'));
+    const purchaseInputs = Array.from(root.querySelectorAll('[data-purchase-input]'));
+    const priceEl = root.querySelector('[data-price]');
+    const compareEl = root.querySelector('[data-price-compare]');
+    const savingsWrap = root.querySelector('[data-savings-wrap]');
+    const savingsEl = root.querySelector('[data-savings]');
+    const atc = root.querySelector('[data-atc]');
+    const atcPrice = root.querySelector('[data-atc-price]');
+    const offerBadge = root.querySelector('[data-offer-badge]');
+    const galleryBadge = root.querySelector('[data-gallery-badge]');
+    const galleryBadgeValue = root.querySelector('[data-badge-value]');
+    const galleryBadgeAuto = galleryBadge && galleryBadge.getAttribute('data-badge-mode') === 'discount';
+    // The wedge supplies its own wording via the prefix/suffix lines, so its
+    // value line carries the number alone; the pill has no affixes and spells
+    // out "% off" itself.
+    const galleryBadgeWedge = galleryBadge && galleryBadge.getAttribute('data-badge-style') === 'wedge';
+
+    // Live discount in the gallery badge. No-op when the badge is off or is
+    // using manual override text, so the merchant's copy is never overwritten.
+    function setGalleryBadge(price, compare) {
+      if (!galleryBadgeAuto || !galleryBadgeValue) return;
+      const pct = discountPct(price, compare);
+      if (pct > 0) {
+        galleryBadgeValue.textContent = galleryBadgeWedge ? pct + '%' : pct + '% off';
+        galleryBadge.hidden = false;
+      } else {
+        galleryBadge.hidden = true;
+      }
+    }
+    const subSave = root.querySelector('[data-sub-save]');
+    const subPrice = root.querySelector('[data-sub-price]');
+    const subPriceCompare = root.querySelector('[data-sub-price-compare]');
+    const onetimePrice = root.querySelector('[data-onetime-price]');
+    const onetimePriceCompare = root.querySelector('[data-onetime-price-compare]');
+    const subnotes = root.querySelector('[data-subnotes]');
+    const freqSelect = root.querySelector('[data-frequency]');
+    const freqWrap = root.querySelector('[data-frequency-wrap]');
+    const countOption = root.querySelector('[data-count-option]');
+    const upgradeHint = root.querySelector('[data-upgrade-hint]');
+    const form = root.querySelector('#blint-product-form') || root.querySelector('form');
+    const sticky = root.querySelector('[data-sticky]');
+    const stickyAtc = root.querySelector('[data-sticky-atc]');
+    const stickyPrice = root.querySelector('[data-sticky-price]');
+    const stickyLabel = root.querySelector('[data-sticky-label]');
+    const qtyInput = root.querySelector('[data-qty-input]');
+    const qtyMinus = root.querySelector('[data-qty-minus]');
+    const qtyPlus = root.querySelector('[data-qty-plus]');
+
+    function selectedOptions() {
+      const groups = {};
+      optionInputs.forEach(function (input) {
+        if (input.checked) groups[input.name] = input.value;
+      });
+      // preserve option order by name
+      const names = [];
+      optionInputs.forEach(function (i) { if (names.indexOf(i.name) === -1) names.push(i.name); });
+      return names.map(function (n) { return groups[n]; });
+    }
+
+    function findVariant(opts) {
+      return variants.find(function (v) {
+        return v.options.length === opts.length && v.options.every(function (o, i) { return o === opts[i]; });
+      });
+    }
+
+    function isSubscribe() {
+      return purchaseInputs.some(function (i) { return i.checked && i.value === 'subscribe'; });
+    }
+
+    function currentPlanId() {
+      if (!isSubscribe()) return null;
+      if (freqSelect && freqSelect.value) return freqSelect.value;
+      const checked = purchaseInputs.find(function (i) { return i.checked; });
+      return checked ? checked.getAttribute('data-plan') : null;
+    }
+
+    function planFor(variant, planId) {
+      if (!variant || !planId) return null;
+      return (variant.plans || []).find(function (p) { return String(p.id) === String(planId); }) || null;
+    }
+
+    function discountPct(price, compare) {
+      if (!compare || compare <= price) return 0;
+      return Math.round((1 - price / compare) * 100);
+    }
+
+    // Every amount that represents what the shopper actually pays is a line
+    // total, so it scales with the quantity stepper. Percentages are ratios
+    // and stay quantity-invariant, as do the box-tier cards, which compare
+    // per-box/per-unit prices rather than the cart line.
+    function currentQty() {
+      return qtyInput ? clampQty(qtyInput.value) : 1;
+    }
+
+    function update() {
+      const opts = selectedOptions();
+      const variant = findVariant(opts);
+      const planId = currentPlanId();
+
+      // Subscription note + frequency selector visibility
+      if (subnotes) subnotes.hidden = !planId;
+      if (freqWrap) freqWrap.hidden = !isSubscribe();
+
+      if (!variant) {
+        atc.disabled = true;
+        atc.querySelector('[data-atc-label]').textContent = 'Unavailable';
+        if (atcPrice) atcPrice.textContent = '';
+        if (stickyAtc) stickyAtc.disabled = true;
+        setGalleryBadge(0, 0);
+        return;
+      }
+
+      variantInput.value = variant.id;
+
+      // selling plan input
+      if (sellingPlanInput) {
+        if (planId) {
+          sellingPlanInput.value = planId;
+          sellingPlanInput.disabled = false;
+        } else {
+          sellingPlanInput.value = '';
+          sellingPlanInput.disabled = true;
+        }
+      }
+
+      const plan = planFor(variant, planId);
+      const price = plan ? plan.price : variant.price;
+      const compare = variant.compare_at_price;
+
+      // swap main image to variant media
+      if (variant.media_id) {
+        const thumb = root.querySelector('[data-thumb][data-media-id="' + variant.media_id + '"]');
+        if (thumb) thumb.click();
+      }
+
+      const qty = currentQty();
+
+      priceEl.textContent = formatMoney(price * qty);
+
+      if (compare && compare > price) {
+        compareEl.textContent = formatMoney(compare * qty);
+        compareEl.hidden = false;
+        savingsEl.textContent = formatMoney((compare - price) * qty);
+        if (savingsWrap) savingsWrap.hidden = false;
+        if (offerBadge) { offerBadge.textContent = discountPct(price, compare) + '% off'; offerBadge.hidden = false; }
+      } else {
+        compareEl.hidden = true;
+        if (savingsWrap) savingsWrap.hidden = true;
+        if (offerBadge) offerBadge.hidden = true;
+      }
+
+      setGalleryBadge(price, compare);
+
+      // Count badges reflect the current purchase mode
+      updateCountBadges(planId);
+      updateUpgradeHint(planId);
+      updateBoxCards(planId);
+
+      // Per-option prices, so each purchase option carries its own amount:
+      // the subscribe row shows the selected frequency's price, the one-time
+      // row the plain variant price. Both strike through compare-at when set.
+      const subPlanInput = purchaseInputs.find(function (i) { return i.value === 'subscribe'; });
+      let subPlanId = freqSelect && freqSelect.value ? freqSelect.value : null;
+      if (!subPlanId) subPlanId = subPlanInput ? subPlanInput.getAttribute('data-plan') : null;
+      const subPlan = planFor(variant, subPlanId);
+      const subBase = variant.compare_at_price || variant.price;
+
+      if (subPrice) {
+        const subAmount = subPlan ? subPlan.price : variant.price;
+        subPrice.textContent = formatMoney(subAmount * qty);
+        if (subPriceCompare) {
+          if (subBase > subAmount) {
+            subPriceCompare.textContent = formatMoney(subBase * qty);
+            subPriceCompare.hidden = false;
+          } else {
+            subPriceCompare.hidden = true;
+          }
+        }
+      }
+
+      if (onetimePrice) {
+        onetimePrice.textContent = formatMoney(variant.price * qty);
+        if (onetimePriceCompare) {
+          if (variant.compare_at_price && variant.compare_at_price > variant.price) {
+            onetimePriceCompare.textContent = formatMoney(variant.compare_at_price * qty);
+            onetimePriceCompare.hidden = false;
+          } else {
+            onetimePriceCompare.hidden = true;
+          }
+        }
+      }
+
+      // subscribe savings chip (selected frequency price vs variant compare-at)
+      if (subSave) {
+        if (subPlan && subPlan.price < subBase) {
+          subSave.textContent = 'Save ' + discountPct(subPlan.price, subBase) + '%';
+          subSave.hidden = false;
+        } else {
+          subSave.textContent = '';
+          subSave.hidden = true;
+        }
+      }
+
+      atc.disabled = !variant.available;
+      atc.querySelector('[data-atc-label]').textContent = variant.available
+        ? atc.getAttribute('data-default-label') || atc.querySelector('[data-atc-label]').textContent
+        : 'Sold out';
+      if (atcPrice) atcPrice.textContent = variant.available ? formatMoney(price * qty) : '';
+
+      // Mirror to the mobile sticky button
+      if (stickyAtc) stickyAtc.disabled = !variant.available;
+      if (stickyLabel) stickyLabel.textContent = variant.available ? (atc.getAttribute('data-default-label') || stickyLabel.textContent) : 'Sold out';
+      if (stickyPrice) stickyPrice.textContent = variant.available ? formatMoney(price * qty) : '';
+    }
+
+    // Count-option discount badges — reflect the selected purchase mode (vs variant compare-at)
+    function updateCountBadges(planId) {
+      if (!countOption) return;
+      const badgesEnabled = countOption.getAttribute('data-badges-enabled') === 'true';
+      const countIndex = parseInt(countOption.getAttribute('data-option-index'), 10) - 1;
+      countOption.querySelectorAll('[data-badge-for]').forEach(function (badge) {
+        if (!badgesEnabled) { badge.hidden = true; return; }
+        const value = badge.getAttribute('data-badge-for');
+        const rep = variants.find(function (v) { return v.options[countIndex] === value; });
+        if (!rep) { badge.hidden = true; return; }
+        const repPlan = planFor(rep, planId);
+        const repPrice = repPlan ? repPlan.price : rep.price;
+        const repCompare = rep.compare_at_price;
+        if (repCompare && repCompare > repPrice) {
+          badge.textContent = discountPct(repPrice, repCompare) + '% off';
+          badge.hidden = false;
+        } else {
+          badge.hidden = true;
+        }
+      });
+    }
+
+    // Box-card prices — compare-at, % off, and per-unit price, recomputed per purchase mode/frequency
+    function parseLeadingNumber(str) {
+      var m = String(str).match(/\d+/);
+      return m ? parseInt(m[0], 10) : 1;
+    }
+
+    function updateBoxCards(planId) {
+      if (!countOption) return;
+      var cards = countOption.querySelectorAll('.blint-product__box-card');
+      if (!cards.length) return;
+      var countIndex = parseInt(countOption.getAttribute('data-option-index'), 10) - 1;
+      var unitsPerBox = parseFloat(countOption.getAttribute('data-units-per-box')) || 0;
+      var unitLabel = countOption.getAttribute('data-unit-label') || '';
+
+      cards.forEach(function (card) {
+        var input = card.querySelector('[data-option-input]');
+        var value = input ? input.value : '';
+        var rep = variants.find(function (v) { return v.options[countIndex] === value; });
+        var priceEl2 = card.querySelector('[data-box-price]');
+        var compareEl2 = card.querySelector('[data-box-compare]');
+        var discountEl = card.querySelector('[data-box-discount]');
+        var unitEl = card.querySelector('[data-box-unit]');
+
+        if (!rep) {
+          if (priceEl2) priceEl2.textContent = '';
+          return;
+        }
+
+        var repPlan = planFor(rep, planId);
+        var repPrice = repPlan ? repPlan.price : rep.price;
+        var repCompare = rep.compare_at_price;
+
+        if (priceEl2) priceEl2.textContent = formatMoney(repPrice);
+
+        if (repCompare && repCompare > repPrice) {
+          if (compareEl2) { compareEl2.textContent = formatMoney(repCompare); compareEl2.hidden = false; }
+          if (discountEl) { discountEl.textContent = discountPct(repPrice, repCompare) + '% off'; discountEl.hidden = false; }
+        } else {
+          if (compareEl2) compareEl2.hidden = true;
+          if (discountEl) discountEl.hidden = true;
+        }
+
+        if (unitEl && unitsPerBox > 0) {
+          var totalUnits = parseLeadingNumber(value) * unitsPerBox;
+          unitEl.textContent = formatMoney(repPrice / totalUnits) + ' / ' + unitLabel;
+          unitEl.hidden = false;
+        } else if (unitEl) {
+          unitEl.hidden = true;
+        }
+      });
+    }
+
+    // Quantity upgrade hint — "Upgrade to X & Save Y%" for lower tiers, a "best value" message on the highest tier
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function updateUpgradeHint(planId) {
+      if (!upgradeHint || !countOption) return;
+      const countIndex = parseInt(countOption.getAttribute('data-option-index'), 10) - 1;
+      // Read the tier values off the radios, not off the [data-badge-for] pill
+      // badges: those badges only exist in the pill layout, so with "Show as
+      // pricing cards" turned on this list came back empty, idx stayed -1 and
+      // the upgrade / best-value hint was hidden on every tier.
+      const values = Array.from(countOption.querySelectorAll('[data-option-input]')).map(function (input) {
+        return input.value;
+      });
+      const checkedInput = countOption.querySelector('[data-option-input]:checked');
+      const currentValue = checkedInput ? checkedInput.value : null;
+      const idx = values.indexOf(currentValue);
+
+      if (idx === -1) { upgradeHint.hidden = true; return; }
+
+      if (idx < values.length - 1) {
+        const nextValue = values[idx + 1];
+        const rep = variants.find(function (v) { return v.options[countIndex] === nextValue; });
+        const repPlan = rep ? planFor(rep, planId) : null;
+        const repPrice = rep ? (repPlan ? repPlan.price : rep.price) : 0;
+        const repCompare = rep ? rep.compare_at_price : 0;
+        const pct = repCompare && repCompare > repPrice ? discountPct(repPrice, repCompare) : 0;
+
+        if (pct > 0) {
+          const template = upgradeHint.getAttribute('data-template') || 'Upgrade to [quantity] & Save [percent]!';
+          upgradeHint.innerHTML = template
+            .replace(/\[\s*quantity\s*\]/g, '<span class="blint-product__hint-hl">' + escapeHtml(nextValue) + '</span>')
+            .replace(/\[\s*percent\s*\]/g, '<span class="blint-product__hint-hl">' + pct + '%</span>');
+          upgradeHint.hidden = false;
+        } else {
+          upgradeHint.hidden = true;
+        }
+      } else {
+        const bestText = upgradeHint.getAttribute('data-best-text');
+        if (bestText) {
+          upgradeHint.textContent = bestText;
+          upgradeHint.hidden = false;
+        } else {
+          upgradeHint.hidden = true;
+        }
+      }
+    }
+
+    // store default label
+    if (atc) atc.setAttribute('data-default-label', atc.querySelector('[data-atc-label]').textContent);
+
+    // Gallery — the main image is a horizontally-scrollable, swipeable slide
+    // track (one panel per media item). Thumbnails and the desktop nav
+    // arrows both scroll it; swiping/scrolling it directly keeps the active
+    // thumbnail and arrow-disabled state in sync via the track's own scroll.
+    (function initGallery() {
+      const mainGallery = root.querySelector('[data-main-gallery]');
+      const mainTrack = root.querySelector('[data-main-track]');
+      const mainSlides = Array.from(root.querySelectorAll('[data-main-slide]'));
+      const prevBtn = root.querySelector('[data-main-prev]');
+      const nextBtn = root.querySelector('[data-main-next]');
+      const thumbs = Array.from(root.querySelectorAll('[data-thumb]'));
+      const dots = Array.from(root.querySelectorAll('[data-dot]'));
+
+      if (!mainTrack || !mainSlides.length) return;
+
+      function closestSlideIndex() {
+        const trackRect = mainTrack.getBoundingClientRect();
+        const center = trackRect.left + trackRect.width / 2;
+        let closest = 0;
+        let closestDist = Infinity;
+        mainSlides.forEach(function (slide, i) {
+          const r = slide.getBoundingClientRect();
+          const dist = Math.abs(r.left + r.width / 2 - center);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closest = i;
+          }
+        });
+        return closest;
+      }
+
+      // "Show on first image only": the badge is pinned to the gallery frame,
+      // not to a slide, so it would otherwise sit over every image. Toggled as
+      // a class rather than via .hidden, because .hidden is already owned by
+      // the discount logic — the two conditions have to stack independently.
+      const badgeFirstOnly = galleryBadge && galleryBadge.hasAttribute('data-badge-first-only');
+
+      function setActiveState(index) {
+        thumbs.forEach(function (t, i) { t.classList.toggle('is-active', i === index); });
+        dots.forEach(function (d, i) {
+          d.classList.toggle('is-active', i === index);
+          d.setAttribute('aria-current', i === index ? 'true' : 'false');
+        });
+        if (prevBtn) prevBtn.disabled = index <= 0;
+        if (nextBtn) nextBtn.disabled = index >= mainSlides.length - 1;
+        if (badgeFirstOnly) galleryBadge.classList.toggle('is-off-first-slide', index !== 0);
+      }
+
+      function scrollToSlide(index, smooth) {
+        const slide = mainSlides[index];
+        if (!slide) return;
+        mainTrack.scrollTo({ left: slide.offsetLeft, behavior: smooth ? 'smooth' : 'auto' });
+        setActiveState(index);
+      }
+
+      // Land on the variant's featured media (or first image) without an animated scroll on load
+      const initialMediaId = mainGallery ? mainGallery.getAttribute('data-initial-media-id') : null;
+      let initialIndex = 0;
+      if (initialMediaId) {
+        const found = mainSlides.findIndex(function (s) { return s.getAttribute('data-media-id') === initialMediaId; });
+        if (found > -1) initialIndex = found;
+      }
+      scrollToSlide(initialIndex, false);
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+          scrollToSlide(Math.max(0, closestSlideIndex() - 1), true);
+        });
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+          scrollToSlide(Math.min(mainSlides.length - 1, closestSlideIndex() + 1), true);
+        });
+      }
+
+      thumbs.forEach(function (thumb, index) {
+        thumb.addEventListener('click', function () {
+          scrollToSlide(index, true);
+        });
+      });
+
+      dots.forEach(function (dot, index) {
+        dot.addEventListener('click', function () {
+          scrollToSlide(index, true);
+        });
+      });
+
+      // Keep thumbnail/arrow state synced when the main image is swiped/scrolled directly
+      let scrollTimer;
+      mainTrack.addEventListener(
+        'scroll',
+        function () {
+          clearTimeout(scrollTimer);
+          scrollTimer = setTimeout(function () { setActiveState(closestSlideIndex()); }, 80);
+        },
+        { passive: true }
+      );
+    })();
+
+    // Flavor switch — flavors are separate products, so carry the selected box tier
+    // across the navigation via a query param instead of a same-product variant swap
+    root.querySelectorAll('[data-flavor-link]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        if (!countOption) return;
+        const checked = countOption.querySelector('[data-option-input]:checked');
+        if (!checked) return;
+        e.preventDefault();
+        const url = new URL(link.href, window.location.origin);
+        url.searchParams.set('box', checked.value);
+        window.location.href = url.toString();
+      });
+    });
+
+    // Restore the box tier passed in from a linked flavor's page
+    (function restoreBoxFromQuery() {
+      if (!countOption) return;
+      const boxValue = new URLSearchParams(window.location.search).get('box');
+      if (!boxValue) return;
+      const match = Array.from(countOption.querySelectorAll('[data-option-input]')).find(function (i) { return i.value === boxValue; });
+      if (match) match.checked = true;
+    })();
+
+    optionInputs.concat(purchaseInputs).forEach(function (input) {
+      input.addEventListener('change', update);
+    });
+
+    if (freqSelect) freqSelect.addEventListener('change', update);
+
+    // Quantity stepper
+    function clampQty(n) {
+      n = parseInt(n, 10);
+      return !n || n < 1 ? 1 : n;
+    }
+    if (qtyInput) {
+      if (qtyMinus) qtyMinus.addEventListener('click', function () { qtyInput.value = Math.max(1, clampQty(qtyInput.value) - 1); update(); });
+      if (qtyPlus) qtyPlus.addEventListener('click', function () { qtyInput.value = clampQty(qtyInput.value) + 1; update(); });
+      qtyInput.addEventListener('change', function () { qtyInput.value = clampQty(qtyInput.value); update(); });
+      // typing goes through 'input' too, so the totals track keystrokes
+      qtyInput.addEventListener('input', update);
+    }
+
+    // Add to cart, then open the theme's own mini cart (cart drawer) instead of
+    // redirecting to checkout — dispatching the same standard cart event the
+    // native product form uses keeps the drawer's contents, animation and
+    // styling identical to every other "Add to cart" button on the site.
+    function addToCartAndOpenDrawer(triggerButton) {
+      const formData = new FormData(form);
+      const quantity = Number(formData.get('quantity')) || 1;
+      const variantId = formData.get('id');
+      const sourceId = (scope && scope.id) || undefined;
+
+      import('@shopify/events').then(function (mod) {
+        const CartLinesUpdateEvent = mod.CartLinesUpdateEvent;
+        const CartErrorEvent = mod.CartErrorEvent;
+        const deferred = CartLinesUpdateEvent.createPromise();
+
+        document.dispatchEvent(
+          new CartLinesUpdateEvent({
+            action: 'add',
+            context: 'product',
+            lines: [{ merchandiseId: String(variantId), quantity: quantity }],
+            promise: deferred.promise,
+          })
+        );
+
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: formData,
+        })
+          .then(function (response) { return response.json(); })
+          .then(function (response) {
+            if (response.status) {
+              document.dispatchEvent(
+                new CartErrorEvent({ error: response.message || 'Add to cart failed', code: 'INVALID' })
+              );
+              deferred.resolve({ cart: null, detail: { didError: true, source: 'blint-product-custom-ab', sourceId: sourceId } });
+              return;
+            }
+            return fetch('/cart.js', { headers: { Accept: 'application/json' } })
+              .then(function (r) { return r.json(); })
+              .then(function (cart) {
+                deferred.resolve({
+                  cart: CartLinesUpdateEvent.createCartFromAjaxResponse(cart),
+                  detail: {
+                    items: cart.items,
+                    didError: false,
+                    source: 'blint-product-custom-ab',
+                    sourceId: sourceId,
+                    itemCount: quantity,
+                  },
+                });
+              });
+          })
+          .catch(function (error) {
+            deferred.reject(error);
+          })
+          .finally(function () {
+            if (triggerButton) triggerButton.disabled = false;
+          });
+      });
+    }
+
+    // Optional per-merchant toggle: skip the cart drawer entirely and send the
+    // shopper straight to checkout instead. Read once — the setting only
+    // changes via the theme editor, which reloads the page.
+    const directCheckout = root.getAttribute('data-direct-checkout') === 'true';
+
+    // Add to cart, then redirect straight to checkout instead of opening the
+    // drawer. Used when the merchant has enabled "direct checkout" above.
+    function addToCartAndRedirectToCheckout(triggerButton) {
+      const formData = new FormData(form);
+
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: formData,
+      })
+        .then(function (response) { return response.json(); })
+        .then(function (response) {
+          if (response.status) {
+            import('@shopify/events').then(function (mod) {
+              document.dispatchEvent(
+                new mod.CartErrorEvent({ error: response.message || 'Add to cart failed', code: 'INVALID' })
+              );
+            });
+            if (triggerButton) triggerButton.disabled = false;
+            return;
+          }
+          window.location.href = '/checkout';
+        })
+        .catch(function () {
+          if (triggerButton) triggerButton.disabled = false;
+        });
+    }
+
+    function addToCartAndProceed(triggerButton) {
+      if (directCheckout) {
+        addToCartAndRedirectToCheckout(triggerButton);
+      } else {
+        addToCartAndOpenDrawer(triggerButton);
+      }
+    }
+
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const submitting = form.querySelector('[data-atc]');
+        if (submitting) submitting.disabled = true;
+        addToCartAndProceed(submitting);
+      });
+    }
+
+    // Mobile sticky add-to-cart: submit the same form
+    if (stickyAtc && form) {
+      stickyAtc.addEventListener('click', function () {
+        if (stickyAtc.disabled) return;
+        stickyAtc.disabled = true;
+        addToCartAndProceed(stickyAtc);
+      });
+    }
+
+    // Reveal the sticky bar once the main button scrolls out of view
+    if (sticky && atc && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          sticky.classList.toggle('is-visible', !entry.isIntersecting);
+          sticky.setAttribute('aria-hidden', entry.isIntersecting ? 'true' : 'false');
+        });
+      }, { rootMargin: '0px 0px -10% 0px' });
+      observer.observe(atc);
+    }
+
+    // Live countdown timer (hardcoded: counts to the daily cutoff hour; wire to a real cutoff later)
+    var cd = root.querySelector('[data-countdown]');
+    if (cd) {
+      var cutoffHour = parseInt(cd.getAttribute('data-cutoff-hour'), 10) || 0;
+      var hEl = cd.querySelector('[data-cd-h]');
+      var mEl = cd.querySelector('[data-cd-m]');
+      var sEl = cd.querySelector('[data-cd-s]');
+      var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+      var tick = function () {
+        var now = new Date();
+        var target = new Date(now);
+        target.setHours(cutoffHour, 0, 0, 0);
+        if (target <= now) target.setDate(target.getDate() + 1);
+        var diff = Math.max(0, Math.floor((target - now) / 1000));
+        var h = Math.floor(diff / 3600); diff -= h * 3600;
+        var m = Math.floor(diff / 60); var s = diff - m * 60;
+        if (hEl) hEl.textContent = pad(h);
+        if (mEl) mEl.textContent = pad(m);
+        if (sEl) sEl.textContent = pad(s);
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    /* ---------------- JUDGE.ME RATING SYNC ----------------
+       The rating row already renders server-side from Shopify's standard
+       `reviews.rating` / `reviews.rating_count` metafields, which Judge.me
+       keeps in sync — so there is no flash of placeholder content.
+
+       This pass keeps it honest for stores where that metafield sync is off or
+       stale: once Judge.me's script hydrates the hidden preview badge, read
+       `data-average-rating` / `data-number-of-reviews` off it and push the live
+       numbers into the styled row. Falls back silently to whatever was
+       rendered server-side if Judge.me never loads or has no reviews yet. */
+    var ratingBtn = root.querySelector('[data-blint-rating]');
+    if (ratingBtn) {
+      var jdgmSource = root.querySelector('[data-jdgm-source]');
+      var starsEl = ratingBtn.querySelector('[data-rating-stars]');
+      var valueEl = ratingBtn.querySelector('[data-rating-value]');
+      var countEl = ratingBtn.querySelector('[data-rating-count]');
+      var srEl = ratingBtn.querySelector('[data-rating-sr]');
+      var countTemplate = ratingBtn.getAttribute('data-count-template') || '[count] reviews';
+
+      var readJudgeme = function () {
+        if (!jdgmSource) return null;
+        var badge = jdgmSource.querySelector('[data-average-rating]');
+        if (!badge) return null;
+        var average = parseFloat(badge.getAttribute('data-average-rating'));
+        var total = parseInt(badge.getAttribute('data-number-of-reviews'), 10);
+        if (!isFinite(average) || !isFinite(total) || total <= 0) return null;
+        return { average: average, total: total };
+      };
+
+      var applyRating = function (data) {
+        var fill = Math.max(0, Math.min(100, (data.average / 5) * 100));
+        if (starsEl) starsEl.style.setProperty('--blint-star-fill', fill.toFixed(2) + '%');
+        if (valueEl) {
+          valueEl.textContent = (Math.round(data.average * 10) / 10).toFixed(1);
+          valueEl.hidden = false;
+        }
+        if (countEl) {
+          countEl.textContent = countTemplate.replace('[count]', String(data.total));
+          countEl.hidden = false;
+        }
+        if (srEl) srEl.textContent = 'Rated ' + data.average.toFixed(1) + ' out of 5 from ' + data.total + ' reviews';
+        ratingBtn.hidden = false;
+      };
+
+      var synced = false;
+      var trySync = function () {
+        if (synced) return true;
+        var data = readJudgeme();
+        if (!data) return false;
+        synced = true;
+        applyRating(data);
+        return true;
+      };
+
+      if (!trySync() && jdgmSource) {
+        // Judge.me hydrates asynchronously; watch the badge, then give up so a
+        // store without the app installed never keeps an observer alive.
+        var observer = new MutationObserver(function () {
+          if (trySync() && observer) observer.disconnect();
+        });
+        observer.observe(jdgmSource, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-average-rating', 'data-number-of-reviews'] });
+        setTimeout(function () { observer.disconnect(); }, 15000);
+      }
+
+      /* Clicking the row jumps to the on-page review section when there is one.
+         Resolved lazily: this script runs while the page is still parsing, so
+         the reviews section further down does not exist yet. Visually-hidden
+         Judge.me source widgets (1x1 px, see reeve-reviews-carousel) are
+         rejected by the size check so we never scroll to nothing. */
+      var findReviewsTarget = function () {
+        var groups = ['.blint-judgeme, .reeve-reviews', '#judgeme_product_reviews, .jdgm-review-widget'];
+        for (var gi = 0; gi < groups.length; gi++) {
+          var candidates = document.querySelectorAll(groups[gi]);
+          for (var ci = 0; ci < candidates.length; ci++) {
+            var candidate = candidates[ci];
+            if (root.contains(candidate)) continue; // our own hidden badge source
+            var rect = candidate.getBoundingClientRect();
+            if (rect.width < 40 || rect.height < 40) continue; // visually hidden
+            return candidate;
+          }
+        }
+        return null;
+      };
+
+      ratingBtn.addEventListener('click', function () {
+        var target = findReviewsTarget();
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      var resolveRatingAffordance = function () {
+        if (findReviewsTarget()) {
+          ratingBtn.setAttribute('aria-label', 'Read customer reviews');
+          ratingBtn.classList.remove('blint-product__rating--static');
+          ratingBtn.removeAttribute('tabindex');
+        } else {
+          ratingBtn.classList.add('blint-product__rating--static');
+          ratingBtn.setAttribute('tabindex', '-1');
+        }
+      };
+
+      ratingBtn.classList.add('blint-product__rating--static');
+      ratingBtn.setAttribute('tabindex', '-1');
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', resolveRatingAffordance, { once: true });
+      } else {
+        resolveRatingAffordance();
+      }
+    }
+
+    update();
+  })();
+</script>
+{% endraw %}
+
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('[data-blint-product]');
+    if (!root) return;
+
+    import('@theme/motion').then(({ gsap, ScrollTrigger, prefersReducedMotion }) => {
+      const bg = root.querySelector('[data-blint-bg-image]');
+      const cards = root.querySelectorAll('.blint-product__gallery, .blint-product__info');
+      if (!cards.length) return;
+
+      if (prefersReducedMotion()) {
+        gsap.set(cards, { opacity: 1, y: 0 });
+        return;
+      }
+
+      gsap.set(cards, { opacity: 0, y: 40 });
+      ScrollTrigger.batch(cards, {
+        start: 'top 88%',
+        once: true,
+        onEnter: (batch) => {
+          gsap.to(batch, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.15 });
+        },
+      });
+
+      if (bg) {
+        const image = bg.querySelector('.blint-product__bg-image');
+        if (image) {
+          gsap.fromTo(
+            image,
+            { yPercent: -6, scale: 1.1 },
+            {
+              yPercent: 6,
+              scale: 1.1,
+              ease: 'none',
+              scrollTrigger: { trigger: root, start: 'top bottom', end: 'bottom top', scrub: true },
+            }
+          );
+        }
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Blint product AB",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "selected_product",
+      "label": "Select Product"
+    },
+    {
+      "type": "header",
+      "content": "t:content.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_glass_cards",
+      "label": "Glassmorphism cards",
+      "info": "Frosted-glass look for the gallery and buy-box cards. Looks best over a background image.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Gallery badge"
+    },
+    {
+      "type": "checkbox",
+      "id": "gallery_badge_show_discount",
+      "label": "Show discount badge",
+      "info": "Shows the live discount over the main product image, e.g. \"39% off\". Updates with the selected variant and purchase mode, and hides itself when there is no discount.",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "gallery_badge_text",
+      "label": "Badge text (manual override)",
+      "info": "Overrides the discount badge with fixed text, e.g. \"Best seller\". Leave blank to use the discount badge above."
+    },
+    {
+      "type": "select",
+      "id": "gallery_badge_style",
+      "label": "Badge style",
+      "options": [
+        { "value": "pill", "label": "Pill" },
+        { "value": "wedge", "label": "Corner wedge" }
+      ],
+      "default": "pill"
+    },
+    {
+      "type": "text",
+      "id": "gallery_badge_prefix",
+      "label": "Wedge line above",
+      "info": "Small line above the value, e.g. \"Flat\". Corner wedge only — leave blank to omit.",
+      "default": "Flat"
+    },
+    {
+      "type": "text",
+      "id": "gallery_badge_suffix",
+      "label": "Wedge line below",
+      "info": "Small line below the value, e.g. \"Off\". Corner wedge only — leave blank to omit.",
+      "default": "Off"
+    },
+    {
+      "type": "checkbox",
+      "id": "gallery_badge_first_only",
+      "label": "Show on first image only",
+      "info": "Hides the badge once the gallery is scrolled past the first image. Off shows it over every image.",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "gallery_badge_size",
+      "label": "Wedge size (desktop)",
+      "info": "Corner wedge only. Caps at 38% of the image width.",
+      "min": 70,
+      "max": 170,
+      "step": 2,
+      "unit": "px",
+      "default": 118
+    },
+    {
+      "type": "range",
+      "id": "gallery_badge_size_mobile",
+      "label": "Wedge size (mobile)",
+      "info": "Corner wedge only, below 750px. Caps at 42% of the image width.",
+      "min": 40,
+      "max": 140,
+      "step": 2,
+      "unit": "px",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "gallery_badge_inset",
+      "label": "Wedge text inset (desktop)",
+      "info": "How far the text sits from the corner, as a share of the wedge. Raise it if the text crowds the curve.",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "%",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "gallery_badge_inset_mobile",
+      "label": "Wedge text inset (mobile)",
+      "info": "Same, for screens below 750px.",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "%",
+      "default": 15
+    },
+    {
+      "type": "select",
+      "id": "gallery_badge_position",
+      "label": "Badge position",
+      "options": [
+        { "value": "top_left", "label": "Top left" },
+        { "value": "top_right", "label": "Top right" }
+      ],
+      "default": "top_left"
+    },
+    {
+      "type": "color",
+      "id": "gallery_badge_bg",
+      "label": "Badge background",
+      "default": "#1F252F"
+    },
+    {
+      "type": "color",
+      "id": "gallery_badge_text_color",
+      "label": "Badge text color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "header",
+      "content": "Background image"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image",
+      "info": "Shows behind the whole section. Pick a dark image for the best contrast with the glass cards."
+    },
+    {
+      "type": "range",
+      "id": "background_overlay_opacity",
+      "label": "Darkening overlay",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 45
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "title",
+      "name": "Title",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "title_override", "label": "Title override", "info": "Leave blank to use the product title." },
+        { "type": "range", "id": "title_font_size", "label": "Title font size", "min": 24, "max": 80, "step": 1, "unit": "px", "default": 56 }
+      ]
+    },
+    {
+      "type": "short_description",
+      "name": "Short description",
+      "limit": 1,
+      "settings": [
+        { "type": "richtext", "id": "short_description", "label": "Short description", "info": "Optional highlight banner shown under the title, e.g. \"1 Stick = 1,240mg of Electrolytes + 0 Sugar\"." }
+      ]
+    },
+    {
+      "type": "rating",
+      "name": "Rating",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_rating", "label": "Show rating", "default": true },
+        { "type": "checkbox", "id": "sync_with_judgeme", "label": "Sync with Judge.me", "info": "Pulls the live average rating and review count from Judge.me. Requires the Judge.me app embed to be enabled (Theme settings → App embeds). Uses the manual values below until Judge.me has data for this product.", "default": true },
+        { "type": "text", "id": "rating_count_template", "label": "Review count format", "info": "Used for the Judge.me review count. Placeholder: [count] = number of reviews.", "default": "[count] reviews" },
+        { "type": "header", "content": "Manual fallback" },
+        { "type": "paragraph", "content": "Shown only when Judge.me sync is off, or before Judge.me has any reviews for this product." },
+        { "type": "text", "id": "rating_value", "label": "Rating value", "default": "4.9" },
+        { "type": "text", "id": "rating_count", "label": "Rating count", "default": "500+ reviews" }
+      ]
+    },
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1,
+      "settings": [
+        { "type": "richtext", "id": "description", "label": "Description override", "info": "Leave blank to use the product description." },
+        { "type": "range", "id": "description_font_size", "label": "Description font size", "min": 12, "max": 32, "step": 1, "unit": "px", "default": 17 }
+      ]
+    },
+    {
+      "type": "key_points",
+      "name": "Key points",
+      "limit": 1,
+      "settings": [
+        { "type": "textarea", "id": "bullets", "label": "Benefit bullets", "info": "One per line.", "default": "Free shipping over $50\nLimited-time savings\nDelivered monthly" }
+      ]
+    },
+    {
+      "type": "chips",
+      "name": "Ingredient chips",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "chips", "label": "Ingredient chips", "info": "Comma-separated, shown under the description.", "default": "Natural nootropics, B6 & B12, Zero nicotine" }
+      ]
+    },
+    {
+      "type": "boxes",
+      "name": "Boxes (variant options)",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Renders every product option (e.g. box quantity, size). One option gets the quantity enhancements below — pricing cards, discount badges and the upgrade hint." },
+        { "type": "text", "id": "count_option_name", "label": "Quantity option name", "info": "The exact option name to treat as the box quantity, e.g. Pouches. Leave blank to auto-detect: names containing count, can, pack, size, quantity, qty, box, bundle, pouch, stick, serving, supply, tier or kit — and failing that, the product's only option." },
+        { "type": "checkbox", "id": "show_quantity_badges", "label": "Show quantity discount badges", "info": "Shows a small discount badge on each quantity pill (e.g. \"40% off\").", "default": false },
+        { "type": "checkbox", "id": "count_as_cards", "label": "Show as pricing cards", "info": "Renders the quantity option as bigger cards with compare-at price, % off, and per-unit price (like \"1 Box / 2 Boxes / +4 Boxes\").", "default": false },
+        { "type": "number", "id": "count_units_per_box", "label": "Units per box", "info": "Used to calculate the per-unit price shown on each card. E.g. 30 sticks per box.", "default": 30 },
+        { "type": "text", "id": "count_unit_label", "label": "Unit label", "default": "stick" },
+        { "type": "text", "id": "count_badge_popular", "label": "\"Most popular\" badge text", "info": "Shown on the second-to-last card. Leave blank to hide.", "default": "Most Popular" },
+        { "type": "text", "id": "count_badge_best", "label": "\"Best value\" badge text", "info": "Shown on the last (highest) card. Leave blank to hide.", "default": "Best Value" },
+        { "type": "text", "id": "upgrade_text", "label": "Upgrade hint text", "info": "Shown under the quantity pills when a lower tier is selected. Placeholders: [quantity] = next tier's option value, [percent] = live discount percent for that tier.", "default": "Upgrade to [quantity] & Save [percent]!" },
+        { "type": "text", "id": "best_value_text", "label": "Best value hint text", "info": "Shown when the highest quantity tier is already selected.", "default": "You've unlocked the best value 🔥" }
+      ]
+    },
+    {
+      "type": "flavor",
+      "name": "Flavor switcher",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "enable_flavor_select", "label": "Enable flavor selection", "info": "Shows the flavor grid and turns the buy button into a \"Select from N Flavors\" button that opens the bundle-builder popup. When off, this product behaves like a normal single Add to cart.", "default": true },
+        { "type": "text", "id": "flavor_switch_heading", "label": "Flavor grid heading", "default": "Flavor" },
+        { "type": "text", "id": "select_flavors_label", "label": "\"Select flavors\" button label", "info": "Used instead of the Add to cart label when flavors are linked via the flavor_products metafield. Placeholder: [count] = total linked flavor count.", "default": "Select from [count] Flavors" },
+        { "type": "header", "content": "Flavor card names" },
+        { "type": "checkbox", "id": "flavor_auto_short_name", "label": "Shorten names automatically", "info": "Uses just the flavor part of the product title — \"Reevë Zero-Sugar Electrolytes - Citrus Lemonade | 30 Servings\" becomes \"Citrus Lemonade\". Turn off to show full product titles.", "default": true },
+        { "type": "range", "id": "flavor_name_max_chars", "label": "Max name length", "min": 12, "max": 40, "step": 1, "unit": "ch", "default": 24 },
+        { "type": "textarea", "id": "flavor_name_overrides", "label": "Quick name overrides", "info": "One per line: product-handle = Display name. Example: reeve-citrus-lemonade = Citrus Lemonade" },
+        { "type": "textarea", "id": "flavor_color_overrides", "label": "Flavor colours", "info": "Ring colour for the selected flavor. One per line: product-handle = #hex. Example: reeve-citrus-lemonade = #F5D311" },
+        { "type": "paragraph", "content": "To override a flavor's image (or both name and image with a picker), add a \"Flavor override\" block to this section. You can also set custom.flavor_name and custom.flavor_image metafields on each flavor product." }
+      ]
+    },
+    {
+      "type": "flavor_override",
+      "name": "Flavor override",
+      "settings": [
+        { "type": "paragraph", "content": "Replaces the name and\/or thumbnail of one product in the Flavor switcher. This block renders nothing on its own — add one per flavor you want to change, in any order." },
+        { "type": "product", "id": "override_product", "label": "Flavor product", "info": "Must be the product shown in the flavor grid, including this page's own product." },
+        { "type": "text", "id": "flavor_name", "label": "Name override", "info": "Leave blank to keep the automatic name." },
+        { "type": "image_picker", "id": "flavor_image", "label": "Image override", "info": "Square images look best — cards crop to a circle. Leave blank to use the product's featured image." },
+        { "type": "color", "id": "flavor_color", "label": "Flavor colour", "info": "Ring colour when this flavor is selected. Leave unset to fall back to the colour map on the Flavor switcher block." }
+      ]
+    },
+    {
+      "type": "subscription",
+      "name": "Subscription option",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Only shows when the product has a selling plan group (subscription) attached." },
+        { "type": "checkbox", "id": "default_to_subscription", "label": "Default to subscription", "default": true },
+        { "type": "text", "id": "subscribe_label", "label": "Subscribe label", "default": "Subscribe & save" },
+        { "type": "text", "id": "frequency_label", "label": "Delivery frequency label", "default": "Delivery frequency" },
+        { "type": "text", "id": "default_frequency_name", "label": "Default delivery frequency", "info": "Exact selling plan name to pre-select, case-sensitive — must match the plan name shown in the dropdown exactly. Leave blank to use the first plan.", "default": "Deliver every month" },
+        { "type": "text", "id": "sub_note_right", "label": "Subscription note", "default": "Cancel anytime" }
+      ]
+    },
+    {
+      "type": "one_time_purchase",
+      "name": "One-time purchase option",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Only shows alongside the Subscription option block, when the product has a selling plan group attached." },
+        { "type": "text", "id": "onetime_label", "label": "One-time label", "default": "One-time purchase" }
+      ]
+    },
+    {
+      "type": "price_and_buy",
+      "name": "Price & buy button",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_quantity_selector", "label": "Show quantity selector", "info": "Hides the −/+ stepper next to Add to cart. Every add then posts a quantity of 1.", "default": true },
+        { "type": "text", "id": "offer_label", "label": "Offer label", "default": "Limited time offer:" },
+        { "type": "text", "id": "savings_label", "label": "Savings label", "default": "Your savings:" },
+        { "type": "text", "id": "atc_label", "label": "Add to cart label", "default": "Try it now" },
+        { "type": "checkbox", "id": "enable_direct_checkout", "label": "Skip cart drawer — go straight to checkout", "info": "When enabled, both the fixed and sticky \"Try it now\" buttons add the item then redirect straight to checkout instead of opening the cart drawer.", "default": false },
+        { "type": "color", "id": "cta_color", "label": "Button color", "default": "#111111" },
+        { "type": "color", "id": "cta_text_color", "label": "Button text color", "default": "#ffffff" }
+      ]
+    },
+    {
+      "type": "guarantees",
+      "name": "Guarantees",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "guarantees", "label": "Guarantee row", "info": "Comma-separated, shown under the button.", "default": "Free shipping over $60, 30-day guarantee, Ships in 1 day" }
+      ]
+    },
+    {
+      "type": "payment_icons",
+      "name": "Payment icons",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Renders every payment method enabled in Settings > Payments — no manual selection, nothing to keep in sync." },
+        { "type": "text", "id": "label", "label": "Label", "info": "Optional. Leave blank to hide.", "default": "Secure checkout with" },
+        {
+          "type": "select",
+          "id": "alignment",
+          "label": "Alignment",
+          "options": [
+            { "value": "flex-start", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "flex-end", "label": "Right" }
+          ],
+          "default": "flex-start"
+        },
+        { "type": "range", "id": "icon_size", "label": "Icon height", "min": 16, "max": 40, "step": 1, "unit": "px", "default": 24 }
+      ]
+    },
+    {
+      "type": "timer",
+      "name": "Urgency timer",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "urgency_heading", "label": "Urgency heading", "default": "Order within:" },
+        { "type": "checkbox", "id": "countdown_enable", "label": "Show live countdown timer", "info": "Hardcoded to count down to the daily cutoff hour for now.", "default": true },
+        { "type": "range", "id": "countdown_cutoff_hour", "label": "Daily cutoff hour (24h)", "info": "Timer counts down to this hour each day. 0 = midnight.", "min": 0, "max": 23, "step": 1, "default": 0 },
+        { "type": "text", "id": "urgency_value", "label": "Urgency value (fallback)", "info": "Shown only when the countdown is off.", "default": "1 day" },
+        { "type": "textarea", "id": "urgency_text", "label": "Urgency text", "info": "One line per paragraph.", "default": "Reserve yours before we sell out again!\nSave up to 45% today!" },
+        { "type": "color_background", "id": "urgency_background", "label": "Urgency background", "default": "linear-gradient(135deg, #e6e8fd 0%, #f0f1fe 100%)" },
+        { "type": "header", "content": "Timer colors" },
+        { "type": "color", "id": "countdown_box_color", "label": "Timer box background", "default": "#3529E6" },
+        { "type": "color", "id": "countdown_text_color", "label": "Timer box text", "default": "#FFFFFF" },
+        { "type": "color", "id": "countdown_sep_color", "label": "Timer separator (:) color", "default": "#3529E6" }
+      ]
+    },
+    {
+      "type": "accordion",
+      "name": "Accordion",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "accordion_description_label", "label": "Description tab label", "default": "Description" },
+        { "type": "text", "id": "accordion_ingredients_label", "label": "Ingredients tab label", "default": "Ingredients" },
+        { "type": "richtext", "id": "ingredients_content", "label": "Ingredients" },
+        { "type": "text", "id": "accordion_benefits_label", "label": "Benefits tab label", "default": "Benefits" },
+        { "type": "richtext", "id": "benefits_content", "label": "Benefits" }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["page", "product"]
+  },
+  "presets": [
+    {
+      "name": "Blint product AB",
+      "blocks": [
+        { "type": "title" },
+        { "type": "short_description" },
+        { "type": "rating" },
+        { "type": "description" },
+        { "type": "key_points" },
+        { "type": "chips" },
+        { "type": "boxes" },
+        { "type": "flavor" },
+        { "type": "subscription" },
+        { "type": "one_time_purchase" },
+        { "type": "price_and_buy" },
+        { "type": "guarantees" },
+        { "type": "payment_icons" },
+        { "type": "timer" },
+        { "type": "accordion" }
+      ]
+    }
+  ]
+}
+{% endschema %}

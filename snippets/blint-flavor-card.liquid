@@ -1,0 +1,198 @@
+{%- comment -%}
+  One card in the flavor switcher: thumbnail + short flavor name, linking to
+  that flavor's product page. Both the name and the image resolve through the
+  same override chain, so the active card and the linked cards can never drift
+  apart — this snippet renders every card in the grid.
+
+  Accepts:
+  - flavor_product  {Object}  product this card points at (required)
+  - is_active       {Boolean} true for the product currently being viewed
+  - settings        {Object}  the "flavor" block's settings (name map + auto-shorten toggle)
+  - override_blocks {Array}   section.blocks, scanned for "flavor_override" blocks
+
+  Resolution order, name and image independently (first hit wins):
+    1. A "Flavor override" block in the theme editor matching this product
+    2. custom.flavor_name / custom.flavor_image metafield on the product
+    3. Name: auto-shortened product title. Image: the product's featured image.
+    4. Name: the full product title.
+
+  Usage:
+    {% render 'blint-flavor-card',
+       flavor_product: flavor,
+       is_active: false,
+       settings: block.settings,
+       override_blocks: section.blocks %}
+{%- endcomment -%}
+
+{%- liquid
+  assign fp = flavor_product
+  assign max_chars = settings.flavor_name_max_chars | default: 24
+  assign card_name = ''
+  assign card_image = nil
+  assign card_color = ''
+
+  assign fp_handle = fp.handle | downcase | strip
+  assign fp_title_key = fp.title | downcase | strip
+
+  # 1. Theme-editor "Flavor override" block pointing at this product.
+  for ob in override_blocks
+    if ob.type != 'flavor_override'
+      continue
+    endif
+    if ob.settings.override_product == blank or ob.settings.override_product.id != fp.id
+      continue
+    endif
+    if ob.settings.flavor_name != blank
+      assign card_name = ob.settings.flavor_name | strip
+    endif
+    if ob.settings.flavor_image != blank
+      assign card_image = ob.settings.flavor_image
+    endif
+    if ob.settings.flavor_color != blank
+      assign card_color = ob.settings.flavor_color
+    endif
+    break
+  endfor
+
+  # 1b. Colour map on the flavor block — one "handle = #hex" per line. Same
+  #     shape as the name map, so both can be filled in from one place.
+  if card_color == blank and settings.flavor_color_overrides != blank
+    assign colour_lines = settings.flavor_color_overrides | newline_to_br | split: '<br />'
+    for line in colour_lines
+      assign row = line | strip
+      if row == blank
+        continue
+      endif
+      assign separator = ''
+      if row contains '='
+        assign separator = '='
+      elsif row contains ':'
+        assign separator = ':'
+      endif
+      if separator == ''
+        continue
+      endif
+      assign row_parts = row | split: separator
+      if row_parts.size < 2
+        continue
+      endif
+      assign row_key = row_parts[0] | strip | downcase
+      assign row_value = row_parts[1] | strip
+      if row_key == blank or row_value == blank
+        continue
+      endif
+      if row_key == fp_handle or row_key == fp_title_key
+        assign card_color = row_value
+        break
+      endif
+    endfor
+  endif
+
+  # 1c. Per-product metafield, so a new flavor carries its own colour.
+  if card_color == blank
+    assign mf_color = fp.metafields.custom.flavor_color.value
+    if mf_color != blank
+      assign card_color = mf_color
+    endif
+  endif
+
+  # 2a. Name override map on the flavor block — one "handle = Display name" per line.
+  if card_name == blank and settings.flavor_name_overrides != blank
+    assign override_lines = settings.flavor_name_overrides | newline_to_br | split: '<br />'
+    for line in override_lines
+      assign row = line | strip
+      if row == blank
+        continue
+      endif
+      assign separator = ''
+      if row contains '='
+        assign separator = '='
+      elsif row contains ':'
+        assign separator = ':'
+      endif
+      if separator == ''
+        continue
+      endif
+      assign row_parts = row | split: separator
+      if row_parts.size < 2
+        continue
+      endif
+      assign row_key = row_parts[0] | strip | downcase
+      assign row_value = row_parts | slice: 1, 20 | join: separator | strip
+      if row_key == blank or row_value == blank
+        continue
+      endif
+      if row_key == fp_handle or row_key == fp_title_key
+        assign card_name = row_value
+        break
+      endif
+    endfor
+  endif
+
+  # 2b. Per-product metafields, so new flavors are named and imaged from the
+  #     Shopify admin without touching theme settings.
+  if card_name == blank
+    assign mf_name = fp.metafields.custom.flavor_name.value
+    if mf_name != blank
+      assign card_name = mf_name | strip
+    endif
+  endif
+
+  if card_image == blank
+    assign mf_image = fp.metafields.custom.flavor_image.value
+    # A file_reference metafield resolves to an Image directly, or to a
+    # MediaImage wrapping one. Anything without a width is not an image.
+    if mf_image != blank and mf_image.width == blank and mf_image.image != blank
+      assign mf_image = mf_image.image
+    endif
+    if mf_image != blank and mf_image.width != blank
+      assign card_image = mf_image
+    endif
+  endif
+
+  # 3. Derive the name from the title: drop everything after a pipe
+  #    ("| 30 Servings"), then keep the trailing segment after a dash, so
+  #    "Reevë Zero-Sugar Electrolytes - Citrus Lemonade" becomes "Citrus
+  #    Lemonade". Titles without those separators fall through unchanged.
+  if card_name == blank and settings.flavor_auto_short_name != false
+    assign short_title = fp.title | split: '|' | first | strip
+    if short_title contains ' - '
+      assign short_title = short_title | split: ' - ' | last | strip
+    elsif short_title contains ' – '
+      assign short_title = short_title | split: ' – ' | last | strip
+    elsif short_title contains ' — '
+      assign short_title = short_title | split: ' — ' | last | strip
+    endif
+    if short_title != blank
+      assign card_name = short_title
+    endif
+  endif
+
+  # 4. Last resorts.
+  if card_name == blank
+    assign card_name = fp.title
+  endif
+  assign card_name = card_name | truncate: max_chars
+
+  if card_image == blank
+    assign card_image = fp.featured_image
+  endif
+-%}
+
+<a
+  href="{{ fp.url }}"
+  class="blint-product__flavor-card{% if is_active %} is-active{% endif %}"
+  {% if is_active %}aria-current="true"{% else %}data-flavor-link{% endif %}
+  title="{{ fp.title | escape }}"
+  {% if card_color != blank %}style="--blint-flavor-accent: {{ card_color }};"{% endif %}
+>
+  {%- if card_image != blank -%}
+    {%- comment -%} image_tag escapes its own attribute values, so card_name is passed raw. {%- endcomment -%}
+    {{
+      card_image
+      | image_url: width: 120
+      | image_tag: loading: 'lazy', widths: '60, 120', alt: card_name
+    }}
+  {%- endif -%}
+  <span class="blint-product__flavor-name">{{ card_name }}</span>
+</a>

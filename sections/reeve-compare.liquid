@@ -1,0 +1,971 @@
+{% comment %}
+  Reeve "Compare" section for Horizon theme
+  Section handle: reeve-compare
+{% endcomment %}
+
+{%- liquid
+  assign rows = section.blocks | where: 'type', 'row'
+
+  assign has_c2 = false
+  assign has_c3 = false
+  assign has_c4 = false
+  if section.settings.competitor_2_name != blank
+    assign has_c2 = true
+  endif
+  if has_c2 and section.settings.competitor_3_name != blank
+    assign has_c3 = true
+  endif
+  if has_c3 and section.settings.competitor_4_name != blank
+    assign has_c4 = true
+  endif
+
+  assign grid_cols = 'minmax(170px, 1.5fr) minmax(110px, 1fr) minmax(110px, 1fr)'
+  if has_c2
+    assign grid_cols = grid_cols | append: ' minmax(110px, 1fr)'
+  endif
+  if has_c3
+    assign grid_cols = grid_cols | append: ' minmax(110px, 1fr)'
+  endif
+  if has_c4
+    assign grid_cols = grid_cols | append: ' minmax(110px, 1fr)'
+  endif
+
+  comment
+    Mobile column track. The desktop template's px minimums add up to 500px+,
+    which is what forced the horizontal swipe on a phone. Below 750px the table
+    instead divides the width it actually has: every track is minmax(0, Nfr) so
+    it can shrink past its content, with the label column given slightly more
+    room than the value columns.
+
+    Only applied when the table is narrow enough to stay legible — at five or
+    six columns the cells would be unreadable on a phone, so those keep the
+    swipe. value_cols counts ours + every competitor.
+  endcomment
+  assign value_cols = 2
+  if has_c2
+    assign value_cols = value_cols | plus: 1
+  endif
+  if has_c3
+    assign value_cols = value_cols | plus: 1
+  endif
+  if has_c4
+    assign value_cols = value_cols | plus: 1
+  endif
+
+  assign grid_cols_mobile = 'minmax(0, 1.12fr) repeat(' | append: value_cols | append: ', minmax(0, 1fr))'
+
+  assign fit_mobile = false
+  if value_cols <= 3
+    assign fit_mobile = true
+  endif
+
+  assign muted_words = section.settings.muted_keywords | strip | downcase | split: ','
+-%}
+
+<section
+  class="reeve-compare"
+  style="
+    --rc-section-bg: {{ section.settings.section_bg }};
+    --rc-card-bg: {{ section.settings.card_bg }};
+    --rc-border: {{ section.settings.border_color }};
+    --rc-eyebrow: {{ section.settings.eyebrow_color }};
+    --rc-heading: {{ section.settings.heading_color }};
+    --rc-subheading: {{ section.settings.subheading_color }};
+    --rc-label: {{ section.settings.label_color }};
+    --rc-header: {{ section.settings.competitor_header_color }};
+    --rc-muted: {{ section.settings.muted_text_color }};
+    --rc-footnote: {{ section.settings.footnote_color }};
+    --rc-row-alt-bg: {{ section.settings.row_alt_bg }};
+    --rc-pill-bg: {{ section.settings.ours_pill_bg }};
+    --rc-pill-text: {{ section.settings.ours_pill_text }};
+    --rc-ours-col-bg: {{ section.settings.ours_column_bg }};
+    --rc-ours-value: {{ section.settings.ours_value_color }};
+    --rc-comp1-value: {{ section.settings.competitor_1_value_color }};
+    --rc-comp2-value: {{ section.settings.competitor_2_value_color }};
+    --rc-comp3-value: {{ section.settings.competitor_3_value_color }};
+    --rc-comp4-value: {{ section.settings.competitor_4_value_color }};
+    --rc-header-weight: {{ section.settings.header_font_weight | default: 600 }};
+    --rc-padding-top: {{ section.settings.padding_top }}px;
+    --rc-padding-bottom: {{ section.settings.padding_bottom }}px;
+  "
+  {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
+>
+  <div class="reeve-compare__inner">
+    <div class="reeve-compare__header" data-rc-header>
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="reeve-compare__eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="reeve-compare__heading">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+      {%- if section.settings.subheading != blank -%}
+        <div class="reeve-compare__subheading">{{ section.settings.subheading }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- if rows.size > 0 -%}
+      <div class="reeve-compare__card" data-rc-card{% if fit_mobile %} data-rc-fit-mobile{% endif %}>
+        {%- unless fit_mobile -%}
+          <p class="reeve-compare__swipe-hint" aria-hidden="true">Swipe to compare →</p>
+        {%- endunless -%}
+
+        <div class="reeve-compare__scroll">
+          <div
+            class="reeve-compare__grid"
+            style="--rc-grid-cols: {{ grid_cols }}; --rc-grid-cols-mobile: {{ grid_cols_mobile }};"
+            role="table"
+            aria-label="{{ section.settings.heading | strip_html | escape }}"
+          >
+            {%- comment -%} Header row {%- endcomment -%}
+            <div class="reeve-compare__cell reeve-compare__cell--head reeve-compare__cell--corner" role="columnheader">
+              {%- if section.settings.column_header_label != blank -%}
+                {{ section.settings.column_header_label }}
+              {%- endif -%}
+            </div>
+
+            <div class="reeve-compare__cell reeve-compare__cell--head" role="columnheader">
+              <span class="reeve-compare__pill">{{ section.settings.our_name }}</span>
+            </div>
+
+            <div class="reeve-compare__cell reeve-compare__cell--head" role="columnheader">
+              <span class="reeve-compare__col-name">{{ section.settings.competitor_1_name }}</span>
+            </div>
+
+            {%- if has_c2 -%}
+              <div class="reeve-compare__cell reeve-compare__cell--head" role="columnheader">
+                <span class="reeve-compare__col-name">{{ section.settings.competitor_2_name }}</span>
+              </div>
+            {%- endif -%}
+            {%- if has_c3 -%}
+              <div class="reeve-compare__cell reeve-compare__cell--head" role="columnheader">
+                <span class="reeve-compare__col-name">{{ section.settings.competitor_3_name }}</span>
+              </div>
+            {%- endif -%}
+            {%- if has_c4 -%}
+              <div class="reeve-compare__cell reeve-compare__cell--head" role="columnheader">
+                <span class="reeve-compare__col-name">{{ section.settings.competitor_4_name }}</span>
+              </div>
+            {%- endif -%}
+
+            {%- comment -%} Data rows {%- endcomment -%}
+            {%- for block in rows -%}
+              {%- liquid
+                assign is_first = forloop.first
+                assign is_last = forloop.last
+                assign row_parity = forloop.index | modulo: 2
+                assign row_class = ''
+                if row_parity == 0
+                  assign row_class = ' reeve-compare__cell--alt'
+                endif
+
+                assign ours_val = block.settings.our_value | strip
+                assign c1_val = block.settings.competitor_1_value | strip
+                assign c2_val = block.settings.competitor_2_value | strip
+                assign c3_val = block.settings.competitor_3_value | strip
+                assign c4_val = block.settings.competitor_4_value | strip
+
+                assign c1_val_lc = c1_val | downcase
+                assign c2_val_lc = c2_val | downcase
+                assign c3_val_lc = c3_val | downcase
+                assign c4_val_lc = c4_val | downcase
+
+                assign c1_muted = false
+                assign c2_muted = false
+                assign c3_muted = false
+                assign c4_muted = false
+                if section.settings.mute_competitor_1 and muted_words contains c1_val_lc
+                  assign c1_muted = true
+                endif
+                if section.settings.mute_competitor_2 and muted_words contains c2_val_lc
+                  assign c2_muted = true
+                endif
+                if section.settings.mute_competitor_3 and muted_words contains c3_val_lc
+                  assign c3_muted = true
+                endif
+                if section.settings.mute_competitor_4 and muted_words contains c4_val_lc
+                  assign c4_muted = true
+                endif
+              -%}
+
+              <div
+                class="reeve-compare__cell reeve-compare__cell--label reeve-compare__cell--bordered{{ row_class }}"
+                role="rowheader"
+                {{ block.shopify_attributes }}
+              >
+                {{ block.settings.label }}
+              </div>
+
+              <div
+                class="reeve-compare__cell reeve-compare__cell--ours reeve-compare__cell--value{% if is_first %} reeve-compare__cell--ours-top{% endif %}{% if is_last %} reeve-compare__cell--ours-bottom{% endif %}"
+                role="cell"
+              >
+                {{ ours_val }}
+              </div>
+
+              <div
+                class="reeve-compare__cell reeve-compare__cell--bordered reeve-compare__cell--value reeve-compare__cell--comp1{{ row_class }}{% if c1_muted %} reeve-compare__cell--muted{% endif %}"
+                role="cell"
+              >
+                {{ c1_val }}
+              </div>
+
+              {%- if has_c2 -%}
+                <div
+                  class="reeve-compare__cell reeve-compare__cell--bordered reeve-compare__cell--value reeve-compare__cell--comp2{{ row_class }}{% if c2_muted %} reeve-compare__cell--muted{% endif %}"
+                  role="cell"
+                >
+                  {{ c2_val }}
+                </div>
+              {%- endif -%}
+              {%- if has_c3 -%}
+                <div
+                  class="reeve-compare__cell reeve-compare__cell--bordered reeve-compare__cell--value reeve-compare__cell--comp3{{ row_class }}{% if c3_muted %} reeve-compare__cell--muted{% endif %}"
+                  role="cell"
+                >
+                  {{ c3_val }}
+                </div>
+              {%- endif -%}
+              {%- if has_c4 -%}
+                <div
+                  class="reeve-compare__cell reeve-compare__cell--bordered reeve-compare__cell--value reeve-compare__cell--comp4{{ row_class }}{% if c4_muted %} reeve-compare__cell--muted{% endif %}"
+                  role="cell"
+                >
+                  {{ c4_val }}
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.footnote != blank -%}
+      <p class="reeve-compare__footnote">{{ section.settings.footnote }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('.reeve-compare');
+    if (!root) return;
+
+    Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(
+      ([{ gsap, ScrollTrigger, prefersReducedMotion }, { getScrollContainer }]) => {
+        const header = root.querySelector('[data-rc-header]');
+        const card = root.querySelector('[data-rc-card]');
+        const cells = Array.from(root.querySelectorAll('.reeve-compare__cell')).filter(
+          (cell) => !cell.classList.contains('reeve-compare__cell--head')
+        );
+        const reduced = prefersReducedMotion();
+
+        if (reduced) {
+          if (header) gsap.set(header, { opacity: 1, y: 0 });
+          if (card) gsap.set(card, { opacity: 1, y: 0, scale: 1 });
+          if (cells.length) gsap.set(cells, { opacity: 1, y: 0 });
+          return;
+        }
+
+        if (header) gsap.set(header, { opacity: 0, y: 24 });
+        if (card) gsap.set(card, { opacity: 0, y: 32, scale: 0.98 });
+        if (cells.length) gsap.set(cells, { opacity: 0, y: 14 });
+
+        ScrollTrigger.create({
+          scroller: getScrollContainer(),
+          trigger: root,
+          start: 'top 82%',
+          once: true,
+          onEnter: () => {
+            const tl = gsap.timeline();
+            if (header) {
+              tl.to(header, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' });
+            }
+            if (card) {
+              tl.to(card, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power3.out' }, '-=0.35');
+            }
+            if (cells.length) {
+              tl.to(
+                cells,
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.5,
+                  ease: 'power2.out',
+                  stagger: { each: 0.025, from: 'start' },
+                },
+                '-=0.4'
+              );
+            }
+          },
+        });
+      }
+    );
+  })();
+</script>
+
+{% stylesheet %}
+  .reeve-compare {
+    background: var(--rc-section-bg, #f4f0e6);
+    padding-block: var(--rc-padding-top, 64px) var(--rc-padding-bottom, 64px);
+  }
+
+  .reeve-compare__inner {
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .reeve-compare__header {
+    max-width: 46rem;
+    margin: 0 auto 2.75rem;
+    text-align: center;
+  }
+
+  .reeve-compare__eyebrow {
+    margin: 0 0 1rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rc-eyebrow, #8a8478);
+  }
+
+  .reeve-compare__heading {
+    margin: 0 0 1rem;
+    font-style: var(--font-heading--style);
+    font-weight: var(--font-heading--weight, 600);
+    font-size: clamp(1.9rem, 4vw, 2.75rem);
+    line-height: 1.15;
+    color: var(--rc-heading, #10192b);
+  }
+
+  .reeve-compare__subheading {
+    margin: 0;
+    font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+    line-height: 1.6;
+    color: var(--rc-subheading, #6b6a63);
+  }
+
+  .reeve-compare__card {
+    position: relative;
+    background: var(--rc-card-bg, #fbf9f4);
+    border: 1px solid var(--rc-border, #e8e2d4);
+    border-radius: 28px;
+    box-shadow: 0 1px 2px rgb(16 25 43 / 0.04), 0 20px 40px -28px rgb(16 25 43 / 0.18);
+    padding: clamp(1rem, 2.5vw, 1.75rem) clamp(1rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .reeve-compare__swipe-hint {
+    display: none;
+    margin: 0 0 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--rc-subheading, #6b6a63);
+  }
+
+  .reeve-compare__scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .reeve-compare__grid {
+    display: grid;
+    align-items: stretch;
+    grid-template-columns: var(--rc-grid-cols);
+    min-width: 640px;
+  }
+
+  .reeve-compare__cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* min-width:0 lets a cell shrink below its content once the mobile track
+       drops the px minimums, instead of pushing the grid wider. */
+    min-width: 0;
+    padding: 1rem 0.85rem;
+    min-height: 3.4rem;
+    font-size: 0.95rem;
+    line-height: 1.3;
+    text-align: center;
+    overflow-wrap: break-word;
+  }
+
+  .reeve-compare__cell--head {
+    padding-block: 0.5rem 1.35rem;
+    min-height: 4rem;
+    align-items: flex-end;
+  }
+
+  /* Header weight. These three are the table's structure — the corner cell,
+     the row labels and the column names — and they were rendering at 400/500
+     against 400 data, so they read as more comparison values instead of
+     headings. Driven by one variable so the whole header layer stays in step. */
+  /* First column is a list of row headings, not data, so it reads left-aligned
+     at every breakpoint while the value columns stay centred. Both the corner
+     cell and the labels below it, so the column has one edge. `justify-content`
+     does the work (the cells are flex); `text-align` handles wrapped lines. */
+  .reeve-compare__cell--corner {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    justify-content: flex-start;
+    text-align: left;
+    font-weight: var(--rc-header-weight, 600);
+    background: var(--rc-card-bg, #fbf9f4);
+  }
+
+  .reeve-compare__cell--label {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    justify-content: flex-start;
+    text-align: left;
+    font-weight: var(--rc-header-weight, 600);
+    font-size: 0.9rem;
+    color: var(--rc-label, #16233a);
+    background: var(--rc-card-bg, #fbf9f4);
+  }
+
+  .reeve-compare__cell--label.reeve-compare__cell--alt {
+    background: var(--rc-row-alt-bg, #f7f4ec);
+  }
+
+  .reeve-compare__cell--bordered {
+    border-top: 1px solid var(--rc-border, #e8e2d4);
+  }
+
+  .reeve-compare__cell--alt {
+    background: var(--rc-row-alt-bg, #f7f4ec);
+  }
+
+  .reeve-compare__pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 1.1rem;
+    border-radius: 999px;
+    background: var(--rc-pill-bg, #10192b);
+    color: var(--rc-pill-text, #ffffff);
+    font-family: var(--font-heading--family);
+    font-weight: 700;
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+    letter-spacing: 0.01em;
+  }
+
+  .reeve-compare__col-name {
+    font-weight: var(--rc-header-weight, 600);
+    font-size: clamp(0.78rem, 1.2vw, 0.92rem);
+    line-height: 1.25;
+    color: var(--rc-header, #16233a);
+  }
+
+  /* Highlighted "ours" column */
+  .reeve-compare__cell--ours {
+    background: var(--rc-ours-col-bg, #dce8df);
+    color: var(--rc-ours-value, #10192b);
+    font-weight: 700;
+  }
+
+  .reeve-compare__cell--ours-top {
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+
+  .reeve-compare__cell--ours-bottom {
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+  }
+
+  .reeve-compare__cell--value.reeve-compare__cell--comp1 {
+    color: var(--rc-comp1-value, #3457d5);
+    font-weight: 400;
+  }
+
+  .reeve-compare__cell--value.reeve-compare__cell--comp2 {
+    color: var(--rc-comp2-value, #1f2430);
+  }
+
+  .reeve-compare__cell--value.reeve-compare__cell--comp3 {
+    color: var(--rc-comp3-value, #1f2430);
+  }
+
+  .reeve-compare__cell--value.reeve-compare__cell--comp4 {
+    color: var(--rc-comp4-value, #1f2430);
+  }
+
+  .reeve-compare__cell--muted {
+    color: var(--rc-muted, #9aa3ab) !important;
+    font-weight: 400 !important;
+  }
+
+  .reeve-compare__footnote {
+    max-width: 44rem;
+    margin: 1.75rem auto 0;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--rc-footnote, #9a9488);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reeve-compare__cell--ours-top {
+      animation: reeve-compare-glow 5s ease-in-out infinite;
+    }
+  }
+
+  @keyframes reeve-compare-glow {
+    0%, 100% { box-shadow: 0 0 0 rgb(16 25 43 / 0); }
+    50% { box-shadow: 0 0 24px -8px rgb(16 25 43 / 0.12); }
+  }
+
+  @media screen and (max-width: 749px) {
+    .reeve-compare__swipe-hint {
+      display: block;
+    }
+
+    .reeve-compare__cell {
+      padding: 0.85rem 0.65rem;
+      font-size: 0.85rem;
+    }
+
+    .reeve-compare__cell--label {
+      font-size: 0.82rem;
+    }
+
+    .reeve-compare__card {
+      border-radius: 20px;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Mobile: fit every column on screen (no swipe)
+     ------------------------------------------------------------------
+     Applied only to tables of four columns or fewer — see fit_mobile in the
+     Liquid above; five or six columns stay swipeable because the cells would
+     be unreadable otherwise.
+
+     The horizontal budget on a 375px viewport is:
+       375 − 40 (inner padding) − 19 (card padding) = ~316px
+     which the 1.12fr + 3x1fr track splits into an ~86px label column and
+     ~77px value columns — about 70px of text room once cell padding is off.
+     That clears the longest unbreakable word in the table ("electrolyte",
+     ~55px at this size), so headers wrap instead of widening the grid.
+
+     Type and padding are fluid rather than stepped, so the same layout holds
+     from a 320px iPhone SE up to the 749px breakpoint without a 600px-wide
+     tablet rendering phone-sized text. */
+  @media screen and (max-width: 749px) {
+    .reeve-compare__card[data-rc-fit-mobile] {
+      padding-inline: clamp(0.5rem, 0.2rem + 1.4vw, 1.25rem);
+      padding-block: 1rem 1.1rem;
+    }
+
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__scroll {
+      overflow-x: visible;
+    }
+
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__grid {
+      grid-template-columns: var(--rc-grid-cols-mobile);
+      min-width: 0;
+    }
+
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__cell {
+      padding-block: clamp(0.55rem, 0.35rem + 0.9vw, 0.9rem);
+      padding-inline: clamp(0.22rem, 0.05rem + 0.85vw, 0.85rem);
+      min-height: 2.9rem;
+      font-size: clamp(0.74rem, 0.58rem + 0.8vw, 0.95rem);
+      line-height: 1.25;
+      hyphens: auto;
+    }
+
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__cell--label {
+      font-size: clamp(0.7rem, 0.55rem + 0.75vw, 0.9rem);
+    }
+
+    /* Nothing scrolls sideways any more, so the frozen first column would only
+       risk a paint seam against the alternating row fills. */
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__cell--label,
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__cell--corner {
+      position: static;
+    }
+
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__cell--head {
+      padding-block: 0.35rem 0.9rem;
+      min-height: 3.5rem;
+    }
+
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__col-name {
+      font-size: clamp(0.63rem, 0.44rem + 0.95vw, 0.92rem);
+      line-height: 1.22;
+    }
+
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__pill {
+      padding: 0.3rem clamp(0.5rem, 0.2rem + 1.5vw, 1.1rem);
+      font-size: clamp(0.72rem, 0.55rem + 0.85vw, 1.1rem);
+    }
+
+    /* Softer radius so the highlight column doesn't dominate a narrow table. */
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__cell--ours-top {
+      border-top-left-radius: 13px;
+      border-top-right-radius: 13px;
+    }
+
+    .reeve-compare__card[data-rc-fit-mobile] .reeve-compare__cell--ours-bottom {
+      border-bottom-left-radius: 13px;
+      border-bottom-right-radius: 13px;
+    }
+  }
+
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve compare",
+  "tag": "section",
+  "class": "section-reeve-compare-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "REEVË VS. EVERYTHING ELSE"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "How Reevë compares to the entire hydration aisle"
+    },
+    {
+      "type": "richtext",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "<p>Not just better than water. Better than the whole category, plain water included. One table, no exceptions.</p>"
+    },
+    {
+      "type": "textarea",
+      "id": "footnote",
+      "label": "Footnote",
+      "default": "Category ranges reflect publicly listed nutrition panels for plain water, popular electrolyte powders, sports drinks, and pediatric-style rehydration solutions at time of writing. No specific brand is represented, only the category average."
+    },
+    {
+      "type": "text",
+      "id": "column_header_label",
+      "label": "Top-left label",
+      "default": "Per serving"
+    },
+    {
+      "type": "header",
+      "content": "Your column"
+    },
+    {
+      "type": "text",
+      "id": "our_name",
+      "label": "Name",
+      "default": "Reevë"
+    },
+    {
+      "type": "header",
+      "content": "Competitor 1"
+    },
+    {
+      "type": "text",
+      "id": "competitor_1_name",
+      "label": "Name",
+      "default": "Plain water"
+    },
+    {
+      "type": "color",
+      "id": "competitor_1_value_color",
+      "label": "Value text color",
+      "default": "#3457d5"
+    },
+    {
+      "type": "checkbox",
+      "id": "mute_competitor_1",
+      "label": "Gray out matched keyword values",
+      "info": "Applies the muted color below to values matching the keywords list, e.g. \"No\".",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Competitor 2"
+    },
+    {
+      "type": "text",
+      "id": "competitor_2_name",
+      "label": "Name",
+      "info": "Leave blank to hide this column",
+      "default": "Typical electrolyte powders"
+    },
+    {
+      "type": "color",
+      "id": "competitor_2_value_color",
+      "label": "Value text color",
+      "default": "#1f2430"
+    },
+    {
+      "type": "checkbox",
+      "id": "mute_competitor_2",
+      "label": "Gray out matched keyword values",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Competitor 3"
+    },
+    {
+      "type": "text",
+      "id": "competitor_3_name",
+      "label": "Name",
+      "info": "Leave blank to hide this column (and the one after it)",
+      "default": "Sports drinks"
+    },
+    {
+      "type": "color",
+      "id": "competitor_3_value_color",
+      "label": "Value text color",
+      "default": "#1f2430"
+    },
+    {
+      "type": "checkbox",
+      "id": "mute_competitor_3",
+      "label": "Gray out matched keyword values",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Competitor 4"
+    },
+    {
+      "type": "text",
+      "id": "competitor_4_name",
+      "label": "Name",
+      "info": "Leave blank to hide this column",
+      "default": "Pediatric-style rehydration solutions"
+    },
+    {
+      "type": "color",
+      "id": "competitor_4_value_color",
+      "label": "Value text color",
+      "default": "#1f2430"
+    },
+    {
+      "type": "checkbox",
+      "id": "mute_competitor_4",
+      "label": "Gray out matched keyword values",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Muted keyword matching"
+    },
+    {
+      "type": "text",
+      "id": "muted_keywords",
+      "label": "Muted keywords",
+      "info": "Comma separated, lowercase, no spaces around commas. Values matching one of these words are shown in the muted color.",
+      "default": "no,none,rarely"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted value color",
+      "default": "#9aa3ab"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "section_bg",
+      "label": "Section background",
+      "default": "#f4f0e6"
+    },
+    {
+      "type": "color",
+      "id": "card_bg",
+      "label": "Card background",
+      "default": "#fbf9f4"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border / divider color",
+      "default": "#e8e2d4"
+    },
+    {
+      "type": "color",
+      "id": "row_alt_bg",
+      "label": "Alternating row background",
+      "default": "#f7f4ec"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "Eyebrow color",
+      "default": "#8a8478"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "subheading_color",
+      "label": "Subheading color",
+      "default": "#6b6a63"
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Row label color",
+      "default": "#16233a"
+    },
+    {
+      "type": "color",
+      "id": "competitor_header_color",
+      "label": "Competitor column header color",
+      "default": "#16233a"
+    },
+    {
+      "type": "select",
+      "id": "header_font_weight",
+      "label": "Header text weight",
+      "info": "Applies to the row labels and the column headers, so they read as headings rather than more comparison values.",
+      "options": [
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semibold" },
+        { "value": "700", "label": "Bold" }
+      ],
+      "default": "600"
+    },
+    {
+      "type": "color",
+      "id": "footnote_color",
+      "label": "Footnote color",
+      "default": "#9a9488"
+    },
+    {
+      "type": "header",
+      "content": "Your column highlight"
+    },
+    {
+      "type": "color",
+      "id": "ours_pill_bg",
+      "label": "Header pill background",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "ours_pill_text",
+      "label": "Header pill text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "ours_column_bg",
+      "label": "Column background tint",
+      "default": "#dce8df"
+    },
+    {
+      "type": "color",
+      "id": "ours_value_color",
+      "label": "Value text color",
+      "default": "#10192b"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "row",
+      "name": "Row",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Feature",
+          "default": "Feature"
+        },
+        {
+          "type": "text",
+          "id": "our_value",
+          "label": "Your value",
+          "default": "Yes"
+        },
+        {
+          "type": "text",
+          "id": "competitor_1_value",
+          "label": "Competitor 1 value"
+        },
+        {
+          "type": "text",
+          "id": "competitor_2_value",
+          "label": "Competitor 2 value"
+        },
+        {
+          "type": "text",
+          "id": "competitor_3_value",
+          "label": "Competitor 3 value"
+        },
+        {
+          "type": "text",
+          "id": "competitor_4_value",
+          "label": "Competitor 4 value"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve compare",
+      "blocks": [
+        { "type": "row", "settings": { "label": "Electrolytes", "our_value": "6", "competitor_1_value": "0", "competitor_2_value": "3 to 4", "competitor_3_value": "2", "competitor_4_value": "3" } },
+        { "type": "row", "settings": { "label": "Added sugar", "our_value": "0g", "competitor_1_value": "0g", "competitor_2_value": "0g to 9g", "competitor_3_value": "21g to 28g", "competitor_4_value": "0g to 5g" } },
+        { "type": "row", "settings": { "label": "Calories", "our_value": "8", "competitor_1_value": "0", "competitor_2_value": "10 to 45", "competitor_3_value": "80 to 140", "competitor_4_value": "25 to 35" } },
+        { "type": "row", "settings": { "label": "Collagen peptides", "our_value": "Yes", "competitor_1_value": "No", "competitor_2_value": "Rarely", "competitor_3_value": "No", "competitor_4_value": "No" } },
+        { "type": "row", "settings": { "label": "Real coconut water", "our_value": "Yes", "competitor_1_value": "No", "competitor_2_value": "Rarely", "competitor_3_value": "No", "competitor_4_value": "No" } },
+        { "type": "row", "settings": { "label": "Magnesium form", "our_value": "Citrate", "competitor_1_value": "None", "competitor_2_value": "Often oxide", "competitor_3_value": "None", "competitor_4_value": "None" } },
+        { "type": "row", "settings": { "label": "Sweetener", "our_value": "Monk fruit", "competitor_1_value": "None", "competitor_2_value": "Stevia or sucralose", "competitor_3_value": "Cane sugar", "competitor_4_value": "Dextrose or none" } },
+        { "type": "row", "settings": { "label": "Artificial flavors or dyes", "our_value": "None", "competitor_1_value": "None", "competitor_2_value": "Sometimes", "competitor_3_value": "Usually", "competitor_4_value": "Sometimes" } },
+        { "type": "row", "settings": { "label": "Prevents the afternoon fog", "our_value": "Yes", "competitor_1_value": "No", "competitor_2_value": "Rarely", "competitor_3_value": "No", "competitor_4_value": "Rarely" } },
+        { "type": "row", "settings": { "label": "Cost per serving", "our_value": "~$1.00", "competitor_1_value": "Free", "competitor_2_value": "$1.30 to $1.50", "competitor_3_value": "$1.00 to $2.00", "competitor_4_value": "~$0.90" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

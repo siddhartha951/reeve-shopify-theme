@@ -1,0 +1,546 @@
+{{ 'section-reeve-ingredients.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign ig_style = '--ig-bg: ' | append: section.settings.bg_color | append: ';'
+  assign ig_style = ig_style | append: ' --ig-text: ' | append: section.settings.text_color | append: ';'
+  assign ig_style = ig_style | append: ' --ig-muted: ' | append: section.settings.muted_text_color | append: ';'
+  assign ig_style = ig_style | append: ' --ig-accent: ' | append: section.settings.accent_color | append: ';'
+  assign ig_style = ig_style | append: ' --ig-border: ' | append: section.settings.border_color | append: ';'
+  assign ig_style = ig_style | append: ' --ig-padding-top: ' | append: section.settings.padding_top | append: 'px;'
+  assign ig_style = ig_style | append: ' --ig-padding-bottom: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+{%- if section.settings.background_image != blank -%}
+  {%- assign ig_bg_image_url = section.settings.background_image | image_url: width: 2000 -%}
+  {%- assign ig_style = ig_style | append: " --ig-bg-image: url('" | append: ig_bg_image_url | append: "');" -%}
+{%- endif -%}
+
+<section class="ig-section" style="{{ ig_style }}">
+  <div class="ig-inner">
+
+    <div class="ig-top-row">
+      <div class="ig-text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="ig-eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+
+        <h2 class="ig-heading">{{ section.settings.heading }}</h2>
+
+        {%- if section.settings.paragraph != blank -%}
+          <div class="ig-paragraph">{{ section.settings.paragraph }}</div>
+        {%- endif -%}
+
+        {%- if section.settings.show_divider -%}
+          <span class="ig-divider"></span>
+        {%- endif -%}
+
+        {%- liquid
+          assign spec_count = 0
+          for block in section.blocks
+            if block.type == 'spec'
+              assign spec_count = spec_count | plus: 1
+            endif
+          endfor
+        -%}
+
+        {%- if spec_count > 0 -%}
+          <div class="ig-specs">
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'spec' -%}
+                <div class="ig-spec" {{ block.shopify_attributes }}>
+                  <div class="ig-spec__icon">
+                    {%- render 'reeve-feature-icon', icon_key: block.settings.icon_key, icon_image: block.settings.icon_image -%}
+                  </div>
+                  <p class="ig-spec__label">{{ block.settings.label }}</p>
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="ig-media-row" data-ig-media-row>
+        <svg class="ig-connectors" data-ig-connectors aria-hidden="true"></svg>
+
+        <div class="ig-media">
+          <picture>
+            {%- if section.settings.image_desktop != blank -%}
+              <source media="(min-width: 990px)" srcset="{{ section.settings.image_desktop | image_url: width: 600 }} 600w, {{ section.settings.image_desktop | image_url: width: 900 }} 900w, {{ section.settings.image_desktop | image_url: width: 1200 }} 1200w">
+            {%- endif -%}
+            {%- if section.settings.image_mobile != blank -%}
+              {{ section.settings.image_mobile | image_url: width: 700 | image_tag: loading: 'lazy', class: 'ig-media__image', alt: section.settings.image_mobile.alt }}
+            {%- elsif section.settings.image_desktop != blank -%}
+              {{ section.settings.image_desktop | image_url: width: 700 | image_tag: loading: 'lazy', class: 'ig-media__image', alt: section.settings.image_desktop.alt }}
+            {%- endif -%}
+          </picture>
+        </div>
+
+        {%- liquid
+          assign ingredient_count = 0
+          for block in section.blocks
+            if block.type == 'ingredient'
+              assign ingredient_count = ingredient_count | plus: 1
+            endif
+          endfor
+        -%}
+
+        {%- if ingredient_count > 0 -%}
+          <div class="ig-ingredients">
+            {%- assign ing_index = 0 -%}
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'ingredient' -%}
+                {%- assign ing_index = ing_index | plus: 1 -%}
+                <div class="ig-ingredient" {{ block.shopify_attributes }} data-ig-ingredient>
+                  <div class="ig-ingredient__photo-wrap" data-ig-photo-wrap>
+                    {%- if block.settings.photo != blank -%}
+                      {{ block.settings.photo | image_url: width: 160 | image_tag: loading: 'lazy', class: 'ig-ingredient__photo', alt: block.settings.name }}
+                    {%- else -%}
+                      <div class="ig-ingredient__photo"></div>
+                    {%- endif -%}
+                    <span class="ig-ingredient__badge">{{ block.settings.number_label | default: ing_index }}</span>
+                  </div>
+                  <div class="ig-ingredient__body">
+                    <p class="ig-ingredient__name">{{ block.settings.name }}</p>
+                    {%- if block.settings.description != blank -%}
+                      <p class="ig-ingredient__desc">{{ block.settings.description }}</p>
+                    {%- endif -%}
+                  </div>
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- liquid
+      assign trust_count = 0
+      for block in section.blocks
+        if block.type == 'trust'
+          assign trust_count = trust_count | plus: 1
+        endif
+      endfor
+    -%}
+
+    {%- if trust_count > 0 -%}
+      <div class="ig-trust">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'trust' -%}
+            <div class="ig-trust__item" {{ block.shopify_attributes }}>
+              <div class="ig-trust__icon">
+                {%- render 'reeve-feature-icon', icon_key: block.settings.icon_key, icon_image: block.settings.icon_image -%}
+              </div>
+              <div class="ig-trust__body">
+                <p class="ig-trust__label">{{ block.settings.label }}</p>
+                {%- if block.settings.description != blank -%}
+                  <p class="ig-trust__desc">{{ block.settings.description }}</p>
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('.ig-section');
+    if (!root) return;
+
+    Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(
+      ([{ gsap, ScrollTrigger, prefersReducedMotion }, { getScrollContainer }]) => {
+        const reduced = prefersReducedMotion();
+        const scroller = getScrollContainer();
+
+        const ctx = gsap.context(() => {
+          const image = root.querySelector('.ig-media__image');
+          const mediaRow = root.querySelector('[data-ig-media-row]');
+          const connectorsSvg = root.querySelector('[data-ig-connectors]');
+          const specs = root.querySelectorAll('.ig-spec');
+          const ingredients = root.querySelectorAll('.ig-ingredient');
+          const trustItems = root.querySelectorAll('.ig-trust__item');
+          let revealed = reduced;
+
+          const SVG_NS = 'http://www.w3.org/2000/svg';
+
+          function buildConnectors() {
+            if (!mediaRow || !connectorsSvg || !image || !ingredients.length) return;
+
+            const rowRect = mediaRow.getBoundingClientRect();
+            const imgRect = image.getBoundingClientRect();
+            if (!rowRect.width || !imgRect.width) return;
+
+            connectorsSvg.innerHTML = '';
+
+            const startX = imgRect.right - rowRect.left;
+            const startY = imgRect.top + imgRect.height / 2 - rowRect.top;
+
+            ingredients.forEach((item) => {
+              const photoWrap = item.querySelector('[data-ig-photo-wrap]');
+              if (!photoWrap) return;
+              const photoRect = photoWrap.getBoundingClientRect();
+              const endX = photoRect.left - rowRect.left;
+              const endY = photoRect.top + photoRect.height / 2 - rowRect.top;
+              const midX = (startX + endX) / 2;
+
+              const path = document.createElementNS(SVG_NS, 'path');
+              path.setAttribute('d', 'M ' + startX + ' ' + startY + ' C ' + midX + ' ' + startY + ', ' + midX + ' ' + endY + ', ' + endX + ' ' + endY);
+              path.setAttribute('pathLength', '1');
+
+              const dot = document.createElementNS(SVG_NS, 'circle');
+              dot.setAttribute('cx', endX);
+              dot.setAttribute('cy', endY);
+              dot.setAttribute('r', '3');
+
+              connectorsSvg.appendChild(path);
+              connectorsSvg.appendChild(dot);
+
+              item._connectorPath = path;
+              item._connectorDot = dot;
+            });
+
+            if (revealed) {
+              gsap.set(connectorsSvg.querySelectorAll('path'), { strokeDashoffset: 0 });
+              gsap.set(connectorsSvg.querySelectorAll('circle'), { opacity: 1 });
+            }
+          }
+
+          if (reduced) {
+            if (image) gsap.set(image, { opacity: 1, scale: 1, y: 0 });
+            if (specs.length) gsap.set(specs, { opacity: 1, y: 0 });
+            if (ingredients.length) gsap.set(ingredients, { opacity: 1, y: 0 });
+            buildConnectors();
+            if (trustItems.length) gsap.set(trustItems, { opacity: 1, y: 0 });
+            return;
+          }
+
+          if (image) gsap.set(image, { opacity: 0, scale: 0.9, y: 20 });
+          if (specs.length) gsap.set(specs, { opacity: 0, y: 14 });
+          if (ingredients.length) gsap.set(ingredients, { opacity: 0, y: 16 });
+          if (trustItems.length) gsap.set(trustItems, { opacity: 0, y: 14 });
+
+          if (image.complete) {
+            buildConnectors();
+          } else {
+            image.addEventListener('load', buildConnectors, { once: true });
+          }
+
+          if (mediaRow && window.ResizeObserver) {
+            const ro = new ResizeObserver(() => buildConnectors());
+            ro.observe(mediaRow);
+          }
+
+          if (mediaRow && image) {
+            ScrollTrigger.create({
+              scroller,
+              trigger: mediaRow,
+              start: 'top 82%',
+              once: true,
+              onEnter: () => {
+                buildConnectors();
+
+                gsap.to(image, {
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  duration: 0.8,
+                  ease: 'power3.out',
+                  onComplete: () => {
+                    gsap.to(image, {
+                      y: '+=12',
+                      duration: 2.4,
+                      ease: 'sine.inOut',
+                      yoyo: true,
+                      repeat: -1,
+                    });
+                  },
+                });
+
+                const tl = gsap.timeline({ delay: 0.15 });
+                ingredients.forEach((item, index) => {
+                  tl.to(item, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, index === 0 ? 0 : '-=0.18');
+                  if (item._connectorPath) tl.to(item._connectorPath, { strokeDashoffset: 0, duration: 0.35, ease: 'power1.inOut' }, '<0.05');
+                  if (item._connectorDot) tl.to(item._connectorDot, { opacity: 1, duration: 0.2, ease: 'power1.out' }, '>-0.1');
+                });
+                tl.call(() => {
+                  revealed = true;
+                });
+              },
+            });
+          }
+
+          if (specs.length) {
+            ScrollTrigger.create({
+              scroller,
+              trigger: root.querySelector('.ig-specs') || root,
+              start: 'top 88%',
+              once: true,
+              onEnter: () => {
+                gsap.to(specs, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', stagger: 0.1 });
+              },
+            });
+          }
+
+          if (trustItems.length) {
+            ScrollTrigger.create({
+              scroller,
+              trigger: root.querySelector('.ig-trust') || root,
+              start: 'top 90%',
+              once: true,
+              onEnter: () => {
+                gsap.to(trustItems, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', stagger: 0.1 });
+              },
+            });
+          }
+        }, root);
+
+        root.addEventListener('shopify:section:unload', () => ctx.revert());
+      }
+    );
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Reeve Ingredients",
+  "tag": "section",
+  "class": "section-reeve-ingredients-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "WHAT MOST ELECTROLYTE DRINKS LEAVE OUT"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Wrap the second line in italics using the toolbar to color it with the accent color.",
+      "default": "<p>Full ingredient list.</p><p><em>8 calories. Zero dyes.</em></p>"
+    },
+    {
+      "type": "richtext",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "<p>A collagen peptides powder built into a six electrolyte mineral powder, with real coconut water and nothing hidden behind a proprietary blend. Third-party tested for quality and purity.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_divider",
+      "label": "Show divider line",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_desktop",
+      "label": "Product image — desktop"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Product image — mobile",
+      "info": "Optional. Falls back to the desktop image if left blank."
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image (optional, overrides color)"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading / primary text",
+      "default": "#16203a"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted / body text",
+      "default": "#4b4b4b"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#e0357e"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border / divider color",
+      "default": "#e6e6e6"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "spec",
+      "name": "Spec item",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon_key",
+          "label": "Icon",
+          "options": [
+            { "value": "stick_pack", "label": "Stick pack" },
+            { "value": "water_drop", "label": "Water drop" },
+            { "value": "cube", "label": "Cube" },
+            { "value": "droplet_slash", "label": "Droplet (slashed)" },
+            { "value": "leaf", "label": "Leaf" },
+            { "value": "none", "label": "None (use custom image)" }
+          ],
+          "default": "water_drop"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Custom icon image (optional, overrides icon above)"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "1 STICK PACK (6G)"
+        }
+      ]
+    },
+    {
+      "type": "ingredient",
+      "name": "Ingredient",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "photo",
+          "label": "Ingredient photo"
+        },
+        {
+          "type": "text",
+          "id": "number_label",
+          "label": "Number label",
+          "info": "Leave blank to auto-number based on position.",
+          "default": "01"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Name",
+          "default": "Himalayan Pink Salt"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Unrefined sodium with trace minerals, the driver of rapid fluid absorption."
+        }
+      ]
+    },
+    {
+      "type": "trust",
+      "name": "Trust item",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon_key",
+          "label": "Icon",
+          "options": [
+            { "value": "shield_check", "label": "Shield check" },
+            { "value": "leaf", "label": "Leaf" },
+            { "value": "flask", "label": "Flask" },
+            { "value": "water_drop", "label": "Water drop" },
+            { "value": "none", "label": "None (use custom image)" }
+          ],
+          "default": "shield_check"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Custom icon image (optional, overrides icon above)"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Third-Party Tested"
+        },
+        {
+          "type": "text",
+          "id": "description",
+          "label": "Description",
+          "default": "Every batch is tested for purity, potency, and safety."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve Ingredients",
+      "blocks": [
+        { "type": "spec", "settings": { "icon_key": "stick_pack", "label": "1 STICK PACK (6G)" } },
+        { "type": "spec", "settings": { "icon_key": "water_drop", "label": "8 CALORIES" } },
+        { "type": "spec", "settings": { "icon_key": "cube", "label": "0G ADDED SUGAR" } },
+        { "type": "spec", "settings": { "icon_key": "droplet_slash", "label": "NO ARTIFICIAL DYES" } },
+        { "type": "ingredient", "settings": { "number_label": "01", "name": "Himalayan Pink Salt", "description": "Unrefined sodium with trace minerals, the driver of rapid fluid absorption." } },
+        { "type": "ingredient", "settings": { "number_label": "02", "name": "Coconut Water", "description": "Nature's own electrolyte source, with coconut water for potassium and a naturally smooth taste." } },
+        { "type": "ingredient", "settings": { "number_label": "03", "name": "Collagen Peptides", "description": "Hydrolyzed bovine collagen for skin barrier, joints, and connective tissue, right in your hydration stack." } },
+        { "type": "ingredient", "settings": { "number_label": "04", "name": "Magnesium Citrate", "description": "A highly bioavailable form, not the chalky oxide most powders hide behind." } },
+        { "type": "ingredient", "settings": { "number_label": "05", "name": "Tricalcium Phosphate", "description": "Calcium and phosphorus together for muscle function and cellular energy." } },
+        { "type": "ingredient", "settings": { "number_label": "06", "name": "Monk Fruit", "description": "A monk fruit sweetened electrolyte with no sucralose, no aspartame, no aftertaste." } },
+        { "type": "trust", "settings": { "icon_key": "shield_check", "label": "Third-Party Tested", "description": "Every batch is tested for purity, potency, and safety." } },
+        { "type": "trust", "settings": { "icon_key": "leaf", "label": "Clean & Conscious", "description": "No artificial dyes, no unnecessary fillers, just what matters." } },
+        { "type": "trust", "settings": { "icon_key": "flask", "label": "Science-Backed", "description": "Each ingredient serves a purpose in your daily hydration + beauty ritual." } },
+        { "type": "trust", "settings": { "icon_key": "water_drop", "label": "Made For Results", "description": "Formulated to hydrate, restore, and support from within." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

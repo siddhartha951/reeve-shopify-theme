@@ -1,0 +1,350 @@
+{{ 'section-reeve-bubbles.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign rb_style = '--rb-bg: ' | append: section.settings.bg_color | append: ';'
+  assign rb_style = rb_style | append: ' --rb-text: ' | append: section.settings.text_color | append: ';'
+  assign rb_style = rb_style | append: ' --rb-muted: ' | append: section.settings.muted_text_color | append: ';'
+  assign rb_style = rb_style | append: ' --rb-accent: ' | append: section.settings.accent_color | append: ';'
+  assign rb_style = rb_style | append: ' --rb-keypoint-accent: ' | append: section.settings.keypoint_accent_color | append: ';'
+  assign rb_style = rb_style | append: ' --rb-keypoint-bg: ' | append: section.settings.keypoint_bg_color | append: ';'
+  assign rb_style = rb_style | append: ' --rb-droplet-color: ' | append: section.settings.droplet_color | append: ';'
+  assign rb_style = rb_style | append: ' --rb-padding-top: ' | append: section.settings.padding_top | append: 'px;'
+  assign rb_style = rb_style | append: ' --rb-padding-bottom: ' | append: section.settings.padding_bottom | append: 'px;'
+-%}
+{%- if section.settings.background_image != blank -%}
+  {%- assign rb_bg_image_url = section.settings.background_image | image_url: width: 2000 -%}
+  {%- assign rb_style = rb_style | append: " --rb-bg-image: url('" | append: rb_bg_image_url | append: "');" -%}
+{%- endif -%}
+
+<section class="rb-section" style="{{ rb_style }}">
+  <div class="rb-inner">
+    <div class="rb-grid">
+
+      <div class="rb-media">
+        {%- if section.settings.image != blank -%}
+          {{ section.settings.image | image_url: width: 900 | image_tag: loading: 'lazy', class: 'rb-media__image', alt: section.settings.image.alt }}
+        {%- endif -%}
+
+        {%- if section.settings.show_droplets -%}
+          <svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+            <defs>
+              <radialGradient id="rb-droplet-grad-{{ section.id }}" cx="35%" cy="28%" r="75%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"></stop>
+                <stop offset="35%" stop-color="var(--rb-droplet-color)" stop-opacity="0.65"></stop>
+                <stop offset="100%" stop-color="var(--rb-droplet-color)" stop-opacity="0.3"></stop>
+              </radialGradient>
+            </defs>
+          </svg>
+
+          <div class="rb-droplets" aria-hidden="true">
+            {%- for i in (1..12) -%}
+              <svg class="rb-droplet rb-droplet--{{ i }}" viewBox="0 0 24 24">
+                <path d="M12 2.4 18.2 10a7 7 0 1 1-12.4 0z" fill="url(#rb-droplet-grad-{{ section.id }})"></path>
+                <ellipse cx="9" cy="9.2" rx="1.7" ry="1.1" fill="#ffffff" opacity="0.85"></ellipse>
+              </svg>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="rb-col rb-col--text">
+        <div class="rb-block rb-block--top">
+          {%- if section.settings.eyebrow != blank -%}
+            <p class="rb-eyebrow">{{ section.settings.eyebrow }}</p>
+          {%- endif -%}
+
+          <h2 class="rb-heading">{{ section.settings.heading }}</h2>
+
+          {%- if section.settings.show_divider -%}
+            <span class="rb-divider"></span>
+          {%- endif -%}
+        </div>
+
+        <div class="rb-block rb-block--bottom">
+          {%- if section.settings.paragraph != blank -%}
+            <div class="rb-paragraph">{{ section.settings.paragraph }}</div>
+          {%- endif -%}
+
+          {%- liquid
+            assign keypoint_count = 0
+            for block in section.blocks
+              if block.type == 'keypoint'
+                assign keypoint_count = keypoint_count | plus: 1
+              endif
+            endfor
+          -%}
+
+          {%- if keypoint_count > 0 -%}
+            <div class="rb-keypoints">
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'keypoint' -%}
+                  <div class="rb-keypoint" {{ block.shopify_attributes }}>
+                    <div class="rb-keypoint__icon">
+                      {%- render 'reeve-bubble-icon', icon_key: block.settings.icon_key, icon_image: block.settings.icon_image -%}
+                    </div>
+                    <p class="rb-keypoint__label">{{ block.settings.label }}</p>
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    const script = document.currentScript;
+    const scope = (script && script.closest('.shopify-section')) || document;
+    const root = scope.querySelector('.rb-section');
+    if (!root) return;
+
+    Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(
+      ([{ gsap, ScrollTrigger, prefersReducedMotion }, { getScrollContainer }]) => {
+        const reduced = prefersReducedMotion();
+
+        const ctx = gsap.context(() => {
+          const image = root.querySelector('.rb-media__image');
+          const media = root.querySelector('.rb-media');
+          const droplets = root.querySelectorAll('.rb-droplet');
+          if (!image || !media) return;
+
+          if (reduced) {
+            gsap.set(image, { opacity: 1, scale: 1, y: 0 });
+            if (droplets.length) gsap.set(droplets, { opacity: 0.85 });
+            return;
+          }
+
+          gsap.set(image, { opacity: 0, scale: 0.9, y: 20 });
+          if (droplets.length) gsap.set(droplets, { opacity: 0, scale: 0.6, y: 10 });
+
+          ScrollTrigger.create({
+            scroller: getScrollContainer(),
+            trigger: media,
+            start: 'top 80%',
+            once: true,
+            onEnter: () => {
+              gsap.to(image, {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                duration: 0.8,
+                ease: 'power3.out',
+                onComplete: () => {
+                  gsap.to(image, {
+                    y: '+=12',
+                    duration: 2.4,
+                    ease: 'sine.inOut',
+                    yoyo: true,
+                    repeat: -1,
+                  });
+                },
+              });
+
+              droplets.forEach((droplet, index) => {
+                gsap.to(droplet, {
+                  opacity: 0.85,
+                  scale: 1,
+                  duration: 0.5,
+                  delay: 0.2 + index * 0.12,
+                  ease: 'back.out(1.8)',
+                  onComplete: () => {
+                    gsap.to(droplet, {
+                      y: '-=' + (18 + (index % 3) * 6),
+                      opacity: 0.25,
+                      duration: 2.6 + index * 0.35,
+                      ease: 'sine.inOut',
+                      yoyo: true,
+                      repeat: -1,
+                      delay: index * 0.3,
+                    });
+                  },
+                });
+              });
+            },
+          });
+        }, root);
+
+        root.addEventListener('shopify:section:unload', () => ctx.revert());
+      }
+    );
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Reeve Media Feature",
+  "tag": "section",
+  "class": "section-reeve-bubbles-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "FROM THE INSIDE OUT"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Wrap part of the heading in italics using the toolbar to color it with the accent color.",
+      "default": "<p>Hydration that shows up on your skin, not <em>just your water bottle.</em></p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_divider",
+      "label": "Show divider line under heading",
+      "default": true
+    },
+    {
+      "type": "richtext",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "<p>Beauty is not only what you put on your skin, it is what you put into your body. Collagen peptides support skin elasticity and hydration from within, while a full six-electrolyte mineral powder keeps your cells balanced and your energy steady.</p><p>This is a collagen hydration powder for skin built for anyone who treats hydration and skincare as the same routine, not two separate ones.</p><p>If you are managing your weight, adjusting how you eat, or simply drinking more intentionally, a hydrating beverage with electrolytes and collagen does double duty a plain water bottle cannot.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Product image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_droplets",
+      "label": "Show floating water droplets around the image",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "droplet_color",
+      "label": "Droplet color",
+      "default": "#9fc9ea"
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#faf3f2"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image (optional, overrides color)"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading / primary text",
+      "default": "#16203a"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted / body text",
+      "default": "#4b4b4b"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color (heading highlight, divider)",
+      "default": "#d94f7a"
+    },
+    {
+      "type": "color",
+      "id": "keypoint_accent_color",
+      "label": "Keypoint icon color",
+      "default": "#1c5c4d"
+    },
+    {
+      "type": "color",
+      "id": "keypoint_bg_color",
+      "label": "Keypoint box background",
+      "default": "#fceef1"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "keypoint",
+      "name": "Keypoint",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon_key",
+          "label": "Icon",
+          "options": [
+            { "value": "droplet", "label": "Droplet" },
+            { "value": "molecule", "label": "Molecule" },
+            { "value": "lightning", "label": "Lightning bolt" },
+            { "value": "sparkles", "label": "Sparkles" },
+            { "value": "none", "label": "None (use custom image)" }
+          ],
+          "default": "droplet"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "Custom icon image (optional, overrides icon above)"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Drinkable beauty"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve Media Feature",
+      "blocks": [
+        { "type": "keypoint", "settings": { "icon_key": "droplet", "label": "Drinkable beauty" } },
+        { "type": "keypoint", "settings": { "icon_key": "molecule", "label": "Collagen peptides powder" } },
+        { "type": "keypoint", "settings": { "icon_key": "sparkles", "label": "Skin hydration" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

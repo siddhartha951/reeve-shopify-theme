@@ -1,0 +1,1748 @@
+{% comment %}
+  Reeve Reviews Carousel — "Loved by Thousands" trust section for Horizon theme
+  Section handle: reeve-reviews-carousel
+
+  DATA SOURCE: this section's own "Review" blocks are the baseline content —
+  always rendered first, so the design works immediately with no dependency
+  and never shows up empty.
+
+  When "Sync with Judge.me" is on, the official Judge.me product review
+  widget (embedded below, visually hidden) is also loaded on the page so
+  Judge.me's own script hydrates it with this product's real reviews. Once
+  hydrated, JS in this file reads that hydrated widget's DOM (Judge.me's
+  well-established `.jdgm-rev` review markup) and swaps the carousel + modal
+  content over to the live reviews it found — falling back to the block
+  content above if Judge.me hasn't loaded, is slow, or finds nothing. See
+  "JUDGE.ME SYNC" in the script below.
+{% endcomment %}
+
+{%- liquid
+  assign s = section.settings
+  assign reviews = section.blocks | where: 'type', 'review'
+  assign section_id = section.id
+-%}
+
+{%- capture icon_star -%}<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.2l2.7 5.7 6.2.6-4.6 4.2 1.3 6.1L10 14.7l-5.6 3.1 1.3-6.1L1.1 7.5l6.2-.6z"/></svg>{%- endcapture -%}
+{%- capture icon_verified -%}<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="currentColor"/><path d="M6 10.3l2.4 2.4L14.3 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+{%- capture icon_search -%}<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6"/><path d="M17 17l-3.8-3.8" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_close -%}<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16" stroke-linecap="round"/></svg>{%- endcapture -%}
+{%- capture icon_chevron -%}<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 4l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endcapture -%}
+
+<section
+  class="reeve-reviews"
+  data-section-id="{{ section_id }}"
+  data-animations-enabled="{{ s.enable_animations }}"
+  style="
+    --rr-bg: {{ s.background_color }};
+    --rr-text: {{ s.text_color }};
+    --rr-muted: {{ s.muted_text_color }};
+    --rr-accent: {{ s.accent_color }};
+    --rr-card-bg: {{ s.card_bg_color }};
+    --rr-card-border: {{ s.card_border_color }};
+    --rr-max-width: {{ s.max_width }}px;
+    --rr-padding-top-desktop: {{ s.padding_top_desktop }}px;
+    --rr-padding-bottom-desktop: {{ s.padding_bottom_desktop }}px;
+    --rr-padding-top-mobile: {{ s.padding_top_mobile }}px;
+    --rr-padding-bottom-mobile: {{ s.padding_bottom_mobile }}px;
+  "
+>
+  {%- if s.sync_with_judgeme -%}
+    {%- comment -%}
+      Judge.me's official product review widget — visually hidden (not
+      display:none, so Judge.me's lazy-load/hydration still fires) but left
+      in the DOM so its own script can populate it with this product's real
+      reviews. The JS below reads that hydrated content; nothing here is
+      shown to shoppers directly.
+    {%- endcomment -%}
+    <div class="reeve-reviews__judgeme-source visually-hidden" data-rr-judgeme-source aria-hidden="true">
+      {%- assign has_legacy = false -%}
+      {%- if product.metafields.judgeme.widget.size > 20 -%}{%- assign has_legacy = true -%}{%- endif -%}
+      <div style="clear:both"></div>
+      <div
+        id="judgeme_product_reviews"
+        class="jdgm-widget jdgm-review-widget"
+        data-product-title="{{ product.title | escape }}"
+        data-id="{{ product.id }}"
+        data-product-id="{{ product.id }}"
+        data-widget="review"
+        data-auto-install="false"
+        data-shop-reviews-count="{{ shop.metafields.judgeme.shop_reviews_count | default: 0 | escape }}"
+        data-entry-point="review_widget.js"
+        data-entry-key="review-widget/main.js"
+      >
+        {%- if has_legacy -%}
+          <div class="jdgm-legacy-widget-content" style="display: none;">{{ product.metafields.judgeme.widget }}</div>
+        {%- endif -%}
+      </div>
+      {%- if product.metafields.judgeme.review_widget_data -%}
+        <script>
+          window.jdgm = window.jdgm || {};
+          jdgm.data = jdgm.data || {};
+          jdgm.data.reviewWidget = jdgm.data.reviewWidget || {};
+          jdgm.data.reviewWidget[{{ product.id }}] = {{ product.metafields.judgeme.review_widget_data }};
+        </script>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <div class="reeve-reviews__inner">
+    <header class="reeve-reviews__header" data-rr-header>
+      {%- if s.eyebrow != blank -%}
+        <p class="reeve-reviews__eyebrow" data-rr-reveal>{{ s.eyebrow }}</p>
+      {%- endif -%}
+
+      {%- liquid
+        assign heading_html = ''
+        if s.heading_normal != blank
+          assign heading_html = '<span class="reeve-reviews__heading-normal">' | append: s.heading_normal | append: '</span>'
+        endif
+        if s.heading_highlight != blank
+          assign heading_html = heading_html | append: ' <span class="reeve-reviews__heading-highlight">' | append: s.heading_highlight | append: '</span>'
+        endif
+      -%}
+      {%- if heading_html != blank -%}
+        <h2 class="reeve-reviews__heading" data-rr-reveal>{{ heading_html }}</h2>
+      {%- endif -%}
+
+      {%- if s.subheading != blank -%}
+        <p class="reeve-reviews__subheading" data-rr-reveal>{{ s.subheading }}</p>
+      {%- endif -%}
+
+      {%- if s.average_rating != blank -%}
+        <div class="reeve-reviews__stats" data-rr-reveal>
+          <div class="reeve-reviews__stats-score">
+            <span class="reeve-reviews__stats-number">{{ s.average_rating }}</span><span class="reeve-reviews__stats-outof">/{{ s.rating_out_of | default: '5' }}</span>
+          </div>
+          <span class="reeve-reviews__stats-divider" aria-hidden="true"></span>
+          <div class="reeve-reviews__stats-detail">
+            <span class="reeve-reviews__stats-stars" aria-hidden="true">
+              {%- for i in (1..5) -%}{{ icon_star }}{%- endfor -%}
+            </span>
+            <span class="reeve-reviews__stats-count">
+              Based on <strong>{{ s.review_count_number | default: '2,000+' }}</strong> {{ s.review_count_text | default: 'verified reviews' }}
+            </span>
+          </div>
+        </div>
+      {%- endif -%}
+    </header>
+
+    {%- if reviews.size > 0 -%}
+      {%- comment -%} JUDGE.ME INTEGRATION POINT: swap this track's contents for the Judge.me carousel widget embed if replacing block-driven content with live data. {%- endcomment -%}
+      <div class="reeve-reviews__carousel" data-rr-carousel>
+        <div class="reeve-reviews__track" data-rr-track>
+          {%- for block in reviews -%}
+            {%- liquid
+              assign bs = block.settings
+              assign rating = bs.rating | default: 5
+            -%}
+            <article class="reeve-reviews__card" data-rr-card {{ block.shopify_attributes }}>
+              <div class="reeve-reviews__card-top">
+                <span class="reeve-reviews__card-stars" aria-hidden="true">
+                  {%- for i in (1..5) -%}
+                    <span class="{% if i > rating %}is-empty{% endif %}">{{ icon_star }}</span>
+                  {%- endfor -%}
+                </span>
+                {%- if bs.verified -%}
+                  <span class="reeve-reviews__badge">{{ icon_verified }} Verified Buyer</span>
+                {%- endif -%}
+              </div>
+
+              <span class="reeve-reviews__quote-mark" aria-hidden="true">&#8220;</span>
+
+              {%- if bs.title != blank -%}
+                <p class="reeve-reviews__card-title">&#8220;{{ bs.title }}&#8221;</p>
+              {%- endif -%}
+
+              <span class="reeve-reviews__card-rule" aria-hidden="true"></span>
+
+              {%- if bs.body != blank -%}
+                <p class="reeve-reviews__card-body">{{ bs.body }}</p>
+              {%- endif -%}
+            </article>
+          {%- endfor -%}
+        </div>
+      </div>
+
+      {%- if reviews.size > 1 -%}
+        <div class="reeve-reviews__dots" data-rr-dots role="tablist" aria-label="Review pages"></div>
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- if s.show_read_all and reviews.size > 0 -%}
+      <button type="button" class="reeve-reviews__read-all" data-rr-open-modal>
+        {{ s.read_all_label | default: 'Read all reviews' }}
+        <span class="reeve-reviews__read-all-arrow" aria-hidden="true">&#8594;</span>
+      </button>
+    {%- endif -%}
+  </div>
+
+  {%- if reviews.size > 0 -%}
+    <dialog class="reeve-reviews__modal" data-rr-modal aria-labelledby="rr-modal-heading-{{ section_id }}">
+      <div class="reeve-reviews__modal-inner">
+        <button type="button" class="reeve-reviews__modal-close" data-rr-close-modal aria-label="Close">{{ icon_close }}</button>
+
+        <div class="reeve-reviews__modal-header">
+          <div class="reeve-reviews__modal-heading-block">
+            {%- liquid
+              assign modal_heading_html = ''
+              if s.all_reviews_heading_normal != blank
+                assign modal_heading_html = '<span>' | append: s.all_reviews_heading_normal | append: '</span>'
+              endif
+              if s.all_reviews_heading_highlight != blank
+                assign modal_heading_html = modal_heading_html | append: ' <span class="reeve-reviews__heading-highlight">' | append: s.all_reviews_heading_highlight | append: '</span>'
+              endif
+            -%}
+            {%- if modal_heading_html != blank -%}
+              <h3 class="reeve-reviews__modal-heading" id="rr-modal-heading-{{ section_id }}">{{ modal_heading_html }}</h3>
+            {%- endif -%}
+            {%- if s.all_reviews_subheading != blank -%}
+              <p class="reeve-reviews__modal-subheading">{{ s.all_reviews_subheading }}</p>
+            {%- endif -%}
+          </div>
+
+          {%- if s.average_rating != blank -%}
+            <div class="reeve-reviews__stats reeve-reviews__stats--modal">
+              <div class="reeve-reviews__stats-score">
+                <span class="reeve-reviews__stats-number">{{ s.average_rating }}</span><span class="reeve-reviews__stats-outof">/{{ s.rating_out_of | default: '5' }}</span>
+              </div>
+              <span class="reeve-reviews__stats-divider" aria-hidden="true"></span>
+              <div class="reeve-reviews__stats-detail">
+                <span class="reeve-reviews__stats-stars" aria-hidden="true">
+                  {%- for i in (1..5) -%}{{ icon_star }}{%- endfor -%}
+                </span>
+                <span class="reeve-reviews__stats-count">
+                  Based on <strong>{{ s.review_count_number | default: '2,000+' }}</strong> {{ s.review_count_text | default: 'verified reviews' }}
+                </span>
+              </div>
+            </div>
+          {%- endif -%}
+        </div>
+
+        <div class="reeve-reviews__toolbar">
+          <div class="reeve-reviews__select-wrap">
+            <select class="reeve-reviews__select" data-rr-filter-rating aria-label="Filter by rating">
+              <option value="all">All Ratings</option>
+              <option value="5">5 stars</option>
+              <option value="4">4 stars</option>
+              <option value="3">3 stars</option>
+              <option value="2">2 stars</option>
+              <option value="1">1 star</option>
+            </select>
+            <span class="reeve-reviews__select-caret" aria-hidden="true">{{ icon_chevron }}</span>
+          </div>
+
+          <div class="reeve-reviews__select-wrap">
+            <select class="reeve-reviews__select" data-rr-sort aria-label="Sort reviews">
+              <option value="recent">Most Recent</option>
+              <option value="highest">Highest Rated</option>
+              <option value="lowest">Lowest Rated</option>
+            </select>
+            <span class="reeve-reviews__select-caret" aria-hidden="true">{{ icon_chevron }}</span>
+          </div>
+
+          <label class="reeve-reviews__search">
+            <span class="visually-hidden">Search reviews</span>
+            {{ icon_search }}
+            <input type="search" data-rr-search placeholder="{{ s.search_placeholder | default: 'Search reviews...' }}">
+          </label>
+        </div>
+
+        <div class="reeve-reviews__modal-list" data-rr-modal-list></div>
+        <p class="reeve-reviews__modal-empty" data-rr-modal-empty hidden>No reviews match your filters.</p>
+
+        <div class="reeve-reviews__pagination" data-rr-pagination></div>
+      </div>
+    </dialog>
+
+    <script type="application/json" data-rr-data>
+      [
+        {%- for block in reviews -%}
+          {%- liquid
+            assign bs = block.settings
+            assign rating = bs.rating | default: 5
+          -%}
+          {
+            "rating": {{ rating }},
+            "verified": {{ bs.verified | default: false }},
+            "title": {{ bs.title | strip_html | json }},
+            "body": {{ bs.body | strip_html | json }},
+            "name": {{ bs.reviewer_name | strip_html | json }},
+            "date": {{ bs.reviewed_date | strip_html | json }},
+            "sortIndex": {{ forloop.index0 }}
+          }{%- unless forloop.last -%},{%- endunless -%}
+        {%- endfor -%}
+      ]
+    </script>
+  {%- endif -%}
+</section>
+
+<script>
+  (function () {
+    var ROOT_SELECTOR = '.reeve-reviews[data-section-id="{{ section_id }}"]';
+    window.__reeveReviews = window.__reeveReviews || {};
+
+    function cleanup(sectionId) {
+      var entry = window.__reeveReviews[sectionId];
+      if (!entry) return;
+      if (entry.triggers) entry.triggers.forEach(function (t) { try { t.kill(); } catch (e) {} });
+      if (entry.listeners) entry.listeners.forEach(function (l) { try { l.el.removeEventListener(l.type, l.fn); } catch (e) {} });
+      delete window.__reeveReviews[sectionId];
+    }
+
+    function starRow(iconStarHtml, rating) {
+      var html = '';
+      for (var i = 1; i <= 5; i++) {
+        html += '<span class="' + (i > rating ? 'is-empty' : '') + '">' + iconStarHtml + '</span>';
+      }
+      return html;
+    }
+
+    function init() {
+      var root = document.querySelector(ROOT_SELECTOR);
+      if (!root) return;
+      var sectionId = root.getAttribute('data-section-id');
+      cleanup(sectionId);
+
+      var animationsEnabled = root.getAttribute('data-animations-enabled') === 'true';
+      var listeners = [];
+      var triggers = [];
+      window.__reeveReviews[sectionId] = { triggers: triggers, listeners: listeners };
+
+      var track = root.querySelector('[data-rr-track]');
+      var cards = Array.prototype.slice.call(root.querySelectorAll('[data-rr-card]'));
+      var dotsWrap = root.querySelector('[data-rr-dots]');
+      var dataScript = root.querySelector('[data-rr-data]');
+      var judgemeSource = root.querySelector('[data-rr-judgeme-source]');
+      var starIconHtml = '{{ icon_star }}'.replace(/\n/g, '');
+      var verifiedIconHtml = '{{ icon_verified }}'.replace(/\n/g, '');
+      var gsapRef = null;
+      var allReviews = [];
+      try { allReviews = dataScript ? JSON.parse(dataScript.textContent) : []; } catch (e) { allReviews = []; }
+
+      function escapeHtml(str) {
+        return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function cardMarkup(r) {
+        return (
+          '<article class="reeve-reviews__card" data-rr-card>' +
+            '<div class="reeve-reviews__card-top">' +
+              '<span class="reeve-reviews__card-stars">' + starRow(starIconHtml, r.rating) + '</span>' +
+              (r.verified ? '<span class="reeve-reviews__badge">' + verifiedIconHtml + ' Verified Buyer</span>' : '') +
+            '</div>' +
+            '<span class="reeve-reviews__quote-mark" aria-hidden="true">&#8220;</span>' +
+            (r.title ? '<p class="reeve-reviews__card-title">&#8220;' + escapeHtml(r.title) + '&#8221;</p>' : '') +
+            '<span class="reeve-reviews__card-rule" aria-hidden="true"></span>' +
+            (r.body ? '<p class="reeve-reviews__card-body">' + escapeHtml(r.body) + '</p>' : '') +
+          '</article>'
+        );
+      }
+
+      /* ---------------- JUDGE.ME SYNC ----------------
+         Two independent strategies, tried in order. Both log clearly to the
+         console (prefixed "[Reeve Reviews]") so a stuck sync is debuggable
+         from DevTools instead of failing silently:
+
+         1. Read `jdgm.data.reviewWidget[product.id]` — the raw JSON Judge.me
+            injects synchronously via this section's own inline script tag
+            (see the metafield-driven script block above). This needs no
+            waiting on Judge.me's external script at all, but its exact shape is
+            Judge.me's private internal format, so this normalizes several
+            plausible property names defensively.
+         2. Fall back to reading Judge.me's hydrated widget DOM
+            (`.jdgm-rev` cards) once their script has run. Judge.me's
+            product-review widget can render with Vue-scoped/hashed class
+            names though (see the note in blint-judgeme.liquid), so this is
+            a secondary attempt, not the primary path.
+
+         If neither produces reviews, the block content above keeps showing
+         — nothing ever breaks or goes blank. */
+      var JDGM_PRODUCT_ID = {{ product.id | default: 0 }};
+
+      // Judge.me's own data ships with title/body already HTML-escaped (it's
+      // meant to be dropped straight into their widget's markup). Our own
+      // renderer escapes plain text itself before inserting it, so Judge.me
+      // fields need to be decoded back to plain text first — otherwise
+      // "Crisp & Refreshing" round-trips through escaping twice and shows up
+      // on the page as the literal text "Crisp &amp; Refreshing".
+      function decodeHtmlEntities(str) {
+        if (!str) return str;
+        var el = document.createElement('textarea');
+        el.innerHTML = str;
+        return el.value;
+      }
+
+      function normalizeJudgeMeReview(r, i) {
+        if (!r || typeof r !== 'object') return null;
+        var reviewer = r.reviewer || r.author || {};
+        var rating = r.rating || r.score || r.stars || 5;
+        var title = r.title || r.reviewTitle || r.review_title || '';
+        var body = r.body || r.content || r.review_body || r.comment || r.text || '';
+        var name = reviewer.name || r.reviewer_name || r.author_name || r.name || 'Verified Buyer';
+        var verified = r.verified_buyer || r.verified || r.is_verified || r.buyer_type === 'verified' || false;
+        var date = r.created_at || r.date || r.timestamp || r.date_created || '';
+        if (!body && !title) return null;
+        return {
+          rating: parseInt(rating, 10) || 5,
+          verified: !!verified,
+          title: decodeHtmlEntities(String(title || '').trim()),
+          body: decodeHtmlEntities(String(body || '').trim()),
+          name: decodeHtmlEntities(String(name || 'Verified Buyer').trim()),
+          date: String(date || '').trim(),
+          sortIndex: i,
+        };
+      }
+
+      // NOTE: Judge.me's public REST API (https://judge.me/api/v1/reviews)
+      // does NOT allow direct browser fetches — it has no
+      // Access-Control-Allow-Origin header, so calling it from storefront JS
+      // is blocked by CORS (confirmed against this shop). Getting truly all
+      // reviews (not just what Judge.me preloads into the page) would need a
+      // server-side proxy Judge.me support would have to point you to — not
+      // something reachable from theme code alone. The metafield/DOM sync
+      // below is the reliable, working path.
+
+      function extractFromJudgeMeData() {
+        var raw;
+        try {
+          raw = window.jdgm && window.jdgm.data && window.jdgm.data.reviewWidget && window.jdgm.data.reviewWidget[JDGM_PRODUCT_ID];
+        } catch (e) {
+          raw = null;
+        }
+        if (!raw) {
+          console.info('[Reeve Reviews] jdgm.data.reviewWidget[' + JDGM_PRODUCT_ID + '] not present yet.');
+          return [];
+        }
+        var list = Array.isArray(raw) ? raw : (raw.reviews || raw.reviewList || raw.list || null);
+        if (!Array.isArray(list) || !list.length) {
+          console.warn('[Reeve Reviews] Judge.me review data found but no recognizable reviews array inside it. Raw object:', raw);
+          return [];
+        }
+        var normalized = list.map(normalizeJudgeMeReview).filter(Boolean);
+        console.info('[Reeve Reviews] Parsed ' + normalized.length + ' review(s) from jdgm.data.reviewWidget.');
+        return normalized;
+      }
+
+      function extractFromJudgeMeDom() {
+        if (!judgemeSource) return [];
+        var nodes = Array.prototype.slice.call(judgemeSource.querySelectorAll('.jdgm-rev'));
+        if (!nodes.length) return [];
+        var found = nodes
+          .map(function (node) {
+            var scoreHost = node.querySelector('[data-score]');
+            var onStars = node.querySelectorAll('.jdgm-star.jdgm--on').length;
+            var rating = scoreHost ? parseInt(scoreHost.getAttribute('data-score'), 10) : onStars;
+            var titleEl = node.querySelector('.jdgm-rev__title');
+            var bodyEl = node.querySelector('.jdgm-rev__body');
+            var nameEl = node.querySelector('.jdgm-rev__author');
+            var dateEl = node.querySelector('.jdgm-rev__timestamp');
+            var verified = !!node.querySelector('.jdgm-rev__buyer-badge, .jdgm-rev__verified-badge');
+            return {
+              rating: rating || 5,
+              verified: verified,
+              title: titleEl ? titleEl.textContent.trim() : '',
+              body: bodyEl ? bodyEl.textContent.trim() : '',
+              name: nameEl ? nameEl.textContent.trim() : 'Verified Buyer',
+              date: dateEl ? dateEl.textContent.trim() : '',
+            };
+          })
+          .filter(function (r) { return r.body || r.title; })
+          .map(function (r, i) { r.sortIndex = i; return r; });
+        console.info('[Reeve Reviews] Found ' + found.length + ' review(s) via Judge.me widget DOM (.jdgm-rev).');
+        return found;
+      }
+
+      function swapToLiveReviews(liveReviews) {
+        allReviews = liveReviews;
+        if (!track) return;
+
+        function replace() {
+          track.innerHTML = liveReviews.map(cardMarkup).join('');
+          cards = Array.prototype.slice.call(root.querySelectorAll('[data-rr-card]'));
+          if (gsapRef) gsapRef.set(cards, { opacity: 0, y: 12 });
+          buildDots();
+          if (gsapRef) {
+            gsapRef.to(cards, { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'power2.out' });
+          } else {
+            cards.forEach(function (c) { c.style.opacity = 1; });
+          }
+        }
+
+        if (gsapRef && cards.length) {
+          gsapRef.to(cards, { opacity: 0, duration: 0.2, onComplete: replace });
+        } else {
+          replace();
+        }
+      }
+
+      function initJudgeMeSync() {
+        if (!judgemeSource) {
+          console.info('[Reeve Reviews] Judge.me sync is off (or no product context) — using block content.');
+          return;
+        }
+        var settled = false;
+        var observer = null;
+        var poll = null;
+
+        function finish(found, source) {
+          if (settled || !found || !found.length) return;
+          settled = true;
+          if (poll) clearInterval(poll);
+          if (observer) observer.disconnect();
+          console.info('[Reeve Reviews] Syncing ' + found.length + ' live Judge.me review(s) from ' + source + '.');
+          swapToLiveReviews(found);
+        }
+
+        function attempt() {
+          var fromData = extractFromJudgeMeData();
+          if (fromData.length) { finish(fromData, 'jdgm.data.reviewWidget'); return true; }
+          var fromDom = extractFromJudgeMeDom();
+          if (fromDom.length) { finish(fromDom, 'widget DOM'); return true; }
+          return false;
+        }
+
+        if (attempt()) return;
+
+        observer = new MutationObserver(function () { attempt(); });
+        observer.observe(judgemeSource, { childList: true, subtree: true });
+
+        // jdgm.data.reviewWidget can also be populated slightly after this
+        // script runs (Judge.me's own script re-assigns it), so poll for it
+        // too — a MutationObserver alone won't catch a plain variable swap.
+        poll = setInterval(attempt, 400);
+
+        setTimeout(function () {
+          if (settled) return;
+          if (poll) clearInterval(poll);
+          if (observer) observer.disconnect();
+          console.warn(
+            '[Reeve Reviews] Could not find any live Judge.me reviews after 6s for product ' + JDGM_PRODUCT_ID + '. ' +
+            'Falling back to this section\'s "Review" blocks. Checked: (1) jdgm.data.reviewWidget[' + JDGM_PRODUCT_ID + '] present: ' +
+            !!(window.jdgm && window.jdgm.data && window.jdgm.data.reviewWidget && window.jdgm.data.reviewWidget[JDGM_PRODUCT_ID]) + ', ' +
+            '(2) widget DOM .jdgm-rev nodes present: ' + !!(judgemeSource.querySelector('.jdgm-rev')) + '. ' +
+            'If both are false/missing, check: the Judge.me app embed is enabled (Theme settings > App embeds), ' +
+            'and that this product actually has published reviews in Judge.me.'
+          );
+        }, 6000);
+      }
+
+      /* ---------------- Carousel: cards-per-view + dot pagination ---------------- */
+      function cardsPerView() {
+        if (window.matchMedia('(min-width: 990px)').matches) return 3;
+        if (window.matchMedia('(min-width: 750px)').matches) return 2;
+        return 1;
+      }
+
+      function buildDots() {
+        if (!dotsWrap || !track || !cards.length) return;
+        dotsWrap.innerHTML = '';
+        var perView = cardsPerView();
+        var pageCount = Math.ceil(cards.length / perView);
+        if (pageCount <= 1) return;
+        for (var i = 0; i < pageCount; i++) {
+          var dot = document.createElement('button');
+          dot.type = 'button';
+          dot.className = 'reeve-reviews__dot' + (i === 0 ? ' is-active' : '');
+          dot.setAttribute('aria-label', 'Go to review page ' + (i + 1));
+          (function (index) {
+            var fn = function () {
+              var target = cards[index * perView];
+              if (target) track.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+            };
+            dot.addEventListener('click', fn);
+            listeners.push({ el: dot, type: 'click', fn: fn });
+          })(i);
+          dotsWrap.appendChild(dot);
+        }
+      }
+
+      function syncActiveDot() {
+        if (!dotsWrap || !track) return;
+        var dots = Array.prototype.slice.call(dotsWrap.children);
+        if (!dots.length) return;
+        var perView = cardsPerView();
+        var trackRect = track.getBoundingClientRect();
+        var center = trackRect.left + 4;
+        var closest = 0;
+        var closestDist = Infinity;
+        cards.forEach(function (card, i) {
+          var dist = Math.abs(card.getBoundingClientRect().left - center);
+          if (dist < closestDist) { closestDist = dist; closest = i; }
+        });
+        var activePage = Math.min(dots.length - 1, Math.floor(closest / perView));
+        dots.forEach(function (d, i) { d.classList.toggle('is-active', i === activePage); });
+      }
+
+      if (track && cards.length) {
+        buildDots();
+        var scrollTimer;
+        var scrollFn = function () {
+          clearTimeout(scrollTimer);
+          scrollTimer = setTimeout(syncActiveDot, 80);
+        };
+        track.addEventListener('scroll', scrollFn, { passive: true });
+        listeners.push({ el: track, type: 'scroll', fn: scrollFn });
+
+        var resizeTimer;
+        var resizeFn = function () {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(function () { buildDots(); syncActiveDot(); }, 150);
+        };
+        window.addEventListener('resize', resizeFn);
+        listeners.push({ el: window, type: 'resize', fn: resizeFn });
+      }
+
+      /* ---------------- "Read all reviews" modal ---------------- */
+      var openBtn = root.querySelector('[data-rr-open-modal]');
+      var modal = root.querySelector('[data-rr-modal]');
+      var closeBtn = root.querySelector('[data-rr-close-modal]');
+      var listEl = root.querySelector('[data-rr-modal-list]');
+      var emptyEl = root.querySelector('[data-rr-modal-empty]');
+      var pagerEl = root.querySelector('[data-rr-pagination]');
+      var ratingSelect = root.querySelector('[data-rr-filter-rating]');
+      var sortSelect = root.querySelector('[data-rr-sort]');
+      var searchInput = root.querySelector('[data-rr-search]');
+      var PER_PAGE = {{ s.reviews_per_page | default: 5 }};
+      var currentPage = 1;
+
+      function getFiltered() {
+        var ratingFilter = ratingSelect ? ratingSelect.value : 'all';
+        var sortBy = sortSelect ? sortSelect.value : 'recent';
+        var query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+        var result = allReviews.filter(function (r) {
+          if (ratingFilter !== 'all' && String(r.rating) !== ratingFilter) return false;
+          if (query) {
+            var haystack = ((r.title || '') + ' ' + (r.body || '') + ' ' + (r.name || '')).toLowerCase();
+            if (haystack.indexOf(query) === -1) return false;
+          }
+          return true;
+        });
+
+        result.sort(function (a, b) {
+          if (sortBy === 'highest') return b.rating - a.rating || a.sortIndex - b.sortIndex;
+          if (sortBy === 'lowest') return a.rating - b.rating || a.sortIndex - b.sortIndex;
+          return a.sortIndex - b.sortIndex;
+        });
+
+        return result;
+      }
+
+      function renderList() {
+        if (!listEl) return;
+        var filtered = getFiltered();
+        var pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+        currentPage = Math.min(currentPage, pageCount);
+        var start = (currentPage - 1) * PER_PAGE;
+        var pageItems = filtered.slice(start, start + PER_PAGE);
+
+        if (emptyEl) emptyEl.hidden = filtered.length > 0;
+
+        listEl.innerHTML = pageItems.map(function (r) {
+          return (
+            '<article class="reeve-reviews__modal-item">' +
+              '<div class="reeve-reviews__modal-item-top">' +
+                '<span class="reeve-reviews__modal-item-stars">' + starRow(starIconHtml, r.rating) + '</span>' +
+                (r.title ? '<h4 class="reeve-reviews__modal-item-title">' + escapeHtml(r.title) + '</h4>' : '') +
+              '</div>' +
+              (r.body ? '<p class="reeve-reviews__modal-item-body">' + escapeHtml(r.body) + '</p>' : '') +
+              '<div class="reeve-reviews__modal-item-meta">' +
+                '<span class="reeve-reviews__modal-item-name">' + escapeHtml(r.name) + '</span>' +
+                (r.date ? '<span class="reeve-reviews__modal-item-date">' + escapeHtml(r.date) + '</span>' : '') +
+                (r.verified ? '<span class="reeve-reviews__badge">' + '{{ icon_verified }}'.replace(/\n/g, '') + ' Verified Buyer</span>' : '') +
+              '</div>' +
+            '</article>'
+          );
+        }).join('');
+
+        renderPagination(pageCount);
+      }
+
+      function renderPagination(pageCount) {
+        if (!pagerEl) return;
+        pagerEl.innerHTML = '';
+        if (pageCount <= 1) return;
+
+        var prev = document.createElement('button');
+        prev.type = 'button';
+        prev.className = 'reeve-reviews__page-nav';
+        prev.setAttribute('aria-label', 'Previous page');
+        prev.innerHTML = '{{ icon_chevron }}'.replace(/\n/g, '');
+        prev.style.transform = 'scaleX(-1)';
+        prev.disabled = currentPage <= 1;
+        prev.addEventListener('click', function () { currentPage -= 1; renderList(); });
+        pagerEl.appendChild(prev);
+
+        for (var i = 1; i <= pageCount; i++) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'reeve-reviews__page-btn' + (i === currentPage ? ' is-active' : '');
+          btn.textContent = String(i);
+          (function (page) {
+            btn.addEventListener('click', function () { currentPage = page; renderList(); });
+          })(i);
+          pagerEl.appendChild(btn);
+        }
+
+        var next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'reeve-reviews__page-nav';
+        next.setAttribute('aria-label', 'Next page');
+        next.innerHTML = '{{ icon_chevron }}'.replace(/\n/g, '');
+        next.disabled = currentPage >= pageCount;
+        next.addEventListener('click', function () { currentPage += 1; renderList(); });
+        pagerEl.appendChild(next);
+      }
+
+      if (modal) {
+        var openFn = function () {
+          currentPage = 1;
+          renderList();
+          if (typeof modal.showModal === 'function') modal.showModal();
+          else modal.setAttribute('open', '');
+        };
+        var closeFn = function () { modal.close ? modal.close() : modal.removeAttribute('open'); };
+        var backdropFn = function (e) { if (e.target === modal) closeFn(); };
+
+        if (openBtn) { openBtn.addEventListener('click', openFn); listeners.push({ el: openBtn, type: 'click', fn: openFn }); }
+        if (closeBtn) { closeBtn.addEventListener('click', closeFn); listeners.push({ el: closeBtn, type: 'click', fn: closeFn }); }
+        modal.addEventListener('click', backdropFn);
+        listeners.push({ el: modal, type: 'click', fn: backdropFn });
+
+        [ratingSelect, sortSelect].forEach(function (el) {
+          if (!el) return;
+          var fn = function () { currentPage = 1; renderList(); };
+          el.addEventListener('change', fn);
+          listeners.push({ el: el, type: 'change', fn: fn });
+        });
+
+        if (searchInput) {
+          var searchTimer;
+          var searchFn = function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function () { currentPage = 1; renderList(); }, 200);
+          };
+          searchInput.addEventListener('input', searchFn);
+          listeners.push({ el: searchInput, type: 'input', fn: searchFn });
+        }
+      }
+
+      initJudgeMeSync();
+
+      /* ---------------- GSAP entrance ---------------- */
+      Promise.all([import('@theme/motion'), import('@theme/scroll-container')]).then(function (mods) {
+        var gsap = mods[0].gsap;
+        gsapRef = gsap;
+        var ScrollTrigger = mods[0].ScrollTrigger;
+        var prefersReducedMotion = mods[0].prefersReducedMotion;
+        var getScrollContainer = mods[1].getScrollContainer;
+        var reduced = prefersReducedMotion();
+
+        var headerItems = Array.prototype.slice.call(root.querySelectorAll('[data-rr-reveal]'));
+        var revealTargets = headerItems.concat(cards);
+
+        if (reduced || !animationsEnabled) {
+          gsap.set(revealTargets, { opacity: 1, y: 0 });
+          return;
+        }
+
+        gsap.set(headerItems, { opacity: 0, y: 20 });
+        gsap.set(cards, { opacity: 0, y: 24 });
+
+        var tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
+        headerItems.forEach(function (el, i) { tl.to(el, { opacity: 1, y: 0, duration: 0.6 }, i * 0.1); });
+        if (cards.length) tl.to(cards, { opacity: 1, y: 0, duration: 0.5, stagger: 0.08 }, '-=0.2');
+
+        var trigger = ScrollTrigger.create({
+          scroller: getScrollContainer(),
+          trigger: root,
+          start: 'top 82%',
+          once: true,
+          onEnter: function () { tl.play(); },
+        });
+        triggers.push(trigger);
+      });
+    }
+
+    init();
+
+    document.addEventListener('shopify:section:load', function (event) {
+      if (event.detail && event.detail.sectionId === '{{ section_id }}') init();
+    });
+
+    document.addEventListener('shopify:section:unload', function (event) {
+      if (event.detail && event.detail.sectionId === '{{ section_id }}') cleanup('{{ section_id }}');
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .reeve-reviews {
+    background: var(--rr-bg, #f7f4ef);
+    color: var(--rr-text, #10192b);
+    padding-block: var(--rr-padding-top-mobile, 48px) var(--rr-padding-bottom-mobile, 48px);
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-reviews {
+      padding-block: var(--rr-padding-top-desktop, 96px) var(--rr-padding-bottom-desktop, 96px);
+    }
+  }
+
+  .reeve-reviews__inner {
+    max-width: var(--rr-max-width, 1300px);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  /* ---------- Header ---------- */
+  .reeve-reviews__header {
+    text-align: center;
+    margin: 0 auto clamp(1.75rem, 5vw, 2.5rem);
+  }
+
+  .reeve-reviews__eyebrow {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-body--family);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--rr-accent, #d6316f);
+  }
+
+  .reeve-reviews__heading {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-heading--family);
+    font-style: var(--font-heading--style);
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    font-size: clamp(2rem, 7vw, 3.75rem);
+  }
+
+  .reeve-reviews__heading-normal {
+    color: var(--rr-text, #10192b);
+  }
+
+  .reeve-reviews__heading-highlight {
+    color: var(--rr-accent, #d6316f);
+  }
+
+  .reeve-reviews__subheading {
+    margin: 0 auto 1.75rem;
+    max-width: 34rem;
+    font-size: clamp(1rem, 1.8vw, 1.1rem);
+    color: var(--rr-text, #10192b);
+    opacity: 0.85;
+  }
+
+  /* ---------- Rating stats ---------- */
+  .reeve-reviews__stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .reeve-reviews__stats-score {
+    display: flex;
+    align-items: baseline;
+    font-family: var(--font-heading--family);
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .reeve-reviews__stats-number {
+    font-size: 3rem;
+    color: var(--rr-text, #10192b);
+  }
+
+  .reeve-reviews__stats-outof {
+    font-size: 1.4rem;
+    color: var(--rr-accent, #d6316f);
+  }
+
+  .reeve-reviews__stats-divider {
+    width: 1px;
+    height: 2.75rem;
+    background: var(--rr-card-border, #e2d7c3);
+    flex-shrink: 0;
+  }
+
+  .reeve-reviews__stats-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .reeve-reviews__stats-stars {
+    display: flex;
+    gap: 0.15rem;
+    color: var(--rr-accent, #d6316f);
+  }
+
+  .reeve-reviews__stats-stars svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .reeve-reviews__stats-count {
+    font-size: 0.92rem;
+    color: var(--rr-text, #10192b);
+  }
+
+  .reeve-reviews__stats-count strong {
+    color: var(--rr-accent, #d6316f);
+  }
+
+  @media screen and (max-width: 749px) {
+    .reeve-reviews__stats {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .reeve-reviews__stats-divider {
+      display: none;
+    }
+
+    .reeve-reviews__stats-detail {
+      align-items: center;
+      text-align: center;
+    }
+  }
+
+  /* ---------- Carousel ---------- */
+  .reeve-reviews__carousel {
+    margin-bottom: 1.25rem;
+  }
+
+  .reeve-reviews__track {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+  }
+
+  .reeve-reviews__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .reeve-reviews__card {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    min-width: 0;
+    background: var(--rr-card-bg, #ffffff);
+    border: 1px solid var(--rr-card-border, #e2d7c3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-reviews__card {
+      flex-basis: calc(50% - 0.625rem);
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .reeve-reviews__card {
+      flex-basis: calc(33.333% - 0.834rem);
+    }
+  }
+
+  .reeve-reviews__card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .reeve-reviews__card-stars {
+    display: flex;
+    gap: 0.1rem;
+    color: var(--rr-accent, #d6316f);
+  }
+
+  .reeve-reviews__card-stars svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .reeve-reviews__card-stars .is-empty {
+    opacity: 0.25;
+  }
+
+  .reeve-reviews__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--rr-accent, #d6316f) 12%, #fff);
+    color: var(--rr-accent, #d6316f);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .reeve-reviews__badge svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .reeve-reviews__quote-mark {
+    position: absolute;
+    top: 0.75rem;
+    left: 1.25rem;
+    font-family: Georgia, serif;
+    font-size: 4.5rem;
+    line-height: 1;
+    color: color-mix(in srgb, var(--rr-accent, #d6316f) 16%, transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .reeve-reviews__card-title {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 0.85rem;
+    font-family: var(--font-heading--family);
+    font-weight: 700;
+    font-size: 1.15rem;
+    line-height: 1.35;
+    color: var(--rr-text, #10192b);
+  }
+
+  .reeve-reviews__card-rule {
+    display: block;
+    width: 1.5rem;
+    height: 2px;
+    margin-bottom: 0.85rem;
+    background: var(--rr-accent, #d6316f);
+  }
+
+  .reeve-reviews__card-body {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--rr-muted, #6b6f68);
+  }
+
+  /* ---------- Dots + read all ---------- */
+  .reeve-reviews__dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .reeve-reviews__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    background: var(--rr-card-border, #e2d7c3);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .reeve-reviews__dot.is-active {
+    background: var(--rr-accent, #d6316f);
+    transform: scale(1.3);
+  }
+
+  .reeve-reviews__read-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0 auto;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: var(--font-heading--family);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--rr-text, #10192b);
+    text-decoration: underline;
+    text-decoration-color: var(--rr-accent, #d6316f);
+    text-underline-offset: 6px;
+    transition: color 0.2s ease;
+  }
+
+  .reeve-reviews__read-all:hover {
+    color: var(--rr-accent, #d6316f);
+  }
+
+  .reeve-reviews__read-all-arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .reeve-reviews__read-all:hover .reeve-reviews__read-all-arrow {
+    transform: translateX(3px);
+  }
+
+  /* ---------- Modal ---------- */
+  .reeve-reviews__modal {
+    width: min(900px, calc(100vw - 2rem));
+    max-height: min(88vh, 900px);
+    margin: auto;
+    padding: 0;
+    border: none;
+    border-radius: 20px;
+    background: var(--rr-bg, #f7f4ef);
+    color: var(--rr-text, #10192b);
+  }
+
+  .reeve-reviews__modal::backdrop {
+    background: rgb(10 12 10 / 0.55);
+  }
+
+  .reeve-reviews__modal-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-height: min(88vh, 900px);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .reeve-reviews__modal-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--rr-text, #10192b);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .reeve-reviews__modal-close:hover {
+    background: color-mix(in srgb, var(--rr-text, #10192b) 8%, transparent);
+  }
+
+  .reeve-reviews__modal-close svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .reeve-reviews__modal-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--rr-card-border, #e2d7c3);
+  }
+
+  .reeve-reviews__modal-heading-block {
+    padding-right: 2.75rem;
+  }
+
+  .reeve-reviews__modal-heading {
+    margin: 0 0 0.3rem;
+    font-family: var(--font-heading--family);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(1.6rem, 5vw, 2.1rem);
+    line-height: 1.1;
+  }
+
+  .reeve-reviews__modal-heading span:first-child {
+    color: var(--rr-text, #10192b);
+  }
+
+  .reeve-reviews__modal-subheading {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.75;
+  }
+
+  .reeve-reviews__stats--modal {
+    justify-content: flex-start;
+  }
+
+  .reeve-reviews__stats--modal .reeve-reviews__stats-detail {
+    align-items: flex-start;
+  }
+
+  /* ---------- Toolbar ---------- */
+  .reeve-reviews__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Mobile: two equal-width selects side by side, search full-width below */
+  .reeve-reviews__select-wrap {
+    position: relative;
+    flex: 1 1 calc(50% - 0.3rem);
+    min-width: 0;
+  }
+
+  .reeve-reviews__select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0.65rem 2.1rem 0.65rem 1rem;
+    border: 1px solid var(--rr-card-border, #e2d7c3);
+    border-radius: 10px;
+    background: var(--rr-card-bg, #fff);
+    color: var(--rr-text, #10192b);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media screen and (min-width: 550px) {
+    .reeve-reviews__select-wrap {
+      flex: 0 0 auto;
+    }
+
+    .reeve-reviews__select {
+      width: auto;
+    }
+  }
+
+  .reeve-reviews__select:focus-visible {
+    outline: 2px solid var(--rr-accent, #d6316f);
+    outline-offset: 1px;
+  }
+
+  .reeve-reviews__select-caret {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%) rotate(90deg);
+    pointer-events: none;
+    color: var(--rr-text, #10192b);
+    opacity: 0.6;
+  }
+
+  .reeve-reviews__select-caret svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .reeve-reviews__search {
+    flex: 1 1 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--rr-card-border, #e2d7c3);
+    border-radius: 10px;
+    background: var(--rr-card-bg, #fff);
+    color: var(--rr-text, #10192b);
+  }
+
+  @media screen and (min-width: 550px) {
+    .reeve-reviews__search {
+      flex: 1 1 200px;
+    }
+  }
+
+  .reeve-reviews__search svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  .reeve-reviews__search input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: inherit;
+  }
+
+  .reeve-reviews__search input:focus {
+    outline: none;
+  }
+
+  /* ---------- Modal review list ---------- */
+  .reeve-reviews__modal-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+    transition: opacity 0.2s ease;
+  }
+
+  .reeve-reviews__modal-list[aria-busy='true'] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .reeve-reviews__modal-item {
+    border: 1px solid var(--rr-card-border, #e2d7c3);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    background: var(--rr-card-bg, #fff);
+  }
+
+  .reeve-reviews__modal-item-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .reeve-reviews__modal-item-stars {
+    display: flex;
+    gap: 0.1rem;
+    color: var(--rr-accent, #d6316f);
+  }
+
+  .reeve-reviews__modal-item-stars svg {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .reeve-reviews__modal-item-stars .is-empty {
+    opacity: 0.25;
+  }
+
+  .reeve-reviews__modal-item-title {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+
+  .reeve-reviews__modal-item-body {
+    margin: 0 0 0.65rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--rr-muted, #6b6f68);
+  }
+
+  .reeve-reviews__modal-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+  }
+
+  .reeve-reviews__modal-item-name {
+    font-weight: 700;
+  }
+
+  .reeve-reviews__modal-item-date {
+    color: var(--rr-muted, #6b6f68);
+  }
+
+  .reeve-reviews__modal-empty {
+    text-align: center;
+    padding: 2rem 0;
+    opacity: 0.6;
+  }
+
+  .reeve-reviews__modal-empty[hidden] {
+    display: none;
+  }
+
+  /* ---------- Modal pagination ---------- */
+  .reeve-reviews__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+  }
+
+  .reeve-reviews__page-btn {
+    width: 2.1rem;
+    height: 2.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--rr-card-border, #e2d7c3);
+    border-radius: 8px;
+    background: var(--rr-card-bg, #fff);
+    color: var(--rr-text, #10192b);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .reeve-reviews__page-btn.is-active {
+    background: var(--rr-text, #10192b);
+    border-color: var(--rr-text, #10192b);
+    color: #fff;
+  }
+
+  .reeve-reviews__page-nav {
+    width: 2.1rem;
+    height: 2.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: var(--rr-text, #10192b);
+    cursor: pointer;
+  }
+
+  .reeve-reviews__page-nav svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .reeve-reviews__page-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reeve-reviews * {
+      transition: none !important;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve reviews carousel",
+  "tag": "section",
+  "class": "section-reeve-reviews-wrapper",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "The \"Review\" blocks below are always the fallback content. When Judge.me sync is on, real reviews for this product replace them automatically once Judge.me's widget loads."
+    },
+    {
+      "type": "header",
+      "content": "Judge.me sync"
+    },
+    {
+      "type": "checkbox",
+      "id": "sync_with_judgeme",
+      "label": "Sync with Judge.me",
+      "info": "Loads this product's real Judge.me reviews into the carousel and modal. Requires the Judge.me app to be installed with reviews on this product. Turn off to use only the \"Review\" blocks below.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Header content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Real people. Real results."
+    },
+    {
+      "type": "text",
+      "id": "heading_normal",
+      "label": "Heading",
+      "default": "Loved by"
+    },
+    {
+      "type": "text",
+      "id": "heading_highlight",
+      "label": "Heading (highlighted)",
+      "default": "Thousands."
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Hydration you'll actually look forward to."
+    },
+    {
+      "type": "header",
+      "content": "Rating stats"
+    },
+    {
+      "type": "text",
+      "id": "average_rating",
+      "label": "Average rating",
+      "default": "4.9"
+    },
+    {
+      "type": "text",
+      "id": "rating_out_of",
+      "label": "Out of",
+      "default": "5"
+    },
+    {
+      "type": "text",
+      "id": "review_count_number",
+      "label": "Review count",
+      "default": "2,000+"
+    },
+    {
+      "type": "text",
+      "id": "review_count_text",
+      "label": "Review count label",
+      "default": "verified reviews"
+    },
+    {
+      "type": "header",
+      "content": "\"Read all reviews\" button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_read_all",
+      "label": "Show button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "read_all_label",
+      "label": "Button label",
+      "default": "Read all reviews"
+    },
+    {
+      "type": "header",
+      "content": "All-reviews modal"
+    },
+    {
+      "type": "text",
+      "id": "all_reviews_heading_normal",
+      "label": "Modal heading",
+      "default": "All"
+    },
+    {
+      "type": "text",
+      "id": "all_reviews_heading_highlight",
+      "label": "Modal heading (highlighted)",
+      "default": "Reviews"
+    },
+    {
+      "type": "text",
+      "id": "all_reviews_subheading",
+      "label": "Modal subheading",
+      "default": "Real people. Real results."
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Search reviews..."
+    },
+    {
+      "type": "range",
+      "id": "reviews_per_page",
+      "label": "Reviews per page",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f7f4ef"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Heading / primary text",
+      "default": "#10192b"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted / body text",
+      "default": "#6b6f68"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent",
+      "default": "#d6316f"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_border_color",
+      "label": "Card / divider border",
+      "default": "#e2d7c3"
+    },
+    {
+      "type": "header",
+      "content": "Layout & spacing"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Content max width",
+      "min": 900,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 1300
+    },
+    {
+      "type": "header",
+      "content": "Padding — desktop"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "label": "Padding top",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "header",
+      "content": "Padding — mobile"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_animations",
+      "label": "Enable scroll animations",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Rating",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "type": "checkbox",
+          "id": "verified",
+          "label": "Verified buyer",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Quote / title",
+          "default": "Finally, an electrolyte drink I actually look forward to."
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Full review text",
+          "default": "The taste is amazing and it keeps me hydrated all day long. Love the clean ingredients!"
+        },
+        {
+          "type": "text",
+          "id": "reviewer_name",
+          "label": "Reviewer name",
+          "default": "Sarah M."
+        },
+        {
+          "type": "text",
+          "id": "reviewed_date",
+          "label": "Date label",
+          "info": "Free text, e.g. \"2 days ago\" or \"Aug 12, 2026\".",
+          "default": "2 days ago"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve reviews carousel",
+      "blocks": [
+        { "type": "review", "settings": { "rating": 5, "title": "Finally, an electrolyte drink I actually look forward to.", "body": "The taste is amazing and it keeps me hydrated all day long. Love the clean ingredients!", "reviewer_name": "Sarah M.", "reviewed_date": "2 days ago" } },
+        { "type": "review", "settings": { "rating": 5, "title": "The Blue Raspberry flavor is insane.", "body": "Refreshing without being overly sweet. Perfect balance and super refreshing after workouts.", "reviewer_name": "Alex R.", "reviewed_date": "5 days ago" } },
+        { "type": "review", "settings": { "rating": 5, "title": "Perfect after workouts. Tastes great and doesn't feel heavy.", "body": "It replenishes fast and I feel the difference. No crash, no bloating. 100% recommended!", "reviewer_name": "Jordan K.", "reviewed_date": "1 week ago" } },
+        { "type": "review", "settings": { "rating": 5, "title": "Best hydration drink I've tried.", "body": "I've tried so many brands but Reeve is on another level. Clean, effective and tastes amazing.", "reviewer_name": "Priya S.", "reviewed_date": "1 week ago" } },
+        { "type": "review", "settings": { "rating": 5, "title": "Love the energy and hydration combo.", "body": "Keeps me going throughout the day. The flavors are next level!", "reviewer_name": "Monica T.", "reviewed_date": "2 weeks ago" } },
+        { "type": "review", "settings": { "rating": 4, "title": "Great taste, wish it came in bigger packs.", "body": "Really enjoy the flavor and how quickly it mixes. Would love a bulk option.", "reviewer_name": "Daniel P.", "reviewed_date": "3 weeks ago" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

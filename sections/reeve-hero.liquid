@@ -1,0 +1,450 @@
+
+
+<script
+  src="{{ 'reeve-hero.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+{% liquid
+  assign heading = section.settings.heading
+  assign paragraph = section.settings.paragraph
+  assign button_label = section.settings.button_label
+  assign button_link = section.settings.button_link
+  assign ingredient_text = section.settings.ingredient_text
+  assign show_side_logo = section.settings.show_side_logo
+
+  assign fetch_priority = 'auto'
+  if section.index == 1
+    assign fetch_priority = 'high'
+  endif
+%}
+
+<reeve-hero-section
+  class="reeve-hero"
+  style="
+    --reeve-hero-min-height: {{ section.settings.min_height }}vh;
+    --reeve-hero-overlay-opacity: {{ section.settings.overlay_opacity | times: 1.0 | divided_by: 100 }};
+    --reeve-hero-side-logo-size: {{ section.settings.side_logo_size | default: 120 }}px;
+    {% if section.settings.text_color != blank %}
+      --reeve-hero-text-color: {{ section.settings.text_color }};
+    {% endif %}
+  "
+  {{ section.shopify_attributes }}
+>
+  <div class="reeve-hero__media">
+    {% if section.settings.media_type == 'video' and section.settings.video != blank %}
+      {{
+        section.settings.video
+        | video_tag:
+          poster: nil,
+          autoplay: true,
+          loop: true,
+          controls: false,
+          muted: true,
+          class: 'reeve-hero__media-item',
+          data-reeve-hero-video: true
+      }}
+    {% elsif section.settings.image != blank %}
+      {{
+        section.settings.image
+        | image_url: width: 3840
+        | image_tag:
+          width: section.settings.image.width,
+          height: section.settings.image.height,
+          widths: '750, 1100, 1500, 1780, 2000, 3000, 3840',
+          alt: section.settings.image.alt,
+          class: 'reeve-hero__media-item',
+          sizes: '100vw',
+          fetchpriority: fetch_priority
+      }}
+    {% else %}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'reeve-hero__media-item reeve-hero__media-item--placeholder' }}
+    {% endif %}
+    <div class="reeve-hero__overlay"></div>
+  </div>
+
+  {% if show_side_logo and settings.logo != blank %}
+    <div
+      class="reeve-hero__side-logo"
+      data-reeve-hero-side-logo
+      aria-hidden="true"
+    >
+      {{
+        settings.logo
+        | image_url: width: 400
+        | image_tag: class: 'reeve-hero__side-logo-image', alt: ''
+      }}
+    </div>
+  {% endif %}
+
+  <div class="reeve-hero__container{% if section.settings.section_width == 'page-width' %} reeve-hero__container--page-width{% endif %}">
+    <div
+      class="reeve-hero__content"
+      data-reeve-hero-content
+    >
+      {% if heading != blank %}
+        <h1 class="reeve-hero__heading">{{ heading }}</h1>
+      {% endif %}
+      {% if paragraph != blank %}
+        <div class="reeve-hero__paragraph">{{ paragraph }}</div>
+      {% endif %}
+      {% if button_label != blank %}
+        <a
+          {% if button_link != blank %}
+            href="{{ button_link }}"
+          {% else %}
+            role="link" aria-disabled="true"
+          {% endif %}
+          class="button reeve-hero__button"
+        >
+          {{ button_label }}
+          <span class="reeve-hero__button-icon" aria-hidden="true">↗</span>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if ingredient_text != blank %}
+    <p class="reeve-hero__ingredient">{{ ingredient_text }}</p>
+  {% endif %}
+
+  {% if section.settings.show_sound_toggle and section.settings.media_type == 'video' and section.settings.video != blank %}
+    <button
+      type="button"
+      class="reeve-hero__sound-toggle"
+      data-reeve-hero-sound-toggle
+      aria-pressed="false"
+    >
+      <span class="visually-hidden">Toggle video sound</span>
+      <span data-reeve-hero-sound-label>Sound: Off</span>
+    </button>
+  {% endif %}
+</reeve-hero-section>
+
+{% stylesheet %}
+  .reeve-hero {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    min-height: var(--reeve-hero-min-height, 90vh);
+    color: var(--reeve-hero-text-color, #fff);
+  }
+
+  .reeve-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .reeve-hero__media-item {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .reeve-hero__media-item--placeholder svg {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-background);
+  }
+
+  .reeve-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    opacity: var(--reeve-hero-overlay-opacity, 0.2);
+  }
+
+  .reeve-hero__side-logo {
+    display: none;
+    pointer-events: none;
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-hero__side-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: var(--padding-lg, 24px);
+      z-index: 1;
+      width: var(--reeve-hero-side-logo-size, 120px);
+      overflow: hidden;
+      opacity: 0.22;
+    }
+
+    /* The logo is a plain horizontal image — writing-mode has no effect on
+       <img> content, so getting it vertical is a real rotation. The image's
+       own (pre-rotation) height becomes its rotated width, so it's set to
+       match the wrapper's width above; its (pre-rotation) width is left auto
+       to preserve the logo's aspect ratio, becoming the rotated height. */
+    .reeve-hero__side-logo-image {
+      width: auto;
+      height: var(--reeve-hero-side-logo-size, 120px);
+      max-width: none;
+      object-fit: contain;
+      transform: rotate(-90deg);
+      filter: brightness(0) invert(1);
+    }
+  }
+
+  .reeve-hero__container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: var(--reeve-hero-min-height, 90vh);
+    padding-block-start: var(--padding-xl, 32px);
+    /* Extra clearance so the content never crowds the ingredient statement /
+       sound toggle row, which is separately pinned to the very bottom edge
+       of the hero (see .reeve-hero__ingredient / .reeve-hero__sound-toggle). */
+    padding-block-end: clamp(4.5rem, 10vw, 6rem);
+    padding-inline: var(--page-margin, 24px);
+  }
+
+  .reeve-hero__container--page-width {
+    max-width: var(--page-width, 1600px);
+    margin-inline: auto;
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-hero__container {
+      padding-inline-start: clamp(4rem, 12vw, 10rem);
+    }
+  }
+
+  .reeve-hero__content {
+    max-width: 34rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-md, 16px);
+  }
+
+  .reeve-hero__heading {
+    margin: 0;
+    color: inherit;
+    font-family: var(--font-heading--family);
+    font-style: var(--font-heading--style);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    line-height: 1.1;
+  }
+
+  .reeve-hero__paragraph {
+    margin: 0;
+    color: inherit;
+    font-size: var(--font-size--lg, 1.125rem);
+    line-height: 1.5;
+    max-width: 32rem;
+  }
+
+  .reeve-hero__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--gap-2xs, 8px);
+    width: fit-content;
+    padding-inline: var(--padding-lg, 24px);
+    padding-block: var(--padding-sm, 12px);
+  }
+
+  .reeve-hero__button-icon {
+    line-height: 1;
+  }
+
+  .reeve-hero__ingredient {
+    position: absolute;
+    inset-inline-start: var(--page-margin, 24px);
+    inset-block-end: var(--padding-md, 16px);
+    margin: 0;
+    color: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: var(--font-size--xs, 0.8125rem);
+    opacity: 0.85;
+  }
+
+  @media screen and (min-width: 750px) {
+    .reeve-hero__ingredient {
+      inset-inline-start: clamp(4rem, 12vw, 10rem);
+    }
+  }
+
+  .reeve-hero__sound-toggle {
+    position: absolute;
+    inset-inline-end: var(--page-margin, 24px);
+    inset-block-end: var(--padding-md, 16px);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: var(--font-size--xs, 0.8125rem);
+    font-family: var(--font-body--family);
+    opacity: 0.85;
+    transition: opacity var(--animation-speed) var(--animation-easing);
+  }
+
+  .reeve-hero__sound-toggle:hover {
+    opacity: 1;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Reeve hero",
+  "tag": "section",
+  "class": "reeve-hero-wrapper section-wrapper",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Background media"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "visible_if": "{{ section.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Video",
+      "visible_if": "{{ section.settings.media_type == 'video' }}"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay darkness",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "min_height",
+      "label": "Minimum height",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "default": 90
+    },
+    {
+      "type": "header",
+      "content": "Side logo"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_side_logo",
+      "label": "Show rotated logo watermark",
+      "info": "Uses the shop logo from Theme Settings. Desktop only.",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "side_logo_size",
+      "label": "Side logo size",
+      "min": 60,
+      "max": 320,
+      "step": 10,
+      "unit": "px",
+      "default": 120
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Welcome to Progress"
+    },
+    {
+      "type": "richtext",
+      "id": "paragraph",
+      "label": "Paragraph",
+      "default": "<p>Powered by clean formulas, crafted for everyday performance.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Explore the range"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Ingredient statement"
+    },
+    {
+      "type": "text",
+      "id": "ingredient_text",
+      "label": "Text",
+      "default": "Drinkable Formula™"
+    },
+    {
+      "type": "header",
+      "content": "Sound toggle"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sound_toggle",
+      "label": "Show sound toggle",
+      "info": "Only shown when the media type above is Video.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Content width",
+      "options": [
+        { "value": "page-width", "label": "Page" },
+        { "value": "full-width", "label": "Full width" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Reeve hero"
+    }
+  ]
+}
+{% endschema %}

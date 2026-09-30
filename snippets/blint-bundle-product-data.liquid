@@ -1,0 +1,40 @@
+{%- comment -%}
+  Param: product
+  Emits one JSON object: id, title, url, image, and one variant per
+  "box quantity" option value (same count-option detection as blint-product-custom.liquid),
+  so the bundle modal can price whichever flavor the shopper picks.
+{%- endcomment -%}
+{%- liquid
+  assign count_option = nil
+  assign count_idx = -1
+  for option in product.options_with_values
+    assign name_down = option.name | downcase
+    if name_down contains 'count' or name_down contains 'can' or name_down contains 'pack' or name_down contains 'size' or name_down contains 'quantity' or name_down contains 'qty'
+      assign count_option = option
+      assign count_idx = forloop.index0
+      break
+    endif
+  endfor
+-%}
+{
+  "id": {{ product.id | json }},
+  "title": {{ product.title | json }},
+  "url": {{ product.url | json }},
+  "image": {{ product.featured_image | image_url: width: 300 | json }},
+  "variants": [
+    {%- if count_option -%}
+      {%- for val in count_option.values -%}
+        {%- assign rep = nil -%}
+        {%- for variant in product.variants -%}
+          {%- if variant.options[count_idx] == val -%}
+            {%- assign rep = variant -%}
+            {%- break -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if rep -%}
+          { "boxValue": {{ val | json }}, "id": {{ rep.id }}, "price": {{ rep.price }}, "compare_at_price": {{ rep.compare_at_price | default: 0 }} }{% unless forloop.last %},{% endunless %}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  ]
+}
